@@ -9,7 +9,7 @@ A quiet, shared artwork: a small language model offers a thought, rests, and beg
 - **Study 01 — `/`:** Qwen 2.5 0.5B runs on the artist's Mac mini through Ollama. The site identifies this source. Browsers witness the stream; they do not power it.
 - **Study 02 — `/?room=browser`:** consenting browsers run the same model family through WebLLM/WebGPU. Each contributor generates an entire thought, then rests according to its contribution limit. Without an eligible contributor, generation pauses. No Mac or cloud inference fallback is used in this room.
 
-Browser contribution is opt-in, loads roughly 400 MB of model assets, offers 5/10/20% inference duty targets, pauses work when hidden, and releases its worker on Stop. Spectators do not download model assets. Duty is work time divided by work plus cooldown, not a hardware GPU-utilization or energy guarantee. The initial model load is a separate burst.
+Browser contribution is opt-in, loads roughly 300 MB of model assets, offers 5/10/20% inference duty targets, pauses work when hidden, and releases its worker on Stop. Spectators do not download model assets. Duty is work time divided by work plus cooldown, not a hardware GPU-utilization or energy guarantee. The initial model load is a separate burst.
 
 **This release does not shard a single forward pass across multiple browsers.** One capable contributor can run Study 02. A numerical “critical mass” greater than one would be misleading. See [the staged roadmap](docs/ARCHITECTURE.md) for the model-sharding stage.
 
@@ -45,6 +45,7 @@ Open `http://127.0.0.1:8787`. For frontend hot reload, also run `npm run dev` an
 npm run check
 npm run test:integration  # local Worker must be running; uses clearly marked test thoughts
 npm run test:ui           # npm exec playwright install chromium first
+npm run test:a11y         # automated WCAG A/AA scans
 npm run test:browser      # real model download + WebGPU hardware test; headed browser
 npx wrangler deploy --dry-run
 ```

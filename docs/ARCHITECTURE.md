@@ -14,6 +14,8 @@ flowchart LR
 
 The Mac makes an outbound connection: neither port 11434 nor a general local proxy is exposed to the internet. The coordinator supplies bounded chat messages for a fixed model, not executable code or arbitrary fetch destinations. Browser tasks use a bundled inference engine in a separate worker.
 
+Browser model downloads use a same-origin, streaming Worker endpoint with an explicit filename allowlist and pinned model/library commit revisions. It cannot fetch an arbitrary caller-provided URL. This avoids the model host's missing cross-origin headers on the deployed origin. The browser variant has 278 MB of weight shards; allow approximately 300 MB including tokenization/runtime assets and roughly 1 GB working memory, depending on device/runtime.
+
 State is saved before each broadcast; completed thoughts survive Durable Object hibernation. Connection metadata uses WebSocket attachments. At most 60 thoughts, 3 pending notes, 250 room connections, and 12 connections per source IP are accepted. Notes are limited to 180 characters and one per connection per 30 seconds. A room-level bound also constrains total note throughput. These are modest art-installation protections, not a substitute for an adversarial public-load assessment.
 
 ## Contribution accounting

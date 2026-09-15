@@ -74,7 +74,17 @@ try {
 } catch {
   /* First installation. */
 }
-execFileSync("launchctl", ["bootstrap", domain, plist], { stdio: "inherit" });
+// launchd can acknowledge bootout before the old service finishes unloading.
+// Retry that short transition instead of requiring elevated privileges.
+for (let attempt = 0; ; attempt += 1) {
+  try {
+    execFileSync("launchctl", ["bootstrap", domain, plist], { stdio: "pipe" });
+    break;
+  } catch (error) {
+    if (attempt >= 5) throw error;
+    await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+  }
+}
 console.log(
   `Installed ${label}. It restarts after login and reconnects to ${new URL(parsed.url).host}.`,
 );

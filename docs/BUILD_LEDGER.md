@@ -46,3 +46,6 @@ The requested first stage is a working Mac-hosted test. This is implemented, wit
 - Mac LaunchAgent restart/reconnect verified; the actual native provider remains connected.
 - Custom domains are configured, but registrar DNS still points at Namecheap as of final inspection. The user must save the two provided Cloudflare nameservers; no further code/deploy change is required for activation.
 - Public fallback: https://heldalive.oscarbarrera.workers.dev. Repository: https://github.com/OscarBarreraGithub/heldalive.
+
+- Final public-site layout and automated accessibility checks passed after deployment.
+- Reinstall testing exposed a brief launchd unload/reload race; the installer now retries that transition. Two successive reinstalls passed and the bridge reconnected.

@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "heldalive",
+  "account_id": "60ab5e4b784f9a15e59eb851df3e8c0b",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "heldalive.com", "custom_domain": true },
+    { "pattern": "www.heldalive.com", "custom_domain": true }
+  ],
+  "assets": { "directory": "./dist", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  "durable_objects": { "bindings": [{ "name": "ROOMS", "class_name": "LivingRoom" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["LivingRoom"] }],
+  "vars": { "INSTALLATION_NAME": "Held Alive" },
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 }
+}

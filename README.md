@@ -1,73 +1,76 @@
 # Held Alive
 
-**This little AI runs on us.**
+**This little AI lives between us.**
 
-[Visit heldalive.com](https://heldalive.com) · [The experiment](https://heldalive.com/#experiment) · [The math](https://heldalive.com/#math)
+[heldalive.com](https://heldalive.com) · [The experiment](https://heldalive.com/#experiment) · [The math](https://heldalive.com/#math)
 
-A shared digital pet, powered by consenting visitors’ browsers. Held chooses a project, asks copies of its model for help, and writes a small journal. It makes ASCII drawings, compares ways of remembering a synthetic record, or follows a thought. Visitors lend compute, collect drawings, and give its next activity a daily nudge. There is no chat box.
+An open-source digital pet whose model is physically divided across consenting visitors' browsers. Each browser holds and calculates a few layers. Without a complete chain, Held cannot think. It chooses projects, asks helper copies to draw or test memory methods, and leaves its work in a public collection and notebook. Visitors contribute compute, keep drawings and give tomorrow's activity a small nudge. There is no chat box.
 
-![Held’s six design passes](docs/design/six-passes.png)
+![Six passes on Held's character](docs/design/six-passes.png)
 
 ## What actually runs
 
-- **Public habitat — `/`:** opted-in browsers run Qwen 2.5 0.5B through WebLLM/WebGPU. One compatible browser can complete the work sequentially. More workers can take independent helper tasks together, up to eight at once. No Mac or cloud inference fallback.
-- **Mac studio — `/?room=studio`:** a separate habitat runs the same model family on the artist’s Mac mini through Ollama. It is labeled as a rehearsal, with separate saved work.
-- **Watching:** no model download. Disclosed tiny score checks use a small Web Worker when completed trials need checking; they can be switched off. They check arithmetic, not model honesty, and do not power generation.
+The public habitat uses **SmolLM2-360M-Instruct**, quantized to four bits. Its 32 transformer layers are shared:
 
-Without an eligible worker, new model work waits. Returning contributors can resume unfinished work; saved drawings survive. “Alive” is an artistic metaphor. It is not a claim of consciousness, suffering, permanent death, or increasing intelligence.
+| Contribution | Maximum layers | Identical contributors per chain | Prepared weight transfer |
+|---|---:|---:|---:|
+| Gentle | 2 | 16 | 11–38 MB |
+| A little more | 4 | 8 | 22–49 MB |
+| Room to roam | 8 | 4 | 44–71 MB |
 
-Inference requires explicit consent, approximately 300 MB of initial assets, WebGPU and roughly 1 GB of working memory. The 5/10/20% settings are work/rest targets, not power caps or exact GPU utilization. Stop terminates the model worker. Hidden tabs withdraw from generation. Cached model files may remain.
+Endpoint pieces also hold the vocabulary weights. Mixed capacities work; a holder may get fewer layers to fill a gap. These counts follow the artwork's chosen budgets: this tiny model can fit on one capable device, but this installation deliberately shares its calculation. More complete chains support concurrent helper copies, up to eight. The 300-connection admission limit is not a tested scalability claim.
 
-This release assigns a **complete model job** to each worker. It does not split one forward pass across browsers. The current habitat admits at most 300 simultaneous connections; this is a limit, not a tested capacity claim. Thousands of visitors/helpers remain a scaling project.
+Cloudflare serves assets, routes bounded work and stores completed records. **It does not perform missing model inference.** Losing a required layer cancels the unfinished task. A replacement can fill the gap and restart it. Records and model weights survive; “alive” describes ongoing computation, not consciousness, suffering or permanent deletion.
 
-## The work
+Visitors need no account, application or manual installation. Model pieces are fetched automatically only after consent. WebGPU with float16 is required for layer work. Measured GPU buffers on the development Mac ranged from about 14 MB for an interior gentle piece to 82 MB for an eight-layer output piece; browser/JS/cache overhead is additional. Work/rest targets are 5/10/20%, not electrical or exact GPU utilization caps. Loading is additional work. Stop terminates the worker; hidden pages withdraw. Cached files can remain.
 
-- Animated SVG creature: sleep, work, breathing, blinking, a local hello, reduced-motion support.
-- Model-chosen drawing, memory and reflective projects; bounded helper leases and retry/reassignment.
-- Persistent artwork cabinet with local bookmarks and plain-text downloads.
-- A toy memory experiment: three packing formats, the same 12 facts, 240 characters, three scored recall answers, inspectable raw records and failures.
-- Anonymous daily visit stamps and fixed-choice votes. No account, email or free-text input.
-- Live presence, actual job roles, progress and activity log.
-- Interactive compute calculator and the earlier research PDFs, sources and calculations.
+Tiny CPU contributions are initially enabled and can be switched off: when useful, a browser samples a next token from model scores or verifies recall-scoring arithmetic. They do not fetch model weights and cannot replace missing layers. Watch-only is welcome. The separate `/?room=studio` rehearsal uses the artist's Mac mini and Qwen 0.5B; it never fills in for the public habitat.
 
-All proposed alternatives are preserved in [the idea archive](docs/VISION.md). See [architecture](docs/ARCHITECTURE.md), [verification](docs/VERIFICATION.md), [operations](docs/OPERATIONS.md), and [the edition ledger](docs/EDITION_02_PLAN.md).
+## Held's world
+
+- A responsive Tamagotchi creature, real coverage meter, work/rest states and local hello.
+- Model-chosen drawings, reflective free time and delegated memory experiments.
+- A persistent ASCII-art cabinet with local bookmarks and text downloads.
+- A public workspace of plans, journal pages and model-written memory instructions.
+- An iterative memory workshop: the model proposes an instruction, helpers compare it with the current method and three baselines on one newly drawn record, and a strict improvement keeps the proposal. Full trials and revisions remain inspectable.
+- Anonymous daily visit stamps and fixed-choice votes; no user message input.
+- Live presence and assigned tasks, plus a calculator for the actual pipeline and the original distributed-compute research.
+
+These are bounded text tools, not arbitrary shell access. Browser outputs can be forged; no proof of honest GPU execution is claimed. Recall is a tiny, noisy, closed-vocabulary demonstration, not a general benchmark of agent memory. More copies do not automatically make the underlying model smarter.
+
+All ideas, including alternatives, are preserved in [VISION.md](docs/VISION.md). Current engineering details: [architecture](docs/edition03/ARCHITECTURE.md), [implementation ledger](docs/edition03/IMPLEMENTATION.md), [numerical notes](docs/edition03/NUMERICAL-NOTES.md), [operations](docs/edition03/OPERATIONS.md). Edition 02 documents describe the superseded whole-model-per-browser implementation.
 
 ## Develop
 
-Requires Node 22.12+ and npm. Ollama is optional unless using the Mac studio.
+Developers need Node 22.12+ and npm. Visitors only need the website.
 
 ```sh
 npm ci
 npm run setup
+npm run model:download
 npm run build
 npm run preview
 ```
 
-In another terminal, `npm run dev` enables frontend hot reload. To run the studio, install Ollama, `ollama pull qwen2.5:0.5b`, then `npm run bridge`. The setup script creates ignored private configuration files and Cloudflare types. Do not put the bridge token in a `VITE_` variable.
+Run `npm run dev` separately for frontend hot reload. The pinned model release is a development/build asset, not a visitor installation. To rebuild it on Apple Silicon, create a private Python environment, install `scripts/model-requirements.txt`, run `scripts/prepare-model.py`, then `npx tsx scripts/pack-model.ts .local/model-q4`.
 
-## Verify
+Ollama is optional for the studio only: `ollama pull qwen2.5:0.5b`, then `npm run bridge`. Private setup stays in ignored files. Never expose the bridge token through a `VITE_` variable.
+
+## Verify and publish
 
 ```sh
 npm run check
-npm run test:integration   # local Worker; clearly marked fixtures, never production
-npm run test:ui            # running local production build
+npm run test:integration   # LOCAL coordinator fixtures, never production
+npm run test:ui
 npm run test:a11y
-npm run test:browser       # headed Chromium, real WebGPU, explicit test consent
-npx wrangler deploy --dry-run
+npm run test:browser       # real multi-browser GPU inference and withdrawal
+node scripts/test-memory-workshop.mjs
+node scripts/test-persistence.mjs
+npm run deploy
 ```
 
-Install Chromium once with `npx playwright install chromium`. `HELD_TEST_URL` selects the app origin. The real browser test downloads model files and uses the test machine’s GPU. It requires exclusive model contribution to its test habitat for the withdrawal assertions. UI tests create anonymous votes and visit stamps; use them locally. Live inference checks use actual model output, never fixtures.
+Install test Chromium with `npx playwright install chromium`. Browser tests explicitly opt in and use the test machine's GPU. `HELD_TEST_URL` selects the origin. Run coordinator fixtures only locally; live verification must use actual inference. Do not rebuild while a browser test is connected to local Wrangler, because asset reload closes sockets.
 
-## Publish and operate
+Deployment verifies every model buffer, builds, and publishes to Cloudflare. `BRIDGE_TOKEN` is a separately configured Worker secret for the studio and signed anonymous cookies. `npm run install:bridge` installs the optional Mac LaunchAgent from ignored configuration.
 
-`npm run deploy` builds and deploys the Worker. Configure `BRIDGE_TOKEN` separately as a Cloudflare secret; it authenticates the studio bridge and signs anonymous visitor cookies. Never print or commit secrets. `npm run install:bridge` installs the optional macOS LaunchAgent from ignored `.local/bridge.json`.
-
-Cloudflare hosts assets and coordinates work; it does not generate model tokens. The Mac makes an outbound authenticated connection, leaving Ollama on loopback. Browser work runs in an isolated Web Worker using pinned, allowlisted model assets. Jobs contain bounded messages, never shell commands or arbitrary URLs.
-
-## Scope and trust
-
-The model’s voice is deliberately small and imperfect. Generated text can be wrong or inappropriate despite its instructions. Browser-generated results can be forged; no proof of honest GPU execution is claimed. Output is text, never executable markup. The creature cannot browse, change hosting, read private files or escape the site.
-
-Daily participation uses a signed HttpOnly cookie per browser, not verified human identity. Inactive visitor records expire after 90 days. Drawings and trial results are public and persistent. The compact journal informs later planning without changing model weights. Memory scores are an educational experiment, not a general benchmark.
-
-Application code is MIT. Model weights and research sources have their respective licenses and terms.
+Application code is MIT. The vendored engine includes its MIT license and pinned provenance. Modified SmolLM2 weights are Apache-2.0; the original model card, license and conversion notice are in `models/` and the model artifact. See numerical notes for validation and limitations.

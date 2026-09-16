@@ -68,6 +68,6 @@ describe("public boundaries", () => {
     ).toContain("Mac mini");
     expect(
       planMessages("browser", "", { art: 0, memory: 0, wander: 0 })[0].content,
-    ).toContain("the model is not split");
+    ).toContain("the model is split");
   });
 });

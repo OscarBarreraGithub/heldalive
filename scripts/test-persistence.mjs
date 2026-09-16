@@ -5,7 +5,8 @@ const base = "http://127.0.0.1:8793";
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 let server;
 let client;
-let heartbeat;
+const heartbeats = [];
+const clients = [];
 async function until(fn, label, ms = 45000) {
   const end = Date.now() + ms;
   while (Date.now() < end) {
@@ -38,7 +39,7 @@ async function start() {
   }, "Worker start");
 }
 async function stop() {
-  clearInterval(heartbeat);
+  heartbeats.splice(0).forEach(clearInterval);
   if (server) {
     try {
       process.kill(-server.pid, "SIGTERM");
@@ -51,7 +52,7 @@ async function stop() {
   }
   await delay(400);
 }
-async function connect() {
+async function oneHolder() {
   const cookie = (await fetch(base + "/api/identity")).headers
     .get("set-cookie")
     .split(";")[0];
@@ -66,18 +67,31 @@ async function connect() {
     send: (d) => ws.send(JSON.stringify(d)),
   };
   client = c;
+  clients.push(c);
   ws.on("message", (raw) => {
     const d = JSON.parse(String(raw));
+    if (d.type === "pipeline_assign") {
+      c.piece = d.piece;
+      c.send({ type: "pipeline_ready", key: d.piece.key });
+    }
     if (d.type === "job") c.jobs.push(d.job);
     if (d.type === "state") c.state = d;
   });
   ws.on("error", () => {});
   await new Promise((resolve) => ws.once("open", resolve));
-  heartbeat = setInterval(() => {
-    if (ws.readyState === 1) c.send({ type: "ping", visible: true });
-  }, 10000);
-  c.send({ type: "ready", ready: true, duty: 0.2, visible: true });
+  heartbeats.push(
+    setInterval(() => {
+      if (ws.readyState === 1) c.send({ type: "ping", visible: true });
+    }, 10000),
+  );
+  c.send({ type: "pipeline_offer", duty: 0.2, visible: true });
+  await until(() => c.piece, "assigned piece");
   return c;
+}
+async function connect() {
+  const holders = [];
+  for (let i = 0; i < 4; i++) holders.push(await oneHolder());
+  return holders[0];
 }
 function complete(c, job, text) {
   c.send({ type: "chunk", jobId: job.id, text });
@@ -135,12 +149,12 @@ try {
     () => c.state?.artworkCount === before.artworkCount + 1,
     "resumed drawing persisted",
   );
-  c.send({ type: "ready", ready: false });
+  c.send({ type: "pipeline_stop" });
   console.log(
     "PASS: process restart preserves archive, counters, project and in-flight work; orphaned lease is reassigned with a new ID",
   );
 } finally {
-  clearInterval(heartbeat);
-  client?.ws.close();
+  heartbeats.splice(0).forEach(clearInterval);
+  for (const c of clients) c.ws.close();
   await stop();
 }

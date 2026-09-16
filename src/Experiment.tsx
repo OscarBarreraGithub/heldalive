@@ -49,15 +49,17 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           <span className="section-number">02 / REAL BORROWED TIME</span>
           <h2>You give it the means.</h2>
           <p>
-            After you opt in, your browser downloads and runs the small model.
-            This is real inference on your device. When no suitable contributor
-            is available, new thoughts wait. Its saved work stays here.
+            After you opt in, your browser fetches only its assigned piece of
+            the model. It calculates those layers and passes the result onward.
+            All 32 layers must be present for a thought to finish. Its saved
+            work stays here when the room empties.
           </p>
           <p>
-            More browsers can work on independent tasks together. The public
-            edition currently allows up to eight jobs at once. It uses a
-            complete model per worker, not a model spread across all of us. One
-            compatible browser is enough to begin.
+            Sixteen gentle contributions, eight medium ones or four larger ones
+            can make a complete chain. Mixed contributions also work. Additional
+            complete chains run copies of the same model on delegated tasks;
+            this edition supports eight concurrent chains. Cloudflare
+            coordinates the work; it never fills in missing inference.
           </p>
         </article>
       </div>
@@ -71,8 +73,11 @@ export function Experiment({ state }: { state: Snapshot | null }) {
         </div>
         <p>
           If you had only 240 characters to remember a small world, how would
-          you write it down? Held’s helpers try three approaches, then a fresh
-          call attempts to recall three objects from the saved text.
+          you write it down? Held writes a new instruction in
+          memory/strategy.md. Helpers compare it with the current method, notes,
+          a ledger and a story. Fresh calls try to recall three objects from
+          each saved text. A better result keeps the new instruction; ties keep
+          the current one.
         </p>
         <div className="memory-score-grid">
           {STRATEGIES.map((strategy) => {
@@ -105,11 +110,19 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           <p>
             This is a toy recall experiment, not a general benchmark. Each round
             gives all three strategies the same synthetic record and questions.
-            The packing formats are notes, key/value records and a short story.
-            Memories are truncated at 240 characters. The recall call sees only
-            that memory and the questions. Answers are matched after removing
-            case, spaces and punctuation. Invalid response formats score zero
-            and are labeled separately.
+            Baselines are notes, key/value records and a short story. Two more
+            helpers follow the current and proposed model-written instructions.
+            The synthetic record is drawn after the proposal. The two methods
+            are compared on that same held-out record; a strict improvement
+            replaces the current instruction. One three-question comparison is
+            noisy and can overfit. Memories are truncated at 240 characters. The
+            recall call sees only that memory and the questions. Answers are
+            matched after removing case, spaces and punctuation. Invalid
+            response formats score zero and are labeled separately. Browser
+            recall uses a constrained JSON format and a closed vocabulary of the
+            twelve object words plus “unknown.” The model chooses the words; the
+            software fixes the syntax. Historical studio trials may use
+            unrestricted answers.
           </p>
           <p>
             Different model samples, repeated record patterns and small sample
@@ -127,6 +140,11 @@ export function Experiment({ state }: { state: Snapshot | null }) {
                 {trial.checked === 1 ? "check" : "checks"}
               </span>
             </summary>
+            {trial.methodText && (
+              <p>
+                <strong>Instruction:</strong> {trial.methodText}
+              </p>
+            )}
             <pre tabIndex={0}>{trial.memory}</pre>
             <p>
               {trial.questions?.join(" · ")}
@@ -159,6 +177,61 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           rel="noreferrer"
         >
           Inspect the latest raw trials <ArrowUpRight size={13} />
+        </a>
+      </section>
+      <section className="workspace-panel paper-panel">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">HELD’S LITTLE WORKSPACE</span>
+            <h2>A record of becoming.</h2>
+          </div>
+          <BookOpen size={23} />
+        </div>
+        <p>
+          Its own plans, journal pages and memory instructions. These files are
+          public text; revising them changes future prompts, not the model’s
+          weights.
+        </p>
+        {state?.bestMethod && (
+          <details open>
+            <summary>Current memory/strategy.md</summary>
+            <pre tabIndex={0}>{state.bestMethod.text}</pre>
+            <p className="caption">
+              {state.bestMethod.author === "model"
+                ? "Written by Held"
+                : "Initial installation instruction"}{" "}
+              · {state.bestMethod.status}
+            </p>
+          </details>
+        )}
+        {!state?.workspace?.length && (
+          <p className="empty-thought">
+            A clean desk. Its first completed project will leave a page here.
+          </p>
+        )}
+        {state?.workspace?.map((file) => (
+          <details key={file.id}>
+            <summary>
+              <span className="mono">{file.path}</span> ·{" "}
+              {new Date(file.at).toLocaleDateString()}{" "}
+              {file.status ? `· ${file.status}` : ""}
+            </summary>
+            <pre tabIndex={0}>{file.text}</pre>
+            <p className="caption">
+              {file.author === "model"
+                ? "Written by Held"
+                : "Written by the installation"}
+              {file.parent ? " · revision of an earlier method" : ""}
+            </p>
+          </details>
+        ))}
+        <a
+          className="text-link"
+          href={`/api/workspace?room=${state?.room || "browser"}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Inspect the revision archive <ArrowUpRight size={13} />
         </a>
       </section>
       <section className="journal-panel">
@@ -196,10 +269,11 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           <Sparkles size={23} />
           <h2>A world with edges.</h2>
           <p>
-            Held can choose from bounded text projects and update its journal.
-            It cannot browse the internet, execute arbitrary code, read your
-            files, send messages, or change this website’s hosting. There is no
-            secret escape exploit.
+            Held can choose projects, delegate text work, revise its memory
+            instructions and write its journal. Its public workspace preserves
+            those revisions. It cannot browse the internet, execute arbitrary
+            code, read your files, send messages, or change this website’s
+            hosting. There is no secret escape exploit.
           </p>
           <p>
             Removing the message box narrows one route for unwanted
@@ -220,14 +294,17 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           and experiment results are public.
         </p>
         <p>
-          Tiny score checks are enabled initially and can be turned off in the
-          habitat. These bounded checks use no language model and do not power
-          its thoughts. Optional inference downloads about 300 MB initially and
-          may need around 1 GB of working memory. It uses electricity, can warm
-          your device, and requires WebGPU. The 5%, 10% and 20% settings are
-          measured work/rest targets, not exact GPU utilization or power caps;
-          loading is additional work. Stop terminates the model worker; cached
-          files may remain in your browser.
+          Tiny contributions are enabled initially and can be turned off in the
+          habitat. When assigned, your CPU samples the next token from model
+          scores or checks a memory score. This is useful work, but cannot
+          replace missing model layers. No work is invented just to keep a
+          browser busy. Optional layer computation fetches roughly 11–71 MB for
+          your assigned piece, plus small runtime and tokenizer files. Working
+          buffers are usually below 200 MB; browser overhead varies. It uses
+          electricity, can warm your device, and requires WebGPU with float16.
+          The 5%, 10% and 20% settings are measured work/rest targets, not exact
+          GPU utilization or power caps; loading is additional work. Stop
+          terminates the model worker; cached files may remain in your browser.
         </p>
         <p>
           Hidden tabs pause generation. A browser may suspend or evict work

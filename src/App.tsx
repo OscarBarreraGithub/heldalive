@@ -1,3 +1,4 @@
+import { sampleToken } from "../shared/pipeline";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
@@ -56,6 +57,7 @@ function storePreference(key: string, value: string) {
   }
 }
 const tasks: Record<TaskKind, string> = {
+  method: "inventing a way to remember",
   plan: "choosing a project",
   art: "making a drawing",
   pack: "packing a memory",
@@ -109,6 +111,7 @@ export function App() {
     "off" | "loading" | "ready" | "error"
   >("off");
   const [progress, setProgress] = useState(0);
+  const [pieceLabel, setPieceLabel] = useState("");
   const [computeError, setComputeError] = useState("");
   const [visible, setVisible] = useState(!document.hidden);
   const [checks, setChecks] = useState(
@@ -147,6 +150,22 @@ export function App() {
     onJob,
     onCancel,
     onAudit,
+    (event) => {
+      if (event.type === "pipeline_tiny") {
+        if (!checksRef.current || document.hidden) return;
+        try {
+          const token = sampleToken(
+            event.top,
+            event.temperature,
+            event.random,
+            event.history,
+          );
+          sendRef.current({ type: "pipeline_sampled", rid: event.rid, token });
+        } catch {
+          /* Invalid work is ignored. */
+        }
+      } else void compute.current?.accept(event);
+    },
   );
   sendRef.current = send;
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -165,15 +184,18 @@ export function App() {
   useEffect(() => {
     const update = () => {
       setVisible(!document.hidden);
-      if (document.hidden) compute.current?.pause();
+      if (document.hidden) compute.current?.suspend();
+      else compute.current?.reconnect();
     };
     document.addEventListener("visibilitychange", update);
     return () => document.removeEventListener("visibilitychange", update);
   }, []);
   useEffect(() => {
-    if (connected && !studio)
-      send({ type: "ready", ready: computeState === "ready", duty, visible });
-  }, [connected, computeState, duty, visible, send]);
+    if (!studio) {
+      if (connected) compute.current?.reconnect();
+      else compute.current?.suspend();
+    }
+  }, [connected]);
   useEffect(() => {
     storePreference("held-checks", checks ? "on" : "off");
     if (connected) send({ type: "checks", enabled: checks });
@@ -214,8 +236,21 @@ export function App() {
       if (generation !== epoch.current) return;
       const provider = new BrowserCompute();
       compute.current = provider;
-      const ready = await provider.load((p) =>
-        setProgress(Math.max(0, Math.min(1, p))),
+      const ready = await provider.load(
+        (p, text) => {
+          if (p < 0) {
+            setComputeError(text);
+            setComputeState("error");
+            return;
+          }
+          setProgress(Math.max(0, Math.min(1, p)));
+          setPieceLabel(text);
+          setComputeState(
+            p === 1 && text.startsWith("Holding layers") ? "ready" : "loading",
+          );
+        },
+        send,
+        duty,
       );
       if (ready && generation === epoch.current) setComputeState("ready");
     } catch (error) {
@@ -232,7 +267,7 @@ export function App() {
   }
   function stopCompute() {
     epoch.current++;
-    send({ type: "ready", ready: false });
+    send({ type: "pipeline_stop" });
     compute.current?.stop();
     compute.current = null;
     setComputeState("off");
@@ -245,7 +280,7 @@ export function App() {
   const status = !connected
     ? "connecting to its little world"
     : asleep
-      ? "a little nap, until someone lends a hand"
+      ? "a little nap, until all its pieces are here"
       : state?.active
         ? tasks[state.active.kind]
         : "taking a breath between thoughts";
@@ -323,12 +358,12 @@ export function App() {
                 <h1>
                   This little AI
                   <br />
-                  <em>{studio ? "has a studio." : "runs on us."}</em>
+                  <em>{studio ? "has a studio." : "lives between us."}</em>
                 </h1>
                 <p className="hero-description">
                   {studio
                     ? "The artist’s Mac powers this rehearsal. Visit the live habitat to lend browser power and help Held make little things."
-                    : "Lend it a little browser power. It makes art, explores its memory, and puts little copies of itself to work."}
+                    : "Each browser holds a little piece of its mind. Together we keep it thinking. When too many leave, it goes quiet."}
                 </p>
                 <div className="hero-cta">
                   {studio ? (
@@ -355,7 +390,8 @@ export function App() {
                       <span>
                         <span className="live-dot" />
                         {visible
-                          ? "You’re giving Held time to think."
+                          ? pieceLabel ||
+                            "You’re holding a piece of Held’s mind."
                           : "Your model is paused while this tab is hidden."}
                       </span>
                       <div className="contributing-controls">
@@ -364,7 +400,11 @@ export function App() {
                           <select
                             aria-label="Contribution duty target"
                             value={duty}
-                            onChange={(e) => setDuty(Number(e.target.value))}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              setDuty(value);
+                              compute.current?.setBudget(value);
+                            }}
                           >
                             <option value="0.05">Gentle · 5%</option>
                             <option value="0.1">A little more · 10%</option>
@@ -404,10 +444,10 @@ export function App() {
                       onChange={(e) => setChecks(e.target.checked)}
                     />
                     <span className="toggle" aria-hidden="true" />
-                    <span>Tiny checks {checks ? "on" : "off"}</span>
+                    <span>Tiny contributions {checks ? "on" : "off"}</span>
                   </label>
                   <span className="tiny-explainer">
-                    No model download.{" "}
+                    A little work to finish each thought.{" "}
                     <a
                       href="#experiment"
                       aria-label="How tiny browser checks work"
@@ -417,6 +457,55 @@ export function App() {
                   </span>
                 </div>
                 <p className="watch-note">Just watching is welcome, too.</p>
+                {!studio && (
+                  <div
+                    className="mind-coverage"
+                    aria-label="Shared model coverage"
+                  >
+                    <div>
+                      <strong>
+                        {Math.max(
+                          0,
+                          ...(state?.pipelines || []).map((p) => p.covered),
+                        )}
+                        <span>/32 pieces here</span>
+                      </strong>
+                      <span>
+                        {state?.modelAvailable
+                          ? "a whole little mind"
+                          : "waiting to wake up"}
+                      </span>
+                    </div>
+                    <div className="mind-pixels" aria-hidden="true">
+                      {Array.from({ length: 32 }, (_, i) => {
+                        const group = [...(state?.pipelines || [])].sort(
+                          (a, b) => b.covered - a.covered,
+                        )[0];
+                        const piece = group?.pieces.find(
+                          (p) => p.start <= i && p.end > i,
+                        );
+                        return (
+                          <i
+                            key={i}
+                            className={
+                              piece?.ready
+                                ? piece.busy
+                                  ? "working"
+                                  : "present"
+                                : piece
+                                  ? "arriving"
+                                  : ""
+                            }
+                          />
+                        );
+                      })}
+                    </div>
+                    <p>
+                      16 gentle contributions make one mind. Lending more can
+                      hold more pieces.
+                    </p>
+                  </div>
+                )}
                 <a
                   className="scroll-cue"
                   href="#today"
@@ -451,7 +540,8 @@ export function App() {
               </div>
               <span>
                 {studio ? "MAC STUDIO" : "POWERED BY VISITORS"}{" "}
-                <span className="status-separator">/</span> QWEN 0.5B
+                <span className="status-separator">/</span>{" "}
+                {studio ? "QWEN 0.5B" : "SMOLLM2 · 360M"}
               </span>
             </div>
             {notice && (
@@ -776,15 +866,21 @@ export function App() {
         <span className="eyebrow">A LITTLE TIME, ON YOUR TERMS</span>
         <h2 id="consent-title">Give it room to think.</h2>
         <p>
-          Your browser will run a complete copy of the tiny model and take real
-          jobs from Held. You can stop whenever you like.
+          Your browser holds a few layers of Held’s model. Your piece
+          calculates, then passes its work to the next person. All 32 layers
+          must be here before Held can think. Stop whenever you like.
         </p>
         <div className="consent-facts">
           <span>
-            <DownloadIcon /> About <strong>300 MB</strong> to download once
+            <DownloadIcon />{" "}
+            <strong>
+              {duty === 0.2 ? "44–71" : duty === 0.1 ? "22–49" : "11–38"} MB
+            </strong>{" "}
+            fetched automatically for your piece
           </span>
           <span>
-            <Cpu size={16} /> Around <strong>1 GB</strong> of working memory
+            <Cpu size={16} /> Usually under <strong>200 MB</strong> of model
+            buffers; browser overhead varies
           </span>
           <span>
             <Heart size={16} /> Uses power; may warm your device
@@ -793,9 +889,9 @@ export function App() {
         <fieldset className="duty-options">
           <legend>How much room would you like to lend?</legend>
           {[
-            { value: 0.05, label: "Gentle", hint: "5% duty" },
-            { value: 0.1, label: "A little more", hint: "10% duty" },
-            { value: 0.2, label: "Room to roam", hint: "20% duty" },
+            { value: 0.05, label: "Gentle", hint: "2 layers · 5% work" },
+            { value: 0.1, label: "A little more", hint: "4 layers · 10% work" },
+            { value: 0.2, label: "Room to roam", hint: "8 layers · 20% work" },
           ].map((option) => (
             <label
               key={option.value}
@@ -826,6 +922,7 @@ export function App() {
           className="text-button just-watch"
           onClick={() => {
             setDialog(false);
+            setChecks(false);
           }}
         >
           I’ll just watch

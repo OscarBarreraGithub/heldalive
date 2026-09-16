@@ -1,14 +1,10 @@
+import type { PipelineView } from "./pipeline";
 export type Mode = "mac" | "browser";
 export type Phase = "sleeping" | "waiting" | "thinking" | "resting";
 export type ProjectKind = "art" | "memory" | "wander";
 export type TaskKind =
-  | "plan"
-  | "art"
-  | "pack"
-  | "recall"
-  | "reflect"
-  | "wander";
-export type Strategy = "notes" | "ledger" | "story";
+  "method" | "plan" | "art" | "pack" | "recall" | "reflect" | "wander";
+export type Strategy = "notes" | "ledger" | "story" | "custom";
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
   content: string;
@@ -17,6 +13,7 @@ export type Job = {
   id: string;
   messages: ChatMessage[];
   maxTokens: number;
+  pieces?: { start: number; end: number }[];
   kind?: TaskKind;
   temperature?: number;
 };
@@ -47,7 +44,7 @@ export type Project = {
   at: number;
   completed: number;
   total: number;
-  status: "working" | "reflecting" | "finished";
+  status: "working" | "reflecting" | "finished" | "interrupted";
 };
 export type Activity = {
   id: string;
@@ -57,8 +54,11 @@ export type Activity = {
   source?: Mode;
 };
 export type MemoryTrial = {
+  model?: string;
   id: string;
   strategy: Strategy;
+  methodId?: string;
+  methodText?: string;
   memory: string;
   answers: string[];
   expected: string[];
@@ -87,6 +87,15 @@ export type Profile = {
   completedJobs: number;
   checks: number;
 };
+export type WorkspaceFile = {
+  id: string;
+  path: string;
+  text: string;
+  at: number;
+  author: "model" | "installation";
+  parent?: string;
+  status?: "candidate" | "kept" | "retired";
+};
 export type Snapshot = {
   type: "state";
   version: 2;
@@ -98,6 +107,7 @@ export type Snapshot = {
   readyContributors: number;
   model: string;
   modelAvailable: boolean;
+  pipelines?: PipelineView[];
   thoughts: Thought[];
   active: {
     id: string;
@@ -124,6 +134,8 @@ export type Snapshot = {
     { correct: number; total: number; trials: number }
   >;
   journal: string;
+  workspace?: WorkspaceFile[];
+  bestMethod?: WorkspaceFile;
   votes: Record<ProjectKind, number>;
   day: string;
   totalTokens: number;

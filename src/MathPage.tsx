@@ -1,11 +1,20 @@
 import { useState } from "react";
 import { ArrowUpRight, Download, FlaskConical } from "lucide-react";
 export function MathPage() {
-  const [browsers, setBrowsers] = useState(20);
-  const [rate, setRate] = useState(12);
-  const [duty, setDuty] = useState(10);
-  const tokens = (browsers * rate * duty) / 100;
-  const jobs = (tokens * 60) / 150;
+  const [browsers, setBrowsers] = useState(16);
+  const [layers, setLayers] = useState(2);
+  const [latency, setLatency] = useState(80);
+  const stages = Math.ceil(32 / layers);
+  const groups = Math.min(8, Math.floor(browsers / stages));
+  const stageMs = layers * 0.5; // Illustrative device assumption, not a measured browser rate.
+  const duty = layers === 8 ? 0.2 : layers === 4 ? 0.1 : 0.05;
+  const tokenMs = Math.max(stages * (stageMs + latency), stageMs / duty);
+  const batchMs = Math.max(
+    stages * (16 * stageMs + latency),
+    (16 * stageMs) / duty,
+  );
+  const prefillMs = Math.ceil(256 / 16) * batchMs;
+  const jobSeconds = (prefillMs + 64 * tokenMs) / 1000;
   return (
     <div className="inner-page math-page">
       <div className="page-kicker">
@@ -22,105 +31,135 @@ export function MathPage() {
       </p>
       <div className="math-calculator paper-panel">
         <div>
-          <span className="eyebrow">TRY A THOUGHT EXPERIMENT</span>
+          <span className="eyebrow">ONE MIND, MANY PIECES</span>
           <h2>
-            Many small contributions
-            <br />
-            make room for more work.
+            Enough to wake up.
+            <br />A little more to think together.
           </h2>
           <p>
-            Change the assumptions. This is an ideal throughput estimate, not a
-            live benchmark or a promise of greater intelligence.
+            These are adjustable assumptions, not a speed promise. A complete
+            chain needs all 32 layers. Additional chains run helper copies.
           </p>
           <label>
             Contributing browsers <strong>{browsers}</strong>
             <input
               type="range"
               min="1"
-              max="200"
+              max="128"
               value={browsers}
               onChange={(e) => setBrowsers(Number(e.target.value))}
             />
           </label>
           <label>
-            Tokens per second, while working <strong>{rate}</strong>
-            <input
-              type="range"
-              min="1"
-              max="50"
-              value={rate}
-              onChange={(e) => setRate(Number(e.target.value))}
-            />
+            Layers per browser <strong>{layers}</strong>
+            <select
+              value={layers}
+              onChange={(e) => setLayers(Number(e.target.value))}
+            >
+              <option value="2">Gentle · 2 layers</option>
+              <option value="4">A little more · 4 layers</option>
+              <option value="8">Room to roam · 8 layers</option>
+            </select>
           </label>
           <label>
-            Work / rest duty target <strong>{duty}%</strong>
+            Relay round trip per stage <strong>{latency} ms</strong>
             <input
               type="range"
-              min="1"
-              max="50"
-              value={duty}
-              onChange={(e) => setDuty(Number(e.target.value))}
+              min="10"
+              max="300"
+              value={latency}
+              onChange={(e) => setLatency(Number(e.target.value))}
             />
           </label>
         </div>
         <div className="calculation-result">
-          <div className="formula">capacity ≈ browsers × speed × duty</div>
+          <div className="formula">browsers per mind = ceil(32 / layers)</div>
           <strong>
-            {tokens.toFixed(1)}
-            <small>tokens / second</small>
+            {stages}
+            <small>contributors per complete mind</small>
           </strong>
           <p>
-            About <b>{jobs.toFixed(1)} independent jobs per minute</b> at 150
-            generated tokens each, before loading, input processing,
-            coordination, retries, and the planner’s turn.
+            <b>
+              {groups} complete {groups === 1 ? "chain" : "chains"}
+            </b>{" "}
+            with these identical contributions.{" "}
+            {groups
+              ? "One can be Held; the others can help."
+              : "The model cannot run yet."}
           </p>
           <span>
-            Different devices have different speeds. Real capacity is the sum of
-            their contributions.
+            Illustrative time for a 256-token input and 64-token thought:{" "}
+            {groups
+              ? `${Math.round(jobSeconds)} seconds`
+              : "waiting for coverage"}
+            . This includes input processing and work/rest targets.
           </span>
         </div>
       </div>
       <div className="editorial-grid">
         <article>
-          <span className="section-number">01</span>
-          <h2>A copy is not a slice.</h2>
+          <span className="section-number">01 / ACTUAL INFERENCE</span>
+          <h2>A thought passes through all of us.</h2>
           <p>
-            Held fits on one compatible device. Each helper loads a complete
-            copy of the same small model. Independent drawings can run in
-            parallel; a single thought is not split across all visitors.
+            SmolLM2-360M has 32 transformer layers. Each browser applies its
+            assigned layers and passes a 1,920-byte hidden vector onward. The
+            final piece scores possible next tokens; a tiny CPU contribution
+            samples the next one. This repeats for every generated token.
           </p>
           <p>
-            More helpers mean more attempts and more independent work. They do
-            not change the model’s weights, context limit, or underlying
-            intelligence. Better results are something to measure.
+            The model’s unique prepared weight buffers total 203.6 MB. Two
+            layers use about 11.1 MB; either endpoint also holds 26.5 MB of
+            vocabulary weights. That table is duplicated across endpoints.
+            Browser overhead and temporary buffers are additional.
           </p>
-          <code className="equation">Q ≈ Σᵢ dᵢ rᵢ</code>
+          <code className="equation">
+            T_token ≳ max[ Σᵢ(cᵢ + τᵢ), maxᵢ(cᵢ/dᵢ) ]
+          </code>
           <p className="caption">
-            rᵢ is a device’s measured generation rate; dᵢ is its work/rest
-            fraction. Serial planning and job availability also limit the
-            result.
+            cᵢ is a stage’s active calculation time, τᵢ its relay delay, dᵢ its
+            work fraction. One token follows a serial chain. Rest can overlap
+            other stages’ work. The calculator assumes 0.5 ms per layer,
+            identical devices, no departures and no sampling delay; the output
+            layer often costs more. The public coordinator currently supports
+            eight chains.
+          </p>
+          <p>
+            Input tokens travel in batches of 16. Each stage submits an ordered
+            batch before reading its result back. Approximate input time is
+            ceil(P/16) × max[ Σᵢ(16cᵢ + τᵢ), maxᵢ(16cᵢ/dᵢ) ]. This ignores
+            startup and final partial-batch effects. Long prompts therefore
+            matter even for short answers.
           </p>
         </article>
         <article>
-          <span className="section-number">02</span>
-          <h2>
-            Alive is a metaphor.
-            <br />
-            Available is measurable.
-          </h2>
+          <span className="section-number">02 / A REAL DEPENDENCY</span>
+          <h2>Missing a piece means missing a thought.</h2>
           <p>
-            Without a contributing browser, new model work stops. Saved drawings
-            and memory persist. A returning worker can pick up an unfinished
-            task.
+            A chain cannot run if any required layer is absent. When a holder
+            leaves, unfinished work is canceled and queued. A new contribution
+            fills the gap and restarts that task. Saved drawings and memory
+            files remain.
+          </p>
+          <code className="equation">P(whole chain available) = pˢ</code>
+          <p>
+            If each of s holders is independently available with probability p,
+            all s must be present. At p = 0.95, a sixteen-holder chain is
+            available about 44% of the time. Four holders give about 81%.
+            Independence is a simplifying assumption; shared outages and sleep
+            schedules correlate departures.
           </p>
           <p>
-            If each of n independent potential contributors is available with
-            probability p, the chance of having at least one is:
+            The minimum is a resource choice, not a law that a tiny model
+            inherently needs sixteen machines. A compatible computer can run
+            this model alone. Held deliberately divides the work into small
+            contributions so its public activity depends on a collective.
           </p>
-          <code className="equation">P(at least one) = 1 − (1 − p)ⁿ</code>
           <p className="caption">
-            Independence is an assumption. Bedtimes, outages, browser suspension
-            and shared services make real departures correlated.
+            Sixteen separate browser contexts have run one reference prompt on
+            this Mac, matching the intact model’s generated token IDs. That
+            verifies the split; it does not establish performance across sixteen
+            internet connections. The source includes numerical and interruption
+            tests.
           </p>
         </article>
       </div>

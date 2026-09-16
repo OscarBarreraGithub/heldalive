@@ -1,3 +1,5 @@
+> Historical edition 02 document. The current shared-layer architecture and verification are in [edition03](edition03/IMPLEMENTATION.md).
+
 # Edition 02 verification
 
 Date: 16 September 2026. Development machine: Apple Silicon Mac, 24 GiB RAM. This is a record of exercised behavior, not a security or performance certification.

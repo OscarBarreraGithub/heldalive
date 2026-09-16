@@ -1,0 +1,37 @@
+# Edition 03 verification
+
+This is a record of what was tested, not a claim that every browser or internet connection behaves the same way.
+
+## Actual inference
+
+- Native MLX quantized reference, intact WGSL inference, four-stage and sixteen-stage WGSL inference were compared on a pinned reference prompt. The same generated token IDs were obtained. Floating-point logits differ slightly; see NUMERICAL-NOTES.md.
+- The final sixteen-context regression also checked exact tokenization and native leading predictions on 27-, 425- and 49-token prompts, including Unicode. Maximum shared top-ten logit error was 0.028542; raw results and reference prompts are committed.
+- A silent dimension bug was caught before integration and corrected. Tokenization was checked against the actual model tokenizer.
+- The batched stage primitive produced exactly the same top logits as sequential sixteen-stage execution on the reference prompt. It preserves queue ordering while avoiding a separate GPU readback for each input token.
+- Sixteen separate browser contexts each held two layers in the actual application. One planning turn completed, selecting a memory project. Withdrawal made the model unavailable and stopped token production; rejoining restored coverage. The measured observation interval, including the final withdrawal check, was 28.099 seconds for that local test. This is one Mac with sixteen contexts, not sixteen independent physical devices or a WAN benchmark.
+- Eight generous contributors formed two real inference chains and completed a twelve-task memory project in a 45.125-second test interval. A model-written proposal was tested against the current method and three baselines; both current and new methods scored 0/3 in that run, so the current instruction was kept. The result is poor and remains recorded as such. It is not evidence of improved general memory.
+- The native model also produced weak records and drawings. Prompts were tightened and packing/proposal temperature reduced; no successful outcome is fabricated to hide model limitations.
+
+## Application behavior
+
+- 17 focused unit tests cover contribution budgets, actual layer coverage, gap replacement, unequal allocations, bounded activations, candidate IDs, sampling, output grammar, origin boundaries and task data handling.
+- Local coordinator fixtures cover signed identities, fixed choices, refusal of visitor text, incomplete coverage, two complete chains, model-written instructions, paired method decisions and public file revisions. These are fixture tests, not GPU proofs, and cannot run on a public origin.
+- A separate local Worker process was restarted during an unfinished task. Archive, counters and project survived; a fresh four-holder chain received a new lease and completed the requeued drawing.
+- All four UI pages were checked at 320, 390, 768 and 1440 pixels: no horizontal overflow; consent, focus, Escape, watch-only, vote persistence, local greeting, archive downloads, calculator and research links passed. Spectators fetched no model weights.
+- Automated WCAG A/AA checks passed on desktop/mobile pages, the contribution dialog and the separate Mac studio. These do not replace human accessibility testing.
+
+## Trust and limits
+
+No honest-GPU proof is implemented. A holder can forge intermediate or final output. Token sampling, score checking and content hashes serve specific bounded purposes; they are not a Byzantine consensus system. Anonymous cookies do not establish unique humans.
+
+Measured GPU buffers ranged from 13.9 MB for a two-layer interior stage to 81.5 MB for an eight-layer output stage. Browser/JavaScript/caching and shader overhead is additional. Physical phones and all browser engines have not been exhaustively tested. The eight-chain/300-connection configuration is a bound, not a demonstrated large-scale capacity.
+
+The model is intentionally tiny and weak. Closed-vocabulary recall, one small paired comparison, finite synthetic cases and repeated model sampling limit scientific interpretation. The original and helpers have bounded text tools; there is no arbitrary code execution or unsupervised access to hosting accounts.
+
+## Test interruption
+
+A later headed workshop rerun was stopped on request because its separate Chrome windows disrupted the desktop. It is not counted as a pass. Browser test scripts now default to headless Chromium; headless WebGPU/float16 availability was verified on the development Mac.
+
+## Publication checks
+
+Pending final source publication and live deployment verification. Do not treat this section as completed until the deployed version and observed outcomes are added.

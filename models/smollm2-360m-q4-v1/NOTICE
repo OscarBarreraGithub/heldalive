@@ -1,0 +1,5 @@
+SmolLM2-360M-Instruct by Hugging Face / HuggingFaceTB.
+Source: https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct
+Source revision: a10cc1512eabd3dde888204e902eca88bddb4951
+Licensed Apache-2.0.
+Held Alive modifications: converted with mlx-lm 0.31.3 to four-bit affine quantization, group size 64, float16 scales; packed into browser GPU buffers. These are modified weights, not an official Hugging Face distribution.

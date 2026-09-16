@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true });
-await mkdir(".local/qa/edition02", { recursive: true });
+await mkdir(".local/qa/edition03", { recursive: true });
 const errors = [];
 try {
   const context = await browser.newContext({
@@ -16,7 +16,7 @@ try {
   const modelRequests = [];
   const outgoing = [];
   page.on("request", (r) => {
-    if (/huggingface|mlc-ai|\.wasm|\/api\/model\//.test(r.url()))
+    if (/huggingface|mlc-ai|\.wasm|\/api\/model\/|\/weights\//.test(r.url()))
       modelRequests.push(r.url());
   });
   page.on("websocket", (ws) =>
@@ -28,11 +28,11 @@ try {
   );
   await page.goto(base);
   await page
-    .getByRole("heading", { name: "This little AI runs on us." })
+    .getByRole("heading", { name: "This little AI lives between us." })
     .waitFor();
   await page.getByRole("button", { name: "Lend a little life" }).click();
   await page.getByRole("dialog").waitFor({ state: "visible" });
-  assert.match(await page.getByRole("dialog").innerText(), /300 MB/);
+  assert.match(await page.getByRole("dialog").innerText(), /11–38/);
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   assert.equal(
@@ -44,11 +44,11 @@ try {
   );
   await page.getByRole("button", { name: "Lend a little life" }).click();
   await page.getByRole("button", { name: "I’ll just watch" }).click();
-  const checks = page.getByRole("checkbox", { name: /Tiny checks/ });
+  const checks = page.getByRole("checkbox", { name: /Tiny contributions/ });
   await checks.uncheck();
   await page.reload();
   await page
-    .getByRole("heading", { name: "This little AI runs on us." })
+    .getByRole("heading", { name: "This little AI lives between us." })
     .waitFor();
   assert.equal(await checks.isChecked(), false, "Tiny check opt out persists");
   await page.getByRole("button", { name: "Say hello to Held" }).click();
@@ -77,7 +77,7 @@ try {
     "No visitor message input",
   );
   await page.screenshot({
-    path: ".local/qa/edition02/desktop.png",
+    path: ".local/qa/edition03/desktop.png",
     fullPage: true,
   });
   for (const section of ["collection", "experiment", "math"]) {
@@ -111,7 +111,7 @@ try {
         .fill("10");
       assert.match(
         await page.locator(".calculation-result").innerText(),
-        /12\.0/,
+        /0 complete chains/,
       );
       for (const path of [
         "/research/short-paper.pdf",
@@ -124,7 +124,7 @@ try {
       }
     }
     await page.screenshot({
-      path: `.local/qa/edition02/${section}.png`,
+      path: `.local/qa/edition03/${section}.png`,
       fullPage: true,
     });
   }
@@ -142,7 +142,7 @@ try {
       );
       if (width === 390)
         await page.screenshot({
-          path: `.local/qa/edition02/mobile-${section}.png`,
+          path: `.local/qa/edition03/mobile-${section}.png`,
           fullPage: true,
         });
     }

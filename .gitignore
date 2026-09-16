@@ -10,3 +10,5 @@ dist/
 coverage/
 *.cpuprofile
 worker-configuration.d.ts
+
+public/weights/

@@ -1,0 +1,27 @@
+import { makeModelSpec, mlxParamNaming } from "./vendor/compiler/model-spec";
+export const MODEL = makeModelSpec({
+  id: "held-smollm2-360m-q4-v1",
+  d: 960,
+  layers: 32,
+  heads: 15,
+  kvHeads: 5,
+  headDim: 64,
+  ffn: 2560,
+  vocab: 49152,
+  pageSize: 16,
+  maxPages: 64,
+  maxSeq: 8192,
+  ropeTheta: 100000,
+  rmsEps: 1e-5,
+  tiedEmbeddings: true,
+  qkNorm: false,
+  stops: [0, 2],
+  chatTemplateId: "chatml",
+  tokenizerKind: "byteLevel",
+  hfRepo: "HuggingFaceTB/SmolLM2-360M-Instruct",
+  weightsRevision: "a10cc1512eabd3dde888204e902eca88bddb4951-q4-g64-f16-v1",
+  manifestName: "model.safetensors.index.json",
+  weightFormat: "mlx-safetensors",
+  paramNaming: mlxParamNaming(""),
+});
+export const WEIGHT_BASE = "/weights/smollm2-360m-q4-v1/";

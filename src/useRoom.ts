@@ -11,6 +11,7 @@ export function useRoom(
   onJob: (job: Job) => void,
   onCancel: () => void,
   onAudit: (job: AuditJob) => void,
+  onPipeline: (event: any) => void,
 ) {
   const [state, setState] = useState<Snapshot | null>(null);
   const [profile, setProfile] = useState<Profile>({
@@ -23,8 +24,8 @@ export function useRoom(
   const [connected, setConnected] = useState(false);
   const [notice, setNotice] = useState("");
   const wsRef = useRef<WebSocket | null>(null);
-  const handlers = useRef({ onJob, onCancel, onAudit });
-  handlers.current = { onJob, onCancel, onAudit };
+  const handlers = useRef({ onJob, onCancel, onAudit, onPipeline });
+  handlers.current = { onJob, onCancel, onAudit, onPipeline };
   const send = useCallback((event: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN)
       wsRef.current.send(JSON.stringify(event));
@@ -73,6 +74,8 @@ export function useRoom(
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data) as ServerEvent;
+          if (data.type.startsWith("pipeline_"))
+            handlers.current.onPipeline(data);
           if (data.type === "state" && data.version === 2) setState(data);
           if (data.type === "profile") setProfile(data.profile);
           if (data.type === "job") handlers.current.onJob(data.job);

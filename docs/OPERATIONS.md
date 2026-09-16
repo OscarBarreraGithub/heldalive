@@ -1,3 +1,5 @@
+> Historical edition 02 document. The current shared-layer architecture and verification are in [edition03](edition03/IMPLEMENTATION.md).
+
 # Operating Held Alive
 
 ## Live services

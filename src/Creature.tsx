@@ -82,7 +82,7 @@ export function Creature({
         className="pet-device"
         viewBox="0 0 490 490"
         role="img"
-        aria-label={`Held, a little mint-green pixel creature with a sprout. ${asleep ? "Resting until a browser lends compute." : thinking ? "Working on a project." : "Taking a little breath."}`}
+        aria-label={`Held, a little mint-green pixel creature with a sprout. ${asleep ? "Resting until all its model pieces are present." : thinking ? "Working on a project." : "Taking a little breath."}`}
       >
         <defs>
           <linearGradient
@@ -425,7 +425,7 @@ export function Creature({
           ? "a rehearsal, powered by the artist’s Mac"
           : workers > 0
             ? `${workers} ${workers === 1 ? "browser is" : "browsers are"} lending a little life`
-            : "one small browser can wake it up"}
+            : "a little mind, waiting for its pieces"}
       </div>
     </div>
   );

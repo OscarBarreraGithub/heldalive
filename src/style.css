@@ -3065,3 +3065,41 @@ button:disabled {
     max-width: 105%;
   }
 }
+
+/* A little mind assembled from borrowed pieces. */
+.mind-coverage { margin-top: 22px; max-width: 390px; border-top: 1px solid var(--line, #deddd3); padding-top: 17px; }
+.mind-coverage > div:first-child {display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:11px;color:#68695e;}
+.mind-coverage strong {font-size:21px;color:#343c31;letter-spacing:-.7px;}
+.mind-coverage strong span {font-size:11px;letter-spacing:0;font-weight:500;margin-left:4px;}
+.mind-pixels {display:grid;grid-template-columns:repeat(32,1fr);gap:3px;margin:10px 0;}
+.mind-pixels i {height:12px;background:#e1e2d8;border-radius:3px;transition:background .4s;}
+.mind-pixels i.present {background:#70946a;}
+.mind-pixels i.arriving {background:#d4a96d;}
+.mind-pixels i.working {background:#eb866c;}
+.mind-coverage p {font-size:11px!important;line-height:1.55!important;color:#68695e!important;max-width:340px;margin:0;}
+
+.workspace-panel {margin:48px 0;padding:32px;}
+.workspace-panel details {border-top:1px solid #deddd3;padding:16px 0;}
+.workspace-panel pre {white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.7;}
+.workspace-panel summary {cursor:pointer;font-size:13px;}
+.math-calculator select {margin:8px 0;display:block;padding:9px;border:1px solid #c5cbbb;background:#fafaf3;border-radius:8px;color:#343c31;}
+
+@media (max-width: 600px) {
+  .hero-copy { display: contents; }
+  .hero-copy > .eyebrow { order: 1; }
+  .hero-copy h1 { order: 2; }
+  .hero-description { order: 3; margin-bottom: 0; }
+  .hero-creature { order: 4; margin: 0 auto 10px; max-width: 330px; }
+  .hero-cta { order: 5; margin-top: 3px; }
+  .tiny-check-control { order: 6; }
+  .watch-note { order: 7; }
+  .mind-coverage { order: 8; margin-top: 10px; }
+  .creature-stage { height: 290px; }
+  .pet-device { width: 250px; }
+  .pet-name-tag { bottom: 0; min-width: 190px; }
+  .device-footnote { display: none; }
+  .creature-note { top: 14px; right: -3px; font-size: 10px; }
+  .spark-one { top: 80px; left: 4px; }
+  .spark-two { bottom: 61px; }
+  .workspace-panel { padding: 20px; }
+}

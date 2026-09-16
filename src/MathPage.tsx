@@ -224,8 +224,12 @@ export function MathPage() {
           Petals: collaborative inference across distributed machines{" "}
           <ArrowUpRight size={13} />
         </a>
-        <a href="https://webllm.mlc.ai/" target="_blank" rel="noreferrer">
-          WebLLM: the browser inference runtime <ArrowUpRight size={13} />
+        <a
+          href="https://github.com/abgnydn/zero-tvm"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Zero-TVM: the browser inference engine <ArrowUpRight size={13} />
         </a>
         <a href="/research/source-audit.md" target="_blank">
           Our source audit <ArrowUpRight size={13} />

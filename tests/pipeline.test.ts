@@ -111,3 +111,22 @@ it("constrains syntax while retaining a model choice of project and subject", ()
   expect(result.focus).toBe("x".repeat(24));
   expect(result.helpers).toBe(1);
 });
+it("lets the model end a short subject without filling the focus budget", () => {
+  const grammar = new OutputGrammar(tok, "plan");
+  let text = "";
+  let proposed = 0;
+  const subject = 'a seed"';
+  for (let step = 0; !grammar.finished && step < 300; step++) {
+    const allowed = grammar.allowed();
+    const id =
+      allowed?.[0] ??
+      grammar.filter([[subject.charCodeAt(proposed++), 1]])[0][0];
+    grammar.consume(id);
+    text += tok.decode([id]);
+  }
+  expect(JSON.parse(text)).toEqual({
+    project: "art",
+    focus: "a seed",
+    helpers: 1,
+  });
+});

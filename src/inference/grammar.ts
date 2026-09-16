@@ -78,6 +78,12 @@ export class OutputGrammar {
   filter(top: [number, number][]): [number, number][] {
     const s = this.segments[this.index];
     if (s?.kind !== "focus") return top;
+    // Let the model finish its subject naturally. Rejecting every closing quote
+    // forced it to fill the full budget with spurious fields or punctuation.
+    if (s.tokens > 0 && /^\s*["']/.test(this.tokenizer.decode([top[0][0]]))) {
+      this.index++;
+      return [[this.allowed()![0], top[0][1]]];
+    }
     const valid = top.filter(([id]) => {
       const text = this.tokenizer.decode([id]);
       return /^[\x20-\x7e]+$/.test(text) && !/["\\]/.test(text);

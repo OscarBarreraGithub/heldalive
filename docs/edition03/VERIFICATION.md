@@ -14,7 +14,7 @@ This is a record of what was tested, not a claim that every browser or internet 
 
 ## Application behavior
 
-- 17 focused unit tests cover contribution budgets, actual layer coverage, gap replacement, unequal allocations, bounded activations, candidate IDs, sampling, output grammar, origin boundaries and task data handling.
+- 18 focused unit tests cover contribution budgets, actual layer coverage, gap replacement, unequal allocations, bounded activations, candidate IDs, sampling, output grammar, origin boundaries and task data handling.
 - Local coordinator fixtures cover signed identities, fixed choices, refusal of visitor text, incomplete coverage, two complete chains, model-written instructions, paired method decisions and public file revisions. These are fixture tests, not GPU proofs, and cannot run on a public origin.
 - A separate local Worker process was restarted during an unfinished task. Archive, counters and project survived; a fresh four-holder chain received a new lease and completed the requeued drawing.
 - All four UI pages were checked at 320, 390, 768 and 1440 pixels: no horizontal overflow; consent, focus, Escape, watch-only, vote persistence, local greeting, archive downloads, calculator and research links passed. Spectators fetched no model weights.
@@ -28,9 +28,18 @@ Measured GPU buffers ranged from 13.9 MB for a two-layer interior stage to 81.5 
 
 The model is intentionally tiny and weak. Closed-vocabulary recall, one small paired comparison, finite synthetic cases and repeated model sampling limit scientific interpretation. The original and helpers have bounded text tools; there is no arbitrary code execution or unsupervised access to hosting accounts.
 
+- Final headless workshop after the rate-limit fix completed all twelve tasks without reconnect churn. The current instruction scored 1/3 and the candidate 0/3, so the incumbent stayed. This run includes the revised packing prompts; it remains a tiny, poor-quality result rather than evidence of meaningful improvement.
+
 ## Test interruption
 
 A later headed workshop rerun was stopped on request because its separate Chrome windows disrupted the desktop. It is not counted as a pass. Browser test scripts now default to headless Chromium; headless WebGPU/float16 availability was verified on the development Mac.
+
+## Final fixes
+
+- Planner subject syntax now permits the model to end a short subject naturally; previously rejecting its closing quote forced unnecessary trailing text. A regression test covers early subject completion.
+- Longer headless generation exposed an overly low 180-message/second per-socket limit: a fast driver routes several stage requests per output token. Its socket closed with code 1008 and repeatedly restarted unfinished work. Ready holders now have a bounded 600-message/second allowance; spectators retain 180. Ownership, task lease, payload and position checks still apply.
+- Pending tiny-sampling attachments retain only allowed token IDs, avoiding unnecessary float scores in Durable Object hibernation attachments.
+- Final local coordinator tests and GitHub checks passed after these fixes. A source staging omission caused the first CI build to fail; the coordinator was then included and the following CI run passed. No broken edition was deployed.
 
 ## Publication checks
 

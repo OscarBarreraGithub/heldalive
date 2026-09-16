@@ -12,6 +12,8 @@ This is a record of what was tested, not a claim that every browser or internet 
 - Eight generous contributors formed two real inference chains and completed a twelve-task memory project in a 45.125-second test interval. A model-written proposal was tested against the current method and three baselines; both current and new methods scored 0/3 in that run, so the current instruction was kept. The result is poor and remains recorded as such. It is not evidence of improved general memory.
 - The native model also produced weak records and drawings. Prompts were tightened and packing/proposal temperature reduced; no successful outcome is fabricated to hide model limitations.
 
+- A final local art check used a fixture only to select a plant-drawing project, then four real browser holders generated both drawings and the journal. Withdrawal/recovery passed again. Raw model output is preserved in `evidence/art-workshop.json`; it was not inserted into the public archive.
+
 ## Application behavior
 
 - 18 focused unit tests cover contribution budgets, actual layer coverage, gap replacement, unequal allocations, bounded activations, candidate IDs, sampling, output grammar, origin boundaries and task data handling.
@@ -43,4 +45,17 @@ A later headed workshop rerun was stopped on request because its separate Chrome
 
 ## Publication checks
 
-Pending final source publication and live deployment verification. Do not treat this section as completed until the deployed version and observed outcomes are added.
+Published and verified on 2026-09-16:
+
+- Application source commit: `47147bb` (later documentation/test-only commits do not change the deployed bundle).
+- Cloudflare Worker version: `806b653f-f635-4060-8be6-8927aa061e6a`.
+- GitHub CI: https://github.com/OscarBarreraGithub/heldalive/actions/runs/35139905598 — passed.
+- Model release: https://github.com/OscarBarreraGithub/heldalive/releases/tag/model-smollm2-v1. The actual published 185,681,557-byte download matched SHA-256 `14e0451adebe99556b756afb170f9b4b88e37aa00ed41153068dce993bbbf150`.
+- Both custom domains and the Workers hostname returned valid HTTPS, the new app bundle and the 452-buffer model manifest. The separate studio reported its Mac-hosted Qwen model available.
+- The public site passed responsive UI/consent/spectator/archive/vote checks and automated WCAG A/AA scans at desktop and mobile sizes.
+- Four headless Chromium contexts on this Mac completed three real public model tasks through Cloudflare. Each fetched only assigned layer files. One holder stopped; coverage and active work disappeared and no new tokens accrued during the 6.5-second check. Rejoining restored coverage and completed another task. The hidden-page handler also withdrew the piece. Raw summarized evidence: `evidence/live-shared.json`.
+- The live observation lasted 57.680 seconds after all four pieces had loaded, including the deliberate outage and restoration. Initial asset loading is excluded. This is real internet relay from one machine, not four heterogeneous physical devices or a robust latency benchmark.
+- The final two-chain local headless workshop took 43.638 seconds; its five exact recall records and model-written revisions are in `evidence/workshop.json`.
+- Final isolated process-restart persistence test passed.
+
+One non-functional console issue remains: Cloudflare automatically injects an optional analytics beacon that the site's existing content-security policy blocks. Inference, navigation and model downloads are unaffected. The CLI credential cannot change the account's analytics setting (403); the Cloudflare MCP connector also needs reauthorization. We did not weaken the content-security policy to enable the beacon. The site's deployment and operation use authenticated Wrangler successfully.

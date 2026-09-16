@@ -18,7 +18,7 @@ The previous edition used a complete model in each contributor browser. It did n
 - [x] Update the Tamagotchi, first-screen explanation, pipeline visualization, collection, experiment and mathematics.
 - [x] Verify disconnects, missing coverage, malicious/stale messages, local persistence and model-output failure handling.
 - [x] Verify responsive layouts/accessibility and real multi-browser inference; publish measured limits.
-- [ ] Publish source, deploy Cloudflare, verify heldalive.com. Keep Mac studio separate.
+- [x] Publish source, deploy Cloudflare, verify heldalive.com. Keep Mac studio separate.
 
 ## Engineering choices
 
@@ -34,4 +34,4 @@ Inference engine: MIT-licensed zero-tvm WGSL engine, vendored at a pinned revisi
 - Actual 4-stage and 16-stage browser-context inference completed the reference prompt with identical generated token IDs to the intact engine. These are same-Mac tests, not WAN benchmarks.
 - Four independent site visitors with eight layers each completed the public scheduler's real model tasks. Removing one produced incomplete coverage, no active job and no further tokens; rejoining restored coverage. Evidence: `.local/qa/edition03/shared-result.json`.
 - Public tiny contributions now perform real next-token sampling, not only score checks. They are bounded, optional, and cannot substitute for missing transformer layers.
-- Planner grammar, model-written method revisions, a full two-chain workshop, responsive layouts and automated accessibility checks are implemented and tested. Final publication and live checks remain.
+- Planner grammar, model-written method revisions, a full two-chain workshop, responsive layouts and automated accessibility checks are implemented and tested. Source/model artifacts are published, Cloudflare is deployed and real live inference/loss/recovery checks passed. See VERIFICATION.md for release IDs and limits.

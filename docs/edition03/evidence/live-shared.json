@@ -1,0 +1,540 @@
+{
+  "origin": "https://heldalive.com",
+  "workerVersion": "806b653f-f635-4060-8be6-8927aa061e6a",
+  "sourceCommit": "47147bb",
+  "environment": "Headless Chromium; four separate contexts on one Mac, real Cloudflare relay",
+  "contexts": 4,
+  "elapsedAfterAllReadyMs": 57680,
+  "assignments": [
+    {
+      "group": 0,
+      "start": 0,
+      "end": 8
+    },
+    {
+      "group": 0,
+      "start": 8,
+      "end": 16
+    },
+    {
+      "group": 0,
+      "start": 16,
+      "end": 24
+    },
+    {
+      "group": 0,
+      "start": 24,
+      "end": 32
+    }
+  ],
+  "downloadedLayerFilesPerContext": [
+    115,
+    112,
+    112,
+    116
+  ],
+  "before": {
+    "mode": "browser",
+    "model": "SmolLM2 \u00b7 360M \u00b7 shared",
+    "phase": "sleeping",
+    "modelAvailable": false,
+    "contributors": 0,
+    "pipelines": [],
+    "totalThoughts": 12,
+    "totalTokens": 657,
+    "project": null,
+    "artworkCount": 1,
+    "activity": [
+      {
+        "id": "89a5fdd2-bb6b-4354-b4e1-ffcbcae636fc",
+        "at": 1789541069207,
+        "kind": "reflect",
+        "text": "Held wrote a new journal entry.",
+        "source": "browser"
+      },
+      {
+        "id": "8ce7c591-127d-447b-b89c-49c5a84e5974",
+        "at": 1789541091249,
+        "kind": "plan",
+        "text": "Held chose a memory experiment: the birth of a new idea",
+        "source": "browser"
+      },
+      {
+        "id": "add0b8e1-daca-4c30-b21f-b2743d84dc80",
+        "at": 1789541097602,
+        "kind": "memory",
+        "text": "A helper packed notes into 240 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "98ed027a-2127-49f0-9464-996d67298d3d",
+        "at": 1789541106488,
+        "kind": "memory",
+        "text": "A helper packed ledger into 182 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "4ec8f92f-6fee-4a28-b2c3-fbc2b1c49e23",
+        "at": 1789541112786,
+        "kind": "memory",
+        "text": "A helper packed story into 240 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "736ec0e6-8603-409b-9c1b-697f2aa27ae6",
+        "at": 1789541121231,
+        "kind": "memory",
+        "text": "notes: 1 of 3 objects remembered.",
+        "source": "browser"
+      },
+      {
+        "id": "b5a1084f-99c6-4352-9388-cdad3990b425",
+        "at": 1789541126737,
+        "kind": "memory",
+        "text": "ledger: 0 of 3 objects remembered.",
+        "source": "browser"
+      },
+      {
+        "id": "9601404f-626b-4d6a-84b1-9c9931140e5a",
+        "at": 1789541131359,
+        "kind": "memory",
+        "text": "story: response format failed; scored 0 of 3.",
+        "source": "browser"
+      },
+      {
+        "id": "bb39caed-6eaa-4705-b157-db830bd9ed3a",
+        "at": 1789541137008,
+        "kind": "reflect",
+        "text": "Held wrote a new journal entry.",
+        "source": "browser"
+      },
+      {
+        "id": "7009524c-0c4e-4944-866a-6388b1e37cb6",
+        "at": 1789541161226,
+        "kind": "plan",
+        "text": "Held chose a memory experiment: keeping a diary for a day",
+        "source": "browser"
+      },
+      {
+        "id": "7097f623-8e10-415e-a5fb-413136ba0678",
+        "at": 1789541162947,
+        "kind": "pause",
+        "text": "A helper left. Its unfinished task is waiting for another browser."
+      },
+      {
+        "id": "73dcc070-2441-4b06-b46b-ce212d356d47",
+        "at": 1789586453703,
+        "kind": "edition",
+        "text": "The shared-layer edition begins. Earlier drawings and records remain in the archive."
+      }
+    ]
+  },
+  "worked": {
+    "mode": "browser",
+    "model": "SmolLM2 \u00b7 360M \u00b7 shared",
+    "phase": "resting",
+    "modelAvailable": true,
+    "contributors": 4,
+    "pipelines": [
+      {
+        "group": 0,
+        "ready": true,
+        "covered": 32,
+        "pieces": [
+          {
+            "start": 0,
+            "end": 8,
+            "ready": true,
+            "busy": false
+          },
+          {
+            "start": 8,
+            "end": 16,
+            "ready": true,
+            "busy": false
+          },
+          {
+            "start": 16,
+            "end": 24,
+            "ready": true,
+            "busy": false
+          },
+          {
+            "start": 24,
+            "end": 32,
+            "ready": true,
+            "busy": false
+          }
+        ]
+      }
+    ],
+    "totalThoughts": 14,
+    "totalTokens": 698,
+    "project": {
+      "id": "44d992b3-1b33-4bb4-ab2e-03af510ecf86",
+      "kind": "memory",
+      "title": "a snail carrying a tiny house",
+      "focus": "a snail carrying a tiny house",
+      "helpers": 5,
+      "at": 1789586560859,
+      "completed": 1,
+      "total": 12,
+      "status": "working"
+    },
+    "artworkCount": 1,
+    "activity": [
+      {
+        "id": "add0b8e1-daca-4c30-b21f-b2743d84dc80",
+        "at": 1789541097602,
+        "kind": "memory",
+        "text": "A helper packed notes into 240 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "98ed027a-2127-49f0-9464-996d67298d3d",
+        "at": 1789541106488,
+        "kind": "memory",
+        "text": "A helper packed ledger into 182 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "4ec8f92f-6fee-4a28-b2c3-fbc2b1c49e23",
+        "at": 1789541112786,
+        "kind": "memory",
+        "text": "A helper packed story into 240 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "736ec0e6-8603-409b-9c1b-697f2aa27ae6",
+        "at": 1789541121231,
+        "kind": "memory",
+        "text": "notes: 1 of 3 objects remembered.",
+        "source": "browser"
+      },
+      {
+        "id": "b5a1084f-99c6-4352-9388-cdad3990b425",
+        "at": 1789541126737,
+        "kind": "memory",
+        "text": "ledger: 0 of 3 objects remembered.",
+        "source": "browser"
+      },
+      {
+        "id": "9601404f-626b-4d6a-84b1-9c9931140e5a",
+        "at": 1789541131359,
+        "kind": "memory",
+        "text": "story: response format failed; scored 0 of 3.",
+        "source": "browser"
+      },
+      {
+        "id": "bb39caed-6eaa-4705-b157-db830bd9ed3a",
+        "at": 1789541137008,
+        "kind": "reflect",
+        "text": "Held wrote a new journal entry.",
+        "source": "browser"
+      },
+      {
+        "id": "7009524c-0c4e-4944-866a-6388b1e37cb6",
+        "at": 1789541161226,
+        "kind": "plan",
+        "text": "Held chose a memory experiment: keeping a diary for a day",
+        "source": "browser"
+      },
+      {
+        "id": "7097f623-8e10-415e-a5fb-413136ba0678",
+        "at": 1789541162947,
+        "kind": "pause",
+        "text": "A helper left. Its unfinished task is waiting for another browser."
+      },
+      {
+        "id": "73dcc070-2441-4b06-b46b-ce212d356d47",
+        "at": 1789586453703,
+        "kind": "edition",
+        "text": "The shared-layer edition begins. Earlier drawings and records remain in the archive."
+      },
+      {
+        "id": "39067d01-2297-407a-ab2d-2e868fc6a96a",
+        "at": 1789586560859,
+        "kind": "plan",
+        "text": "Held chose a memory experiment: a snail carrying a tiny house",
+        "source": "browser"
+      },
+      {
+        "id": "2e8e3daa-3022-4f5c-93de-bce2dd9a2cf3",
+        "at": 1789586576622,
+        "kind": "memory",
+        "text": "Held wrote a new memory instruction. Helpers will compare it with the current one on the same unseen record.",
+        "source": "browser"
+      }
+    ]
+  },
+  "lost": {
+    "mode": "browser",
+    "model": "SmolLM2 \u00b7 360M \u00b7 shared",
+    "phase": "waiting",
+    "modelAvailable": false,
+    "contributors": 3,
+    "pipelines": [
+      {
+        "group": 0,
+        "ready": false,
+        "covered": 24,
+        "pieces": [
+          {
+            "start": 0,
+            "end": 8,
+            "ready": true,
+            "busy": false
+          },
+          {
+            "start": 8,
+            "end": 16,
+            "ready": true,
+            "busy": false
+          },
+          {
+            "start": 16,
+            "end": 24,
+            "ready": true,
+            "busy": false
+          }
+        ]
+      }
+    ],
+    "totalThoughts": 14,
+    "totalTokens": 698,
+    "project": {
+      "id": "44d992b3-1b33-4bb4-ab2e-03af510ecf86",
+      "kind": "memory",
+      "title": "a snail carrying a tiny house",
+      "focus": "a snail carrying a tiny house",
+      "helpers": 5,
+      "at": 1789586560859,
+      "completed": 1,
+      "total": 12,
+      "status": "working"
+    },
+    "artworkCount": 1,
+    "activity": [
+      {
+        "id": "add0b8e1-daca-4c30-b21f-b2743d84dc80",
+        "at": 1789541097602,
+        "kind": "memory",
+        "text": "A helper packed notes into 240 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "98ed027a-2127-49f0-9464-996d67298d3d",
+        "at": 1789541106488,
+        "kind": "memory",
+        "text": "A helper packed ledger into 182 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "4ec8f92f-6fee-4a28-b2c3-fbc2b1c49e23",
+        "at": 1789541112786,
+        "kind": "memory",
+        "text": "A helper packed story into 240 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "736ec0e6-8603-409b-9c1b-697f2aa27ae6",
+        "at": 1789541121231,
+        "kind": "memory",
+        "text": "notes: 1 of 3 objects remembered.",
+        "source": "browser"
+      },
+      {
+        "id": "b5a1084f-99c6-4352-9388-cdad3990b425",
+        "at": 1789541126737,
+        "kind": "memory",
+        "text": "ledger: 0 of 3 objects remembered.",
+        "source": "browser"
+      },
+      {
+        "id": "9601404f-626b-4d6a-84b1-9c9931140e5a",
+        "at": 1789541131359,
+        "kind": "memory",
+        "text": "story: response format failed; scored 0 of 3.",
+        "source": "browser"
+      },
+      {
+        "id": "bb39caed-6eaa-4705-b157-db830bd9ed3a",
+        "at": 1789541137008,
+        "kind": "reflect",
+        "text": "Held wrote a new journal entry.",
+        "source": "browser"
+      },
+      {
+        "id": "7009524c-0c4e-4944-866a-6388b1e37cb6",
+        "at": 1789541161226,
+        "kind": "plan",
+        "text": "Held chose a memory experiment: keeping a diary for a day",
+        "source": "browser"
+      },
+      {
+        "id": "7097f623-8e10-415e-a5fb-413136ba0678",
+        "at": 1789541162947,
+        "kind": "pause",
+        "text": "A helper left. Its unfinished task is waiting for another browser."
+      },
+      {
+        "id": "73dcc070-2441-4b06-b46b-ce212d356d47",
+        "at": 1789586453703,
+        "kind": "edition",
+        "text": "The shared-layer edition begins. Earlier drawings and records remain in the archive."
+      },
+      {
+        "id": "39067d01-2297-407a-ab2d-2e868fc6a96a",
+        "at": 1789586560859,
+        "kind": "plan",
+        "text": "Held chose a memory experiment: a snail carrying a tiny house",
+        "source": "browser"
+      },
+      {
+        "id": "2e8e3daa-3022-4f5c-93de-bce2dd9a2cf3",
+        "at": 1789586576622,
+        "kind": "memory",
+        "text": "Held wrote a new memory instruction. Helpers will compare it with the current one on the same unseen record.",
+        "source": "browser"
+      }
+    ]
+  },
+  "recovered": {
+    "mode": "browser",
+    "model": "SmolLM2 \u00b7 360M \u00b7 shared",
+    "phase": "resting",
+    "modelAvailable": true,
+    "contributors": 4,
+    "pipelines": [
+      {
+        "group": 0,
+        "ready": true,
+        "covered": 32,
+        "pieces": [
+          {
+            "start": 0,
+            "end": 8,
+            "ready": true,
+            "busy": false
+          },
+          {
+            "start": 8,
+            "end": 16,
+            "ready": true,
+            "busy": false
+          },
+          {
+            "start": 16,
+            "end": 24,
+            "ready": true,
+            "busy": false
+          },
+          {
+            "start": 24,
+            "end": 32,
+            "ready": true,
+            "busy": false
+          }
+        ]
+      }
+    ],
+    "totalThoughts": 15,
+    "totalTokens": 748,
+    "project": {
+      "id": "44d992b3-1b33-4bb4-ab2e-03af510ecf86",
+      "kind": "memory",
+      "title": "a snail carrying a tiny house",
+      "focus": "a snail carrying a tiny house",
+      "helpers": 5,
+      "at": 1789586560859,
+      "completed": 2,
+      "total": 12,
+      "status": "working"
+    },
+    "artworkCount": 1,
+    "activity": [
+      {
+        "id": "98ed027a-2127-49f0-9464-996d67298d3d",
+        "at": 1789541106488,
+        "kind": "memory",
+        "text": "A helper packed ledger into 182 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "4ec8f92f-6fee-4a28-b2c3-fbc2b1c49e23",
+        "at": 1789541112786,
+        "kind": "memory",
+        "text": "A helper packed story into 240 characters.",
+        "source": "browser"
+      },
+      {
+        "id": "736ec0e6-8603-409b-9c1b-697f2aa27ae6",
+        "at": 1789541121231,
+        "kind": "memory",
+        "text": "notes: 1 of 3 objects remembered.",
+        "source": "browser"
+      },
+      {
+        "id": "b5a1084f-99c6-4352-9388-cdad3990b425",
+        "at": 1789541126737,
+        "kind": "memory",
+        "text": "ledger: 0 of 3 objects remembered.",
+        "source": "browser"
+      },
+      {
+        "id": "9601404f-626b-4d6a-84b1-9c9931140e5a",
+        "at": 1789541131359,
+        "kind": "memory",
+        "text": "story: response format failed; scored 0 of 3.",
+        "source": "browser"
+      },
+      {
+        "id": "bb39caed-6eaa-4705-b157-db830bd9ed3a",
+        "at": 1789541137008,
+        "kind": "reflect",
+        "text": "Held wrote a new journal entry.",
+        "source": "browser"
+      },
+      {
+        "id": "7009524c-0c4e-4944-866a-6388b1e37cb6",
+        "at": 1789541161226,
+        "kind": "plan",
+        "text": "Held chose a memory experiment: keeping a diary for a day",
+        "source": "browser"
+      },
+      {
+        "id": "7097f623-8e10-415e-a5fb-413136ba0678",
+        "at": 1789541162947,
+        "kind": "pause",
+        "text": "A helper left. Its unfinished task is waiting for another browser."
+      },
+      {
+        "id": "73dcc070-2441-4b06-b46b-ce212d356d47",
+        "at": 1789586453703,
+        "kind": "edition",
+        "text": "The shared-layer edition begins. Earlier drawings and records remain in the archive."
+      },
+      {
+        "id": "39067d01-2297-407a-ab2d-2e868fc6a96a",
+        "at": 1789586560859,
+        "kind": "plan",
+        "text": "Held chose a memory experiment: a snail carrying a tiny house",
+        "source": "browser"
+      },
+      {
+        "id": "2e8e3daa-3022-4f5c-93de-bce2dd9a2cf3",
+        "at": 1789586576622,
+        "kind": "memory",
+        "text": "Held wrote a new memory instruction. Helpers will compare it with the current one on the same unseen record.",
+        "source": "browser"
+      },
+      {
+        "id": "b68f28de-8136-4b68-ac13-a2591a302bde",
+        "at": 1789586605371,
+        "kind": "memory",
+        "text": "A helper packed notes into 126 characters.",
+        "source": "browser"
+      }
+    ]
+  }
+}

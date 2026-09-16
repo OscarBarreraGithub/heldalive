@@ -46,3 +46,16 @@ Live release observations are appended below after deployment.
 - The memory task is a tiny synthetic demonstration with repeated case patterns; it does not establish improved general memory or intelligence. Model weights remain fixed.
 - The public habitat runs complete copies and pauses when workers leave. It does not shard a thought, impose a fake critical mass, or erase saved state on departure.
 - Automated accessibility scans do not replace screen-reader and human usability review. Generated public text can still be wrong or unsuitable.
+
+## Live release result
+
+Deployed application commit `e96148d3106af19f0a05b74334d145fe765f972e` as Cloudflare Worker version `c3674a86-2dbf-4471-91b6-01a61f8d9dc3`. [The application commit’s CI run passed](https://github.com/OscarBarreraGithub/heldalive/actions/runs/35064995839).
+
+- Both `heldalive.com` and `www.heldalive.com` returned the new application, both research PDFs and sharing image over normally verified HTTPS. Public DNS agreed on the Cloudflare addresses. Because this Mac retained stale local DNS, checks used the current public address via curl resolution and Chromium host-resolution rules; TLS validation stayed enabled.
+- Both custom domains loaded the new browser habitat and the same live project/archive. Their rendered homepages reported zero JavaScript errors and zero automated A/AA violations during real contribution.
+- A real browser loaded the deployed model after consent and completed **12 jobs / 657 generated tokens**, producing one drawing and all three trial results. Coordinator-measured completed-job wall time was **10.020 seconds** across an approximately **117.3-second** observation interval (includes rests and the test’s final checks). Loading was outside that interval. This is one mixed-task hardware observation, not a throughput benchmark or population estimate.
+- The first public round scored notes **1/3**, ledger **0/3**, story **0/3**. The story response was malformed and is explicitly flagged. This small weak result is retained, not interpreted as a ranking of memory systems. The gallery contains actual model output; no fixture output was posted to production.
+- After explicit Stop: **zero contributors, zero active jobs, model unavailable**, with no additional generated tokens during the following six-second observation. The synthetic visibility event separately produced zero eligible workers/leases. The Mac remained available only in its separate studio.
+- Reinstalled the native bridge and tested real production studio inference: **eight jobs / 385 generated tokens**, 3.406 seconds of completed-job wall time, with persisted memory trials.
+
+Detailed local evidence: `.local/qa/edition02/{browser-evidence,mac-evidence,domains,live-interface}.json`, with screenshots in the same ignored directory. These are intentionally separate from the local fixture-test state. The six design passes are committed under `docs/design/`.

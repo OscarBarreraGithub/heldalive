@@ -1,3 +1,12 @@
+import {
+  completeCoverage,
+  contributionLayers,
+  nextPiece,
+  validStageCall,
+  validTop,
+  type Piece,
+  type StageCall,
+} from "../shared/pipeline";
 import { DurableObject } from "cloudflare:workers";
 import { timingSafeEqual } from "node:crypto";
 import {
@@ -27,8 +36,10 @@ import type {
   Strategy,
   TaskKind,
   Thought,
+  WorkspaceFile,
 } from "../shared/protocol";
 import {
+  methodMessages,
   artMessages,
   packMessages,
   planMessages,
@@ -59,6 +70,8 @@ type Task = {
   memoryCase?: MemoryCase;
   memory?: string;
   truncated?: boolean;
+  methodId?: string;
+  methodText?: string;
 };
 type Active = {
   task: Task;
@@ -67,6 +80,7 @@ type Active = {
   startedAt: number;
   deadline: number;
   source: Mode;
+  computeMs?: number;
 };
 type Peer = {
   id: string;
@@ -83,6 +97,23 @@ type Peer = {
   checks: boolean;
   nextAuditAt: number;
   audit: (AuditJob & { deadline: number }) | null;
+  piece?: Piece;
+  stageJob?: string;
+  stagePosition?: number;
+  pending?: {
+    leader: string;
+    jobId: string;
+    rid: string;
+    count: number;
+    deadline: number;
+  };
+  samplePending?: {
+    leader: string;
+    jobId: string;
+    rid: string;
+    tokens: number[];
+    deadline: number;
+  };
 };
 type Stored = {
   room: string;
@@ -102,6 +133,9 @@ type Stored = {
   activity: Activity[];
   scores: Snapshot["memoryScores"];
   cleanedDay: string;
+  modelVersion?: number;
+  bestMethod?: WorkspaceFile;
+  memoryCandidate?: WorkspaceFile;
 };
 type VisitorRow = {
   id: string;
@@ -114,6 +148,7 @@ type VisitorRow = {
   last_seen: number;
 };
 const emptyScores = (): Snapshot["memoryScores"] => ({
+  custom: { correct: 0, total: 0, trials: 0 },
   notes: { correct: 0, total: 0, trials: 0 },
   ledger: { correct: 0, total: 0, trials: 0 },
   story: { correct: 0, total: 0, trials: 0 },
@@ -213,6 +248,7 @@ export default {
           "/api/health",
           "/api/artworks",
           "/api/trials",
+          "/api/workspace",
           "/api/identity",
         ].includes(url.pathname)
       )
@@ -272,6 +308,9 @@ export class LivingRoom extends DurableObject<Env> {
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     this.ctx.storage.sql.exec(
+      "CREATE TABLE IF NOT EXISTS workspace (id TEXT PRIMARY KEY, value TEXT NOT NULL, at INTEGER NOT NULL)",
+    );
+    this.ctx.storage.sql.exec(
       "CREATE TABLE IF NOT EXISTS creature (id INTEGER PRIMARY KEY, value TEXT NOT NULL)",
     );
     this.ctx.storage.sql.exec(
@@ -324,7 +363,35 @@ export class LivingRoom extends DurableObject<Env> {
           activity: [],
           scores: emptyScores(),
           cleanedDay: "",
+          modelVersion: 3,
         };
+    this.state.scores.custom ??= { correct: 0, total: 0, trials: 0 };
+    if (this.state.room === "browser" && this.state.modelVersion !== 3) {
+      if (this.state.project)
+        this.state.projects.push({
+          ...this.state.project,
+          status: "interrupted",
+        });
+      this.state.project = null;
+      this.state.queue = [];
+      this.state.active = [];
+      this.state.scores = emptyScores();
+      this.state.modelVersion = 3;
+      this.state.nextThoughtAt = 0;
+      this.event(
+        "edition",
+        "The shared-layer edition begins. Earlier drawings and records remain in the archive.",
+      );
+      this.save();
+    }
+  }
+  private writeFile(file: WorkspaceFile) {
+    this.ctx.storage.sql.exec(
+      "INSERT INTO workspace (id,value,at) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value",
+      file.id,
+      JSON.stringify(file),
+      file.at,
+    );
   }
   private save() {
     this.ctx.storage.sql.exec(
@@ -340,6 +407,248 @@ export class LivingRoom extends DurableObject<Env> {
       .getWebSockets()
       .map((ws) => ({ ws, peer: ws.deserializeAttachment() as Peer }))
       .filter((p) => p.peer && p.ws.readyState === WebSocket.OPEN);
+  }
+  private pipelines() {
+    const peers = this.peers().filter(
+      (p) => p.peer.piece && p.peer.visible && Date.now() - p.peer.seen < 45000,
+    );
+    return Array.from({ length: 8 }, (_, group) => {
+      const members = peers
+        .filter((p) => p.peer.piece!.group === group)
+        .sort((a, b) => a.peer.piece!.start - b.peer.piece!.start);
+      const ready = members.filter((p) => p.peer.ready);
+      return {
+        group,
+        members,
+        ready: completeCoverage(ready.map((p) => p.peer.piece!)),
+      };
+    }).filter((g) => g.members.length);
+  }
+  private releasePiece(peer: Peer) {
+    if (peer.piece) {
+      const group = peer.piece.group;
+      const leader = this.peers().find(
+        (p) => p.peer.piece?.group === group && p.peer.piece.start === 0,
+      );
+      if (leader) this.cancelPeer(leader.peer.id);
+      for (const p of this.peers().filter(
+        (p) => p.peer.piece?.group === group,
+      )) {
+        delete p.peer.pending;
+        delete p.peer.stageJob;
+        delete p.peer.stagePosition;
+        this.send(p.ws, { type: "pipeline_reset" });
+        p.ws.serializeAttachment(p.peer);
+      }
+    }
+    peer.ready = false;
+    delete peer.piece;
+    delete peer.pending;
+  }
+  private async pipelineMessage(
+    ws: WebSocket,
+    peer: Peer,
+    data: Record<string, unknown>,
+  ): Promise<boolean> {
+    if (!String(data.type).startsWith("pipeline_")) return false;
+    if (this.mode() !== "browser" || peer.role !== "visitor") return true;
+    const now = Date.now();
+    if (data.type === "pipeline_offer") {
+      this.releasePiece(peer);
+      peer.visible = data.visible !== false;
+      peer.duty = dutyLimit(data.duty);
+      if (peer.visible) {
+        const existing = this.peers()
+          .filter(
+            (p) =>
+              p.peer.id !== peer.id &&
+              p.peer.visible &&
+              p.peer.piece &&
+              now - p.peer.seen < 45000,
+          )
+          .map((p) => p.peer.piece!);
+        const part = nextPiece(existing, contributionLayers(peer.duty));
+        if (part) {
+          peer.piece = { ...part, key: crypto.randomUUID() };
+          this.send(ws, { type: "pipeline_assign", piece: peer.piece });
+        } else
+          this.send(ws, {
+            type: "pipeline_error",
+            message:
+              "All eight shared pipelines have holders. You can keep doing tiny work or return later.",
+          });
+      }
+    } else if (data.type === "pipeline_ready") {
+      if (peer.piece && peer.piece.key === data.key) peer.ready = true;
+    } else if (data.type === "pipeline_stop") {
+      this.releasePiece(peer);
+    } else if (data.type === "pipeline_call") {
+      const call = data as unknown as StageCall;
+      const job = this.state.active.find(
+        (a) => a.peerId === peer.id && a.task.id === call.jobId,
+      );
+      const group = this.pipelines().find(
+        (g) => g.group === peer.piece?.group && g.ready,
+      );
+      if (!job || !group || !validStageCall(call) || job.deadline < now)
+        return true;
+      const target = group.members.find(
+        (p) => p.peer.piece!.start === call.start,
+      );
+      if (!target || target.peer.pending) return true;
+      if (
+        call.position !== 0 &&
+        (target.peer.stageJob !== call.jobId ||
+          target.peer.stagePosition !== call.position)
+      )
+        return true;
+      target.peer.stageJob = call.jobId;
+      target.peer.stagePosition = call.position + call.count;
+      target.peer.pending = {
+        leader: peer.id,
+        jobId: call.jobId,
+        rid: call.rid,
+        count: call.count,
+        deadline: now + 60000,
+      };
+      target.ws.serializeAttachment(target.peer);
+      this.send(target.ws, {
+        type: "pipeline_step",
+        call: {
+          jobId: call.jobId,
+          rid: call.rid,
+          start: call.start,
+          position: call.position,
+          count: call.count,
+          allowed: call.allowed,
+          ...(call.tokens ? { tokens: call.tokens } : { data: call.data }),
+        },
+      });
+      return true;
+    } else if (data.type === "pipeline_result") {
+      const pending = peer.pending;
+      const job = this.state.active.find(
+        (a) => a.peerId === pending?.leader && a.task.id === pending.jobId,
+      );
+      if (
+        !pending ||
+        !job ||
+        pending.rid !== data.rid ||
+        pending.jobId !== data.jobId ||
+        now > pending.deadline
+      )
+        return true;
+      const leader = this.peers().find((p) => p.peer.id === pending.leader);
+      if (!leader) return true;
+      const bytes = pending.count * 1920;
+      const valid =
+        peer.piece?.end === 32
+          ? validTop(data.top)
+          : typeof data.data === "string" &&
+            data.data.length === Math.ceil(bytes / 3) * 4 &&
+            /^[A-Za-z0-9+/]*={0,2}$/.test(data.data);
+      const compute =
+        typeof data.computeMs === "number" && Number.isFinite(data.computeMs)
+          ? Math.max(0, Math.min(60000, data.computeMs))
+          : 0;
+      if (!valid || data.error) {
+        this.fail(job, "A shared piece failed. Its thought will restart.");
+        this.send(leader.ws, { type: "cancel", jobId: job.task.id });
+      } else {
+        job.computeMs = (job.computeMs || 0) + compute;
+        this.send(leader.ws, {
+          type: "pipeline_reply",
+          rid: data.rid,
+          jobId: data.jobId,
+          ...(peer.piece?.end === 32 ? { top: data.top } : { data: data.data }),
+        });
+      }
+      delete peer.pending;
+      ws.serializeAttachment(peer);
+      this.save();
+      return true;
+    } else if (data.type === "pipeline_sample") {
+      const job = this.state.active.find(
+        (a) => a.peerId === peer.id && a.task.id === data.jobId,
+      );
+      if (
+        !job ||
+        !validTop(data.top) ||
+        typeof data.rid !== "string" ||
+        data.rid.length > 64
+      )
+        return true;
+      const target = this.peers()
+        .filter(
+          (p) =>
+            p.peer.visible &&
+            p.peer.checks &&
+            p.peer.id !== peer.id &&
+            !p.peer.samplePending &&
+            now - p.peer.seen < 45000,
+        )
+        .sort((a, b) => a.peer.nextAuditAt - b.peer.nextAuditAt)[0];
+      if (!target) {
+        this.send(ws, { type: "pipeline_sample_local", rid: data.rid });
+        return true;
+      }
+      target.peer.samplePending = {
+        leader: peer.id,
+        jobId: job.task.id,
+        rid: data.rid,
+        tokens: data.top.map(([id]) => id),
+        deadline: now + 2500,
+      };
+      target.peer.nextAuditAt = now + 1000;
+      target.ws.serializeAttachment(target.peer);
+      this.send(target.ws, {
+        type: "pipeline_tiny",
+        rid: data.rid,
+        jobId: job.task.id,
+        top: data.top,
+        temperature:
+          typeof data.temperature === "number"
+            ? Math.min(1, Math.max(0, data.temperature))
+            : 0.8,
+        random: crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296,
+        history: Array.isArray(data.history)
+          ? data.history.filter((n) => Number.isInteger(n)).slice(-40)
+          : [],
+      });
+      return true;
+    } else if (data.type === "pipeline_sampled") {
+      const pending = peer.samplePending;
+      if (
+        pending &&
+        pending.rid === data.rid &&
+        pending.deadline >= now &&
+        pending.tokens.includes(data.token as number)
+      ) {
+        const leader = this.peers().find((p) => p.peer.id === pending.leader);
+        if (leader)
+          this.send(leader.ws, {
+            type: "pipeline_sample_reply",
+            rid: data.rid,
+            token: data.token,
+          });
+        this.state.totalChecks++;
+        this.ctx.storage.sql.exec(
+          "UPDATE visitors SET checks=checks+1,last_seen=? WHERE id=?",
+          now,
+          peer.identity,
+        );
+        this.send(ws, {
+          type: "profile",
+          profile: this.profile(peer.identity),
+        });
+      }
+      delete peer.samplePending;
+    }
+    peer.seen = now;
+    ws.serializeAttachment(peer);
+    this.save();
+    await this.tick();
+    return true;
   }
   private send(ws: WebSocket, data: unknown) {
     try {
@@ -386,7 +695,7 @@ export class LivingRoom extends DurableObject<Env> {
     };
   }
   private recent<T>(
-    table: "artworks" | "trials",
+    table: "artworks" | "trials" | "workspace",
     limit: number,
     offset = 0,
   ): T[] {
@@ -426,7 +735,11 @@ export class LivingRoom extends DurableObject<Env> {
         ? "sleeping"
         : this.state.active.length
           ? "thinking"
-          : !workers.length
+          : (
+                this.mode() === "browser"
+                  ? !this.pipelines().some((g) => g.ready)
+                  : !workers.length
+              )
             ? "waiting"
             : "resting",
       viewers: visitors.length,
@@ -434,8 +747,27 @@ export class LivingRoom extends DurableObject<Env> {
       readyContributors: workers.filter(
         (p) => p.peer.availableAt <= now && !busy.has(p.peer.id),
       ).length,
-      model: "Qwen 2.5 · 0.5B",
-      modelAvailable: workers.length > 0,
+      model:
+        this.mode() === "browser"
+          ? "SmolLM2 · 360M · shared"
+          : "Qwen 2.5 · 0.5B",
+      modelAvailable:
+        this.mode() === "browser"
+          ? this.pipelines().some((g) => g.ready)
+          : workers.length > 0,
+      pipelines: this.pipelines().map((g) => ({
+        group: g.group,
+        ready: g.ready,
+        covered: g.members
+          .filter((p) => p.peer.ready)
+          .reduce((a, p) => a + p.peer.piece!.end - p.peer.piece!.start, 0),
+        pieces: g.members.map((p) => ({
+          start: p.peer.piece!.start,
+          end: p.peer.piece!.end,
+          ready: p.peer.ready,
+          busy: Boolean(p.peer.pending),
+        })),
+      })),
       thoughts: this.state.thoughts.slice(-12),
       active: active
         ? {
@@ -468,6 +800,8 @@ export class LivingRoom extends DurableObject<Env> {
       trials: this.recent<MemoryTrial>("trials", 6),
       memoryScores: this.state.scores,
       journal: this.state.journal,
+      workspace: this.recent<WorkspaceFile>("workspace", 12),
+      bestMethod: this.state.bestMethod,
       votes: this.votes(),
       day: dayKey(now),
       totalTokens: this.state.totalTokens,
@@ -488,6 +822,23 @@ export class LivingRoom extends DurableObject<Env> {
       if (peer.role === "visitor") this.send(ws, state);
   }
   async fetch(request: Request): Promise<Response> {
+    if (new URL(request.url).pathname === "/api/workspace")
+      return Response.json(
+        {
+          files: this.recent<WorkspaceFile>(
+            "workspace",
+            24,
+            Math.min(
+              10000,
+              Math.max(
+                0,
+                Number(new URL(request.url).searchParams.get("offset")) || 0,
+              ),
+            ),
+          ),
+        },
+        { headers: { "Cache-Control": "no-store" } },
+      );
     const url = new URL(request.url);
     this.state.room =
       url.searchParams.get("room") === "browser" ? "browser" : "main";
@@ -543,7 +894,7 @@ export class LivingRoom extends DurableObject<Env> {
     if (
       role === "visitor" &&
       (existing.length >= ROOM_CAPACITY ||
-        existing.filter((p) => p.peer.ip === ip).length >= 12 ||
+        existing.filter((p) => p.peer.ip === ip).length >= 32 ||
         existing.filter((p) => p.peer.identity === id).length >= 4)
     )
       return new Response("The habitat is full. Please try again shortly.", {
@@ -592,7 +943,7 @@ export class LivingRoom extends DurableObject<Env> {
     ws: WebSocket,
     raw: string | ArrayBuffer,
   ): Promise<void> {
-    if (typeof raw !== "string" || raw.length > 8192) {
+    if (typeof raw !== "string" || raw.length > 50000) {
       ws.close(1009, "Message too large");
       return;
     }
@@ -615,12 +966,16 @@ export class LivingRoom extends DurableObject<Env> {
       peer.lastMessage = now;
       peer.burst = 1;
     }
-    if (peer.burst > 180) {
+    // A driver sends several stage RPCs per token. Fast local chains can exceed
+    // the spectator limit during useful work; ownership/shape/lease checks still apply.
+    if (peer.burst > (peer.piece && peer.ready ? 600 : 180)) {
       this.cancelPeer(peer.id);
       ws.close(1008, "Too many messages");
       return;
     }
     peer.seen = now;
+    ws.serializeAttachment(peer);
+    if (await this.pipelineMessage(ws, peer, data)) return;
     if (data.type === "ping") {
       if (peer.role === "visitor") peer.visible = data.visible !== false;
       this.send(ws, { type: "pong" });
@@ -633,10 +988,14 @@ export class LivingRoom extends DurableObject<Env> {
         });
         return;
       }
-      peer.ready = data.ready === true;
+      peer.ready =
+        data.ready === true && (peer.role === "bridge" || Boolean(peer.piece));
       peer.visible = data.visible !== false;
       peer.duty = dutyLimit(data.duty);
-      if (!peer.ready) this.cancelPeer(peer.id);
+      if (!peer.ready) {
+        if (this.mode() === "browser") this.releasePiece(peer);
+        else this.cancelPeer(peer.id);
+      }
     } else if (data.type === "checks" && peer.role === "visitor") {
       peer.checks = data.enabled === true;
       if (!peer.checks) peer.audit = null;
@@ -740,20 +1099,30 @@ export class LivingRoom extends DurableObject<Env> {
           typeof data.tokens === "number" && Number.isFinite(data.tokens)
             ? Math.min(job.task.maxTokens, Math.max(0, Math.floor(data.tokens)))
             : 0;
-        this.state.totalComputeMs += duration;
+        this.state.totalComputeMs +=
+          job.source === "browser" ? job.computeMs || 0 : duration;
         this.state.totalTokens += tokens;
         this.state.totalThoughts++;
         if (peer.role === "visitor") {
-          peer.availableAt = now + cooldownMs(duration, peer.duty);
-          this.ctx.storage.sql.exec(
-            "UPDATE visitors SET jobs=jobs+1,last_seen=? WHERE id=?",
-            now,
-            peer.identity,
-          );
-          this.send(ws, {
-            type: "profile",
-            profile: this.profile(peer.identity),
-          });
+          peer.availableAt = now + 1000;
+          const holders = this.pipelines().find(
+            (g) => g.group === peer.piece?.group,
+          )?.members || [{ ws, peer }];
+          const credited = new Set<string>();
+          for (const holder of holders) {
+            if (!credited.has(holder.peer.identity)) {
+              this.ctx.storage.sql.exec(
+                "UPDATE visitors SET jobs=jobs+1,last_seen=? WHERE id=?",
+                now,
+                holder.peer.identity,
+              );
+              credited.add(holder.peer.identity);
+            }
+            this.send(holder.ws, {
+              type: "profile",
+              profile: this.profile(holder.peer.identity),
+            });
+          }
         }
         this.complete(job, tokens, duration);
       } else {
@@ -769,7 +1138,11 @@ export class LivingRoom extends DurableObject<Env> {
       return;
     }
     ws.serializeAttachment(peer);
-    if (!peer.visible) this.cancelPeer(peer.id);
+    if (!peer.visible) {
+      if (this.mode() === "browser") this.releasePiece(peer);
+      else this.cancelPeer(peer.id);
+      ws.serializeAttachment(peer);
+    }
     this.save();
     if (data.type === "chunk") this.broadcast(false);
     else await this.tick();
@@ -839,7 +1212,7 @@ export class LivingRoom extends DurableObject<Env> {
         focus: plan.focus,
         helpers:
           plan.kind === "memory"
-            ? 3
+            ? 5
             : plan.kind === "wander"
               ? 1
               : plan.helpers,
@@ -847,7 +1220,7 @@ export class LivingRoom extends DurableObject<Env> {
         completed: 0,
         total:
           plan.kind === "memory"
-            ? 7
+            ? 12
             : plan.kind === "wander"
               ? 2
               : plan.helpers + 1,
@@ -878,22 +1251,81 @@ export class LivingRoom extends DurableObject<Env> {
           ),
         );
       if (p.kind === "memory") {
-        const data = makeMemoryCase(
-          crypto.getRandomValues(new Uint32Array(1))[0] % 1200,
+        const previous =
+          this.state.bestMethod?.text ||
+          "Write compact name=object pairs. Omit locations and filler.";
+        this.state.queue.push(
+          this.task(
+            "method",
+            methodMessages(previous, JSON.stringify(this.state.scores)),
+            "Revising memory/strategy.md",
+          ),
         );
-        for (const strategy of STRATEGIES)
-          this.state.queue.push(
-            this.task(
-              "pack",
-              packMessages(this.mode(), data, strategy),
-              `Writing ${strategy}`,
-              { strategy, memoryCase: data },
-            ),
-          );
       }
+      this.writeFile({
+        id: t.id,
+        path: "plans/current.md",
+        text: job.text,
+        at: now,
+        author: "model",
+      });
       return;
     }
-    if (t.kind === "art" && text) {
+    if (t.kind === "method" && text) {
+      const incumbent = this.state.bestMethod || {
+        id: "initial-method",
+        path: "memory/strategy.md",
+        text: "Write compact name=object pairs. Omit locations and filler.",
+        at: now,
+        author: "installation" as const,
+        status: "kept" as const,
+      };
+      this.state.bestMethod = incumbent;
+      this.writeFile(incumbent);
+      const candidate: WorkspaceFile = {
+        id: t.id,
+        path: "memory/strategy.md",
+        text: text.slice(0, 400),
+        at: now,
+        author: "model",
+        parent: incumbent.id,
+        status: "candidate",
+      };
+      this.state.memoryCandidate = candidate;
+      this.writeFile(candidate);
+      // Facts are drawn AFTER the proposal; all five approaches get identical held-out data.
+      const data = makeMemoryCase(
+        crypto.getRandomValues(new Uint32Array(1))[0] % 1200,
+      );
+      for (const strategy of ["notes", "ledger", "story"] as Strategy[])
+        this.state.queue.push(
+          this.task(
+            "pack",
+            packMessages(this.mode(), data, strategy),
+            `Writing ${strategy}`,
+            { strategy, memoryCase: data },
+          ),
+        );
+      for (const method of [incumbent, candidate])
+        this.state.queue.push(
+          this.task(
+            "pack",
+            packMessages(this.mode(), data, "custom", method.text),
+            "Testing a model-written method",
+            {
+              strategy: "custom",
+              memoryCase: data,
+              methodId: method.id,
+              methodText: method.text,
+            },
+          ),
+        );
+      this.event(
+        "memory",
+        "Held wrote a new memory instruction. Helpers will compare it with the current one on the same unseen record.",
+        job.source,
+      );
+    } else if (t.kind === "art" && text) {
       const artwork: Artwork = {
         id: t.id,
         title: this.state.project?.title || "A little drawing",
@@ -901,7 +1333,10 @@ export class LivingRoom extends DurableObject<Env> {
         at: now,
         source: job.source,
         projectId: t.projectId,
-        model: "Qwen 2.5 · 0.5B",
+        model:
+          job.source === "browser"
+            ? "SmolLM2 · 360M · shared"
+            : "Qwen 2.5 · 0.5B",
       };
       this.ctx.storage.sql.exec(
         "INSERT INTO artworks (id,value,at) VALUES (?,?,?)",
@@ -920,6 +1355,8 @@ export class LivingRoom extends DurableObject<Env> {
           `Recalling from ${t.strategy}`,
           {
             strategy: t.strategy,
+            methodId: t.methodId,
+            methodText: t.methodText,
             memoryCase: t.memoryCase,
             memory,
             truncated: text.length > MEMORY_BUDGET,
@@ -935,8 +1372,14 @@ export class LivingRoom extends DurableObject<Env> {
       const answers = parseAnswers(text);
       const correct = scoreAnswers(answers, t.memoryCase.expected);
       const trial: MemoryTrial = {
+        model:
+          job.source === "browser"
+            ? "SmolLM2-360M-Instruct-q4"
+            : "Qwen2.5-0.5B",
         id: t.id,
         strategy: t.strategy,
+        methodId: t.methodId,
+        methodText: t.methodText,
         memory: t.memory || "",
         answers,
         expected: t.memoryCase.expected,
@@ -958,6 +1401,40 @@ export class LivingRoom extends DurableObject<Env> {
         JSON.stringify(trial),
         now,
       );
+      if (
+        t.strategy === "custom" &&
+        this.state.bestMethod &&
+        this.state.memoryCandidate
+      ) {
+        const pair = this.recent<MemoryTrial>("trials", 30).filter(
+          (r) => r.projectId === t.projectId && r.strategy === "custom",
+        );
+        const a = pair.find(
+            (r) => r.methodId === this.state.memoryCandidate!.id,
+          ),
+          b = pair.find((r) => r.methodId === this.state.bestMethod!.id);
+        if (a && b) {
+          const wins = a.responseValid && a.correct > b.correct;
+          if (wins) {
+            this.writeFile({ ...this.state.bestMethod, status: "retired" });
+            this.state.bestMethod = {
+              ...this.state.memoryCandidate,
+              status: "kept",
+            };
+            this.writeFile(this.state.bestMethod);
+          } else
+            this.writeFile({
+              ...this.state.memoryCandidate,
+              status: "retired",
+            });
+          this.event(
+            "memory",
+            `Memory comparison: new method ${a.correct}/3, current method ${b.correct}/3. ${wins ? "Kept the new instruction." : "Kept the current instruction."} One tiny trial, not a general result.`,
+            job.source,
+          );
+          this.state.memoryCandidate = undefined;
+        }
+      }
       const score = this.state.scores[t.strategy];
       score.correct += correct;
       score.total += 3;
@@ -984,6 +1461,13 @@ export class LivingRoom extends DurableObject<Env> {
       });
       this.state.thoughts = this.state.thoughts.slice(-60);
       this.state.journal = text.slice(0, 600);
+      this.writeFile({
+        id: t.id,
+        path: "journal.md",
+        text: this.state.journal,
+        at: now,
+        author: "model",
+      });
       this.state.results.push(text);
       this.event(
         t.kind,
@@ -1047,7 +1531,10 @@ export class LivingRoom extends DurableObject<Env> {
     } catch {
       /*closed*/
     }
-    if (p) this.cancelPeer(p.id);
+    if (p) {
+      if (this.mode() === "browser") this.releasePiece(p);
+      this.cancelPeer(p.id);
+    }
     await this.tick();
   }
   async webSocketError(ws: WebSocket): Promise<void> {
@@ -1060,8 +1547,14 @@ export class LivingRoom extends DurableObject<Env> {
     const now = Date.now();
     for (const { ws, peer } of this.peers())
       if (now - peer.seen > 45000) {
+        if (this.mode() === "browser") this.releasePiece(peer);
         this.cancelPeer(peer.id);
         ws.close(1001, "Connection timed out");
+      }
+    for (const p of this.peers())
+      if (p.peer.samplePending && now > p.peer.samplePending.deadline) {
+        delete p.peer.samplePending;
+        p.ws.serializeAttachment(p.peer);
       }
     const peers = this.peers().filter((p) => now - p.peer.seen <= 45000);
     const visitors = peers.filter(
@@ -1108,6 +1601,11 @@ export class LivingRoom extends DurableObject<Env> {
       );
     }
     const busy = new Set(this.state.active.map((a) => a.peerId));
+    const leaders = new Set(
+      this.pipelines()
+        .filter((g) => g.ready)
+        .map((g) => g.members[0].peer.id),
+    );
     const workers = peers
       .filter(
         (p) =>
@@ -1116,7 +1614,9 @@ export class LivingRoom extends DurableObject<Env> {
           !busy.has(p.peer.id) &&
           (this.mode() === "mac"
             ? p.peer.role === "bridge"
-            : p.peer.role === "visitor" && p.peer.visible),
+            : p.peer.role === "visitor" &&
+              p.peer.visible &&
+              leaders.has(p.peer.id)),
       )
       .sort((a, b) => a.peer.availableAt - b.peer.availableAt);
     if (
@@ -1150,7 +1650,7 @@ export class LivingRoom extends DurableObject<Env> {
           peerId: worker.peer.id,
           text: "",
           startedAt: now,
-          deadline: now + 90000,
+          deadline: now + (this.mode() === "browser" ? 600000 : 90000),
           source: worker.peer.role === "bridge" ? "mac" : "browser",
         });
         this.save();
@@ -1158,11 +1658,26 @@ export class LivingRoom extends DurableObject<Env> {
           type: "job",
           job: {
             id: task.id,
+            pieces:
+              this.mode() === "browser"
+                ? this.pipelines()
+                    .find((g) => g.group === worker.peer.piece?.group)
+                    ?.members.map((p) => ({
+                      start: p.peer.piece!.start,
+                      end: p.peer.piece!.end,
+                    }))
+                : undefined,
             kind: task.kind,
             messages: task.messages,
             maxTokens: task.maxTokens,
             temperature:
-              task.kind === "recall" ? 0.1 : task.kind === "plan" ? 0.65 : 0.85,
+              task.kind === "recall" || task.kind === "pack"
+                ? 0.1
+                : task.kind === "method"
+                  ? 0.25
+                  : task.kind === "plan"
+                    ? 0.65
+                    : 0.85,
           },
         });
       }

@@ -21,6 +21,18 @@ try {
     });
     contexts.push(context);
     const page = await context.newPage();
+    await page.addInitScript(() => {
+      const NativeSocket = window.WebSocket;
+      window.WebSocket = class extends NativeSocket {
+        constructor(...args) {
+          super(...args);
+          this.addEventListener("close", (event) => {
+            if (event.code !== 1000)
+              console.warn("Test socket closed", event.code, event.reason);
+          });
+        }
+      };
+    });
     pages.push(page);
     downloads[i] = [];
     page.on("request", (r) => {

@@ -2,18 +2,44 @@ import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:5173";
-const count = Number(process.env.HELD_TEST_PEERS || 4);
-const requestedJobs = Number(process.env.HELD_TEST_JOBS || 3);
+const count = Number(process.env.HELD_TEST_PEERS || 16);
+const requestedJobs = Number(process.env.HELD_TEST_JOBS || 1);
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const contexts = [];
 const pages = [];
 const events = [];
 const assignments = [];
 const downloads = [];
-await mkdir(".local/qa/edition03", { recursive: true });
+let browserDone = 0;
+const nativeDuringLaunch = process.env.HELD_TEST_LAUNCH === "1";
+let config;
+if (nativeDuringLaunch) {
+  const { readFile } = await import("node:fs/promises");
+  config = JSON.parse(
+    await readFile(
+      process.env.HELD_CONFIG || ".local/launch-bridge-local.json",
+      "utf8",
+    ),
+  );
+}
+async function support(enabled) {
+  if (!config) return;
+  assert.equal(new URL(config.url).origin, new URL(base).origin);
+  const r = await fetch(base + "/api/launch-support?room=browser", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${config.token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ enabled }),
+  });
+  assert.equal(r.status, 200);
+}
+await mkdir(".local/qa/edition04", { recursive: true });
 const state = async () =>
   fetch(base + "/api/state?room=browser").then((r) => r.json());
 try {
+  await support(true);
   const before = await state();
   for (let i = 0; i < count; i++) {
     const context = await browser.newContext({
@@ -54,13 +80,22 @@ try {
         console.log("browser", i, m.text().slice(0, 500));
     });
     page.on("pageerror", (e) => console.log("ERROR", i, e.message));
+    page.on("websocket", (ws) =>
+      ws.on("framesent", (frame) => {
+        try {
+          if (JSON.parse(String(frame.payload)).type === "done") browserDone++;
+        } catch {}
+      }),
+    );
     await page.goto(base);
-    await page.getByRole("button", { name: "Lend a little life" }).click();
-    if (count === 4)
-      await page.getByLabel("Room to roam", { exact: false }).check();
-    await page.getByRole("button", { name: "Start lending compute" }).click();
+    if (count === 8)
+      await page.getByRole("button", { name: "Give Held a coffee" }).click();
+    assert.ok(
+      count === 8 || count === 16,
+      "Use sixteen automatic visits or eight coffees",
+    );
     await page
-      .getByRole("button", { name: "Stop contributing" })
+      .getByText("Your tab is lending a little life", { exact: true })
       .waitFor({ timeout: 120000 });
     console.log("READY", i, (await state()).pipelines);
   }
@@ -98,7 +133,7 @@ try {
       );
       events.push(s);
     }
-    if (s.totalThoughts >= before.totalThoughts + requestedJobs) {
+    if (browserDone >= requestedJobs) {
       worked = s;
       break;
     }
@@ -106,7 +141,11 @@ try {
   }
   assert.ok(worked, "The shared model must complete real assigned work");
   assert.ok(worked.pipelines.some((p) => p.ready));
-  await pages.at(-1).getByRole("button", { name: "Stop contributing" }).click();
+  await support(false);
+  await pages
+    .at(-1)
+    .getByRole("button", { name: "Pause", exact: true })
+    .click();
   await pages[0].waitForTimeout(1200);
   const lost = await state();
   assert.equal(
@@ -124,15 +163,16 @@ try {
   );
   await pages
     .at(-1)
-    .getByRole("button", { name: "Lend a little life" })
+    .getByRole("button", { name: "Help automatically" })
     .click();
+  if (count === 8)
+    await pages
+      .at(-1)
+      .getByRole("button", { name: "Give Held a coffee" })
+      .click();
   await pages
     .at(-1)
-    .getByRole("button", { name: "Start lending compute" })
-    .click();
-  await pages
-    .at(-1)
-    .getByRole("button", { name: "Stop contributing" })
+    .getByText("Your tab is lending a little life", { exact: true })
     .waitFor({ timeout: 120000 });
   let recovered = await state();
   assert.ok(recovered.modelAvailable, "Replacement restores full coverage");
@@ -161,14 +201,16 @@ try {
     "Hidden holder withdraws its physical piece",
   );
   await pages[0].screenshot({
-    path: ".local/qa/edition03/shared-working.png",
+    path: ".local/qa/edition04/shared-working.png",
     fullPage: true,
   });
   await writeFile(
-    ".local/qa/edition03/shared-result.json",
+    ".local/qa/edition04/shared-result.json",
     JSON.stringify(
       {
         contexts: count,
+        browserDone,
+        automatic: count === 16,
         assignments,
         downloads,
         elapsedMs: Date.now() - started,
@@ -187,4 +229,5 @@ try {
   );
 } finally {
   await browser.close();
+  await support(true);
 }

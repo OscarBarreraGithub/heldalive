@@ -49,17 +49,21 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           <span className="section-number">02 / REAL BORROWED TIME</span>
           <h2>You give it the means.</h2>
           <p>
-            After you opt in, your browser fetches only its assigned piece of
-            the model. It calculates those layers and passes the result onward.
-            All 32 layers must be present for a thought to finish. Its saved
-            work stays here when the room empties.
+            Simply visiting on a compatible browser automatically loads a small
+            model piece and lends a little calculation time. Pause is always
+            available and stays saved. Giving Held a free coffee raises your
+            work/rest target for ten minutes. There is no payment or app
+            installation; model data does load into the page.
           </p>
           <p>
-            Sixteen gentle contributions, eight medium ones or four larger ones
-            can make a complete chain. Mixed contributions also work. Additional
-            complete chains run copies of the same model on delegated tasks;
-            this edition supports eight concurrent chains. Cloudflare
-            coordinates the work; it never fills in missing inference.
+            Sixteen automatic gentle contributions, or eight coffee
+            contributions, can cover a complete model chain. Mixed contributions
+            also work. Additional complete chains run copies of the same model
+            on delegated tasks; this edition supports eight concurrent chains.
+            Cloudflare coordinates the work. During launch, Oscar’s Mini runs
+            the same tiny model when browser coverage is incomplete. Complete
+            browser groups get jobs first. Once Mini support is retired, missing
+            coverage pauses thinking; completed records remain.
           </p>
         </article>
       </div>
@@ -298,21 +302,24 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           habitat. When assigned, your CPU samples the next token from model
           scores or checks a memory score. This is useful work, but cannot
           replace missing model layers. No work is invented just to keep a
-          browser busy. Optional layer computation fetches roughly 11–71 MB for
+          browser busy. Automatic layer computation fetches roughly 11–38 MB for
           your assigned piece, plus small runtime and tokenizer files. Working
           buffers are usually below 200 MB; browser overhead varies. It uses
           electricity, can warm your device, and requires WebGPU with float16.
-          The 5%, 10% and 20% settings are measured work/rest targets, not exact
-          GPU utilization or power caps; loading is additional work. Stop
+          Coffee can increase that to roughly 22–49 MB for ten minutes. The 5%
+          automatic and 10% coffee settings are measured work/rest targets, not
+          exact GPU utilization or power caps; loading is additional work. Pause
           terminates the model worker; cached files may remain in your browser.
         </p>
         <p>
           Hidden tabs pause generation. A browser may suspend or evict work
           independently. No browser inference runs after you close the page. The
-          Mac-backed studio is a separate, labeled development habitat; it never
-          silently fills in for the public one. Hosting providers still see
-          normal request/network information. Connection IPs are used for
-          temporary connection limits.
+          Mini supports the public habitat during launch, using the same small
+          model checkpoint. Complete browser groups get work first. After launch
+          support is retired, missing pieces stop new thoughts. The current
+          source is shown on the home screen. Hosting providers still see normal
+          request/network information. Connection IPs are used for temporary
+          connection limits.
         </p>
       </details>
       <a

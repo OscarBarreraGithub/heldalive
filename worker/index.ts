@@ -136,6 +136,7 @@ type Stored = {
   modelVersion?: number;
   bestMethod?: WorkspaceFile;
   memoryCandidate?: WorkspaceFile;
+  launchSupport?: boolean;
 };
 type VisitorRow = {
   id: string;
@@ -250,6 +251,7 @@ export default {
           "/api/trials",
           "/api/workspace",
           "/api/identity",
+          "/api/launch-support",
         ].includes(url.pathname)
       )
         return new Response("Not found", { status: 404 });
@@ -272,13 +274,23 @@ export default {
       const room =
         url.searchParams.get("room") === "browser" ? "browser" : "main";
       let visitor = "";
-      if (url.pathname === "/api/socket") {
+      if (url.pathname === "/api/launch-support") {
+        if (request.method !== "POST")
+          return new Response("Method not allowed", { status: 405 });
+        if (
+          room !== "browser" ||
+          !(await equalSecrets(
+            request.headers.get("Authorization") || "",
+            `Bearer ${env.BRIDGE_TOKEN}`,
+          ))
+        )
+          return new Response("Unauthorized", { status: 401 });
+      } else if (url.pathname === "/api/socket") {
         if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket")
           return new Response("WebSocket required", { status: 426 });
         const bridge = url.searchParams.get("role") === "bridge";
         if (bridge) {
           if (
-            room !== "main" ||
             !(await equalSecrets(
               request.headers.get("Authorization") || "",
               `Bearer ${env.BRIDGE_TOKEN}`,
@@ -721,6 +733,27 @@ export class LivingRoom extends DurableObject<Env> {
           ? p.peer.role === "bridge"
           : p.peer.role === "visitor" && p.peer.visible),
     );
+    const browserChains = this.pipelines().filter((g) => g.ready).length;
+    const macAvailable = peers.some(
+      (p) => p.peer.role === "bridge" && p.peer.ready,
+    );
+    const launchSupport =
+      this.mode() === "browser" && this.state.launchSupport !== false;
+    const modelAvailable =
+      this.mode() === "mac"
+        ? macAvailable
+        : browserChains > 0 || (launchSupport && macAvailable);
+    const sources = new Set(this.state.active.map((a) => a.source));
+    const source =
+      sources.size > 1
+        ? "mixed"
+        : sources.size
+          ? [...sources][0]
+          : browserChains > 0
+            ? "browser"
+            : modelAvailable && macAvailable
+              ? "mac"
+              : "waiting";
     const busy = new Set(this.state.active.map((a) => a.peerId));
     const active =
       this.state.active.find(
@@ -735,11 +768,7 @@ export class LivingRoom extends DurableObject<Env> {
         ? "sleeping"
         : this.state.active.length
           ? "thinking"
-          : (
-                this.mode() === "browser"
-                  ? !this.pipelines().some((g) => g.ready)
-                  : !workers.length
-              )
+          : !modelAvailable
             ? "waiting"
             : "resting",
       viewers: visitors.length,
@@ -751,10 +780,8 @@ export class LivingRoom extends DurableObject<Env> {
         this.mode() === "browser"
           ? "SmolLM2 · 360M · shared"
           : "Qwen 2.5 · 0.5B",
-      modelAvailable:
-        this.mode() === "browser"
-          ? this.pipelines().some((g) => g.ready)
-          : workers.length > 0,
+      modelAvailable,
+      power: { launchSupport, macAvailable, browserChains, source },
       pipelines: this.pipelines().map((g) => ({
         group: g.group,
         ready: g.ready,
@@ -781,13 +808,15 @@ export class LivingRoom extends DurableObject<Env> {
         : null,
       agents: this.state.active.map((a) => ({
         id: a.task.id,
-        role:
-          a.task.kind === "plan" || a.task.kind === "reflect"
-            ? "Held"
-            : "Helper",
+        role: ["plan", "reflect", "wander", "method"].includes(a.task.kind)
+          ? "Held"
+          : "Helper",
         kind: a.task.kind,
         startedAt: a.startedAt,
         source: a.source,
+        title: a.task.title,
+        draft: cleanThought(a.text).slice(-240),
+        characters: a.text.length,
       })),
       project: this.state.project,
       projects: this.state.projects.slice(-8),
@@ -842,6 +871,34 @@ export class LivingRoom extends DurableObject<Env> {
     const url = new URL(request.url);
     this.state.room =
       url.searchParams.get("room") === "browser" ? "browser" : "main";
+    if (url.pathname === "/api/launch-support") {
+      const body = await request.text();
+      if (body.length > 128) return new Response("Too large", { status: 413 });
+      let data: { enabled?: unknown };
+      try {
+        data = JSON.parse(body);
+      } catch {
+        return new Response("Invalid setting", { status: 400 });
+      }
+      if (!data || typeof data.enabled !== "boolean")
+        return new Response("Expected enabled boolean", { status: 400 });
+      this.state.launchSupport = data.enabled;
+      if (!data.enabled)
+        for (const p of this.peers())
+          if (p.peer.role === "bridge") this.cancelPeer(p.peer.id);
+      this.event(
+        "power",
+        data.enabled
+          ? "The artist’s Mini is available for launch support. Complete browser groups get work first."
+          : "Browser independence is enabled. Missing browser coverage now pauses all thought generation.",
+      );
+      this.save();
+      await this.tick();
+      return Response.json(
+        { launchSupport: data.enabled },
+        { headers: { "Cache-Control": "no-store" } },
+      );
+    }
     if (url.pathname === "/api/health")
       return Response.json(
         {
@@ -968,7 +1025,10 @@ export class LivingRoom extends DurableObject<Env> {
     }
     // A driver sends several stage RPCs per token. Fast local chains can exceed
     // the spectator limit during useful work; ownership/shape/lease checks still apply.
-    if (peer.burst > (peer.piece && peer.ready ? 600 : 180)) {
+    if (
+      peer.burst >
+      (peer.ready && (peer.piece || peer.role === "bridge") ? 600 : 180)
+    ) {
       this.cancelPeer(peer.id);
       ws.close(1008, "Too many messages");
       return;
@@ -989,11 +1049,15 @@ export class LivingRoom extends DurableObject<Env> {
         return;
       }
       peer.ready =
-        data.ready === true && (peer.role === "bridge" || Boolean(peer.piece));
+        data.ready === true &&
+        (peer.role === "bridge"
+          ? this.mode() === "mac" || data.modelId === "smollm2-360m-q4-v1"
+          : Boolean(peer.piece));
       peer.visible = data.visible !== false;
       peer.duty = dutyLimit(data.duty);
       if (!peer.ready) {
-        if (this.mode() === "browser") this.releasePiece(peer);
+        if (this.mode() === "browser" && peer.role === "visitor")
+          this.releasePiece(peer);
         else this.cancelPeer(peer.id);
       }
     } else if (data.type === "checks" && peer.role === "visitor") {
@@ -1334,8 +1398,8 @@ export class LivingRoom extends DurableObject<Env> {
         source: job.source,
         projectId: t.projectId,
         model:
-          job.source === "browser"
-            ? "SmolLM2 · 360M · shared"
+          this.mode() === "browser"
+            ? `SmolLM2 · 360M · ${job.source === "browser" ? "shared" : "Mini"}`
             : "Qwen 2.5 · 0.5B",
       };
       this.ctx.storage.sql.exec(
@@ -1373,7 +1437,7 @@ export class LivingRoom extends DurableObject<Env> {
       const correct = scoreAnswers(answers, t.memoryCase.expected);
       const trial: MemoryTrial = {
         model:
-          job.source === "browser"
+          this.mode() === "browser"
             ? "SmolLM2-360M-Instruct-q4"
             : "Qwen2.5-0.5B",
         id: t.id,
@@ -1614,9 +1678,12 @@ export class LivingRoom extends DurableObject<Env> {
           !busy.has(p.peer.id) &&
           (this.mode() === "mac"
             ? p.peer.role === "bridge"
-            : p.peer.role === "visitor" &&
-              p.peer.visible &&
-              leaders.has(p.peer.id)),
+            : (p.peer.role === "visitor" &&
+                p.peer.visible &&
+                leaders.has(p.peer.id)) ||
+              (p.peer.role === "bridge" &&
+                this.state.launchSupport !== false &&
+                leaders.size === 0)),
       )
       .sort((a, b) => a.peer.availableAt - b.peer.availableAt);
     if (
@@ -1650,7 +1717,7 @@ export class LivingRoom extends DurableObject<Env> {
           peerId: worker.peer.id,
           text: "",
           startedAt: now,
-          deadline: now + (this.mode() === "browser" ? 600000 : 90000),
+          deadline: now + (worker.peer.role === "bridge" ? 90000 : 600000),
           source: worker.peer.role === "bridge" ? "mac" : "browser",
         });
         this.save();
@@ -1659,7 +1726,7 @@ export class LivingRoom extends DurableObject<Env> {
           job: {
             id: task.id,
             pieces:
-              this.mode() === "browser"
+              worker.peer.role === "visitor"
                 ? this.pipelines()
                     .find((g) => g.group === worker.peer.piece?.group)
                     ?.members.map((p) => ({

@@ -108,6 +108,12 @@ export type Snapshot = {
   model: string;
   modelAvailable: boolean;
   pipelines?: PipelineView[];
+  power?: {
+    launchSupport: boolean;
+    macAvailable: boolean;
+    browserChains: number;
+    source: "mac" | "browser" | "mixed" | "waiting";
+  };
   thoughts: Thought[];
   active: {
     id: string;
@@ -121,6 +127,9 @@ export type Snapshot = {
     kind: TaskKind;
     startedAt: number;
     source: Mode;
+    title?: string;
+    draft?: string;
+    characters?: number;
   }[];
   project: Project | null;
   projects: Project[];

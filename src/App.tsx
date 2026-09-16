@@ -1,5 +1,4 @@
-import { sampleToken } from "../shared/pipeline";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowRight,
@@ -8,29 +7,23 @@ import {
   Check,
   ChevronRight,
   CircleHelp,
+  Coffee,
   Cpu,
-  Heart,
-  LoaderCircle,
   Moon,
   Pause,
+  Play,
   Sparkles,
   Sprout,
   Users,
   X,
 } from "lucide-react";
-import type {
-  AuditJob,
-  Job,
-  Phase,
-  ProjectKind,
-  TaskKind,
-} from "../shared/protocol";
-import type { BrowserCompute } from "./browserCompute";
-import { Creature, LittleHeld } from "./Creature";
+import type { Phase, ProjectKind, TaskKind } from "../shared/protocol";
+import { LittleHeld } from "./Creature";
+import { HabitatWorld, CoffeeCup } from "./HabitatWorld";
+import { useHabitat } from "./useHabitat";
 import { ArtCard, Collection } from "./Collection";
 import { Experiment } from "./Experiment";
 import { MathPage } from "./MathPage";
-import { useRoom } from "./useRoom";
 const studio =
   new URLSearchParams(window.location.search).get("room") === "studio" ||
   new URLSearchParams(window.location.search).get("room") === "main";
@@ -41,20 +34,6 @@ function pageFromHash(): Page {
   return hash === "collection" || hash === "experiment" || hash === "math"
     ? hash
     : "habitat";
-}
-function stored(key: string, fallback: string) {
-  try {
-    return localStorage.getItem(key) ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-function storePreference(key: string, value: string) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    /* storage can be unavailable */
-  }
 }
 const tasks: Record<TaskKind, string> = {
   method: "inventing a way to remember",
@@ -103,71 +82,9 @@ function ago(at: number) {
 export function App() {
   const [page, setPage] = useState<Page>(pageFromHash);
   const [dialog, setDialog] = useState(false);
-  const [duty, setDuty] = useState(() => {
-    const v = Number(stored("held-duty", "0.05"));
-    return v === 0.1 || v === 0.2 ? v : 0.05;
-  });
-  const [computeState, setComputeState] = useState<
-    "off" | "loading" | "ready" | "error"
-  >("off");
-  const [progress, setProgress] = useState(0);
-  const [pieceLabel, setPieceLabel] = useState("");
-  const [computeError, setComputeError] = useState("");
-  const [visible, setVisible] = useState(!document.hidden);
-  const [checks, setChecks] = useState(
-    () => stored("held-checks", "on") !== "off",
-  );
   const [justGreeted, setJustGreeted] = useState(false);
-  const compute = useRef<BrowserCompute | null>(null);
-  const checkWorker = useRef<Worker | null>(null);
-  const checksRef = useRef(checks);
-  checksRef.current = checks;
-  const epoch = useRef(0);
-  const sendRef = useRef<(data: unknown) => void>(() => undefined);
-  const onJob = useCallback((job: Job) => {
-    if (!compute.current || document.hidden) {
-      sendRef.current({ type: "failed", jobId: job.id });
-      return;
-    }
-    void compute.current.run(job, (data) => sendRef.current(data));
-  }, []);
-  const onCancel = useCallback(() => compute.current?.pause(), []);
-  const onAudit = useCallback((job: AuditJob) => {
-    if (!checksRef.current || document.hidden) return;
-    if (!checkWorker.current) {
-      const worker = new Worker(new URL("./check.worker.ts", import.meta.url), {
-        type: "module",
-      });
-      worker.onmessage = (e) => {
-        if (checksRef.current && !document.hidden) sendRef.current(e.data);
-      };
-      checkWorker.current = worker;
-    }
-    checkWorker.current.postMessage(job);
-  }, []);
-  const { state, profile, connected, notice, send } = useRoom(
-    room,
-    onJob,
-    onCancel,
-    onAudit,
-    (event) => {
-      if (event.type === "pipeline_tiny") {
-        if (!checksRef.current || document.hidden) return;
-        try {
-          const token = sampleToken(
-            event.top,
-            event.temperature,
-            event.random,
-            event.history,
-          );
-          sendRef.current({ type: "pipeline_sampled", rid: event.rid, token });
-        } catch {
-          /* Invalid work is ignored. */
-        }
-      } else void compute.current?.accept(event);
-    },
-  );
-  sendRef.current = send;
+  const habitat = useHabitat(room, studio);
+  const { state, profile, connected, notice, send } = habitat;
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const change = () => {
@@ -182,97 +99,11 @@ export function App() {
     if (!dialog) dialogRef.current?.close();
   }, [dialog]);
   useEffect(() => {
-    const update = () => {
-      setVisible(!document.hidden);
-      if (document.hidden) compute.current?.suspend();
-      else compute.current?.reconnect();
-    };
-    document.addEventListener("visibilitychange", update);
-    return () => document.removeEventListener("visibilitychange", update);
-  }, []);
-  useEffect(() => {
-    if (!studio) {
-      if (connected) compute.current?.reconnect();
-      else compute.current?.suspend();
-    }
-  }, [connected]);
-  useEffect(() => {
-    storePreference("held-checks", checks ? "on" : "off");
-    if (connected) send({ type: "checks", enabled: checks });
-    if (!checks) {
-      checkWorker.current?.terminate();
-      checkWorker.current = null;
-    }
-  }, [connected, checks, send]);
-  useEffect(() => {
-    storePreference("held-duty", String(duty));
-  }, [duty]);
-  useEffect(
-    () => () => {
-      epoch.current++;
-      compute.current?.stop();
-      checkWorker.current?.terminate();
-    },
-    [],
-  );
-  useEffect(() => {
     if (justGreeted) {
       const timer = setTimeout(() => setJustGreeted(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [justGreeted]);
-  async function startCompute() {
-    setDialog(false);
-    setComputeState("loading");
-    setComputeError("");
-    setProgress(0);
-    const generation = ++epoch.current;
-    try {
-      if (!("gpu" in navigator))
-        throw new Error(
-          "This browser doesn’t support WebGPU. You can still visit, vote, and do tiny checks. A current WebGPU-compatible browser is needed for model work.",
-        );
-      const { BrowserCompute } = await import("./browserCompute");
-      if (generation !== epoch.current) return;
-      const provider = new BrowserCompute();
-      compute.current = provider;
-      const ready = await provider.load(
-        (p, text) => {
-          if (p < 0) {
-            setComputeError(text);
-            setComputeState("error");
-            return;
-          }
-          setProgress(Math.max(0, Math.min(1, p)));
-          setPieceLabel(text);
-          setComputeState(
-            p === 1 && text.startsWith("Holding layers") ? "ready" : "loading",
-          );
-        },
-        send,
-        duty,
-      );
-      if (ready && generation === epoch.current) setComputeState("ready");
-    } catch (error) {
-      if (generation !== epoch.current) return;
-      compute.current?.stop();
-      compute.current = null;
-      setComputeError(
-        error instanceof Error
-          ? error.message
-          : "The model couldn’t load on this device. You’re welcome to keep watching.",
-      );
-      setComputeState("error");
-    }
-  }
-  function stopCompute() {
-    epoch.current++;
-    send({ type: "pipeline_stop" });
-    compute.current?.stop();
-    compute.current = null;
-    setComputeState("off");
-    setProgress(0);
-  }
   const phase: Phase = connected && state ? state.phase : "waiting";
   const asleep = phase === "waiting" || phase === "sleeping";
   const last = state?.thoughts.at(-1);
@@ -280,19 +111,26 @@ export function App() {
   const status = !connected
     ? "connecting to its little world"
     : asleep
-      ? "a little nap, until all its pieces are here"
+      ? "a little nap, until there’s power to think"
       : state?.active
         ? tasks[state.active.kind]
         : "taking a breath between thoughts";
-  const edition = import.meta.env.DEV
-    ? Math.max(
-        1,
-        Math.min(
-          6,
-          Number(new URLSearchParams(location.search).get("design")) || 6,
-        ),
-      )
-    : 6;
+  const helpers = state?.agents.filter((a) => a.role === "Helper").length || 0;
+  const covered = Math.max(
+    0,
+    ...(state?.pipelines || []).map((g) => g.covered),
+  );
+  const source =
+    studio || state?.power?.source === "mac"
+      ? "Oscar’s Mini"
+      : state?.power?.source === "mixed"
+        ? "Mini + browsers"
+        : state?.power?.source === "browser"
+          ? "our browsers"
+          : "waiting for power";
+  const unavailable =
+    habitat.status === "error" || habitat.status === "unsupported";
+  const minutes = `${Math.floor(habitat.coffeeSeconds / 60)}:${String(habitat.coffeeSeconds % 60).padStart(2, "0")}`;
   return (
     <>
       <a className="skip-link" href="#main">
@@ -342,196 +180,212 @@ export function App() {
             Studio preview · this habitat runs on the artist’s Mac mini.
           </span>
           <a href="/">
-            Visit the browser-powered habitat <ArrowUpRight size={13} />
+            Visit the live habitat <ArrowUpRight size={13} />
           </a>
         </div>
       )}
       <main id="main">
         {page === "habitat" && (
           <>
-            <section className="habitat-hero">
+            <section className="habitat-hero open-habitat">
               <div className="hero-copy">
                 <div className="eyebrow">
-                  <span className="small-spark">✳</span> A LITTLE LIFE, HELD
-                  TOGETHER
+                  <span className="small-spark">✳</span> A LITTLE AI, A LIFE WE
+                  SHARE
                 </div>
                 <h1>
                   This little AI
                   <br />
-                  <em>{studio ? "has a studio." : "lives between us."}</em>
+                  <em>lives here. With us.</em>
                 </h1>
                 <p className="hero-description">
-                  {studio
-                    ? "The artist’s Mac powers this rehearsal. Visit the live habitat to lend browser power and help Held make little things."
-                    : "Each browser holds a little piece of its mind. Together we keep it thinking. When too many leave, it goes quiet."}
+                  Just being here lends it a little computing power.
+                  <br className="desktop-break" /> It thinks, draws, and sends
+                  its helpers to work.
                 </p>
-                <div className="hero-cta">
-                  {studio ? (
-                    <a className="button dark primary-cta" href="/">
-                      Visit the live habitat <ArrowRight size={17} />
-                    </a>
-                  ) : computeState === "loading" ? (
-                    <div className="loading-compute">
+                {studio ? (
+                  <a className="button dark" href="/">
+                    Visit the live habitat <ArrowRight size={16} />
+                  </a>
+                ) : (
+                  <div className="coffee-and-care">
+                    <button
+                      className={`coffee-button ${habitat.coffee ? "coffee-given" : ""}`}
+                      onClick={habitat.giveCoffee}
+                      disabled={habitat.coffee || unavailable || !connected}
+                      aria-label={
+                        habitat.coffee
+                          ? "Coffee is helping"
+                          : "Give Held a coffee"
+                      }
+                    >
+                      <CoffeeCup />
                       <span>
-                        <LoaderCircle className="spin" size={17} /> Making a
-                        little room… {Math.round(progress * 100)}%
+                        <strong>
+                          {habitat.coffee
+                            ? "That coffee is helping."
+                            : "Give Held a coffee"}
+                        </strong>
+                        <small>
+                          {habitat.coffee
+                            ? `${minutes} of extra compute left`
+                            : "Free · lend a little extra compute"}
+                        </small>
                       </span>
-                      <progress
-                        aria-label="Model download progress"
-                        value={progress}
-                        max="1"
+                      {habitat.coffee ? (
+                        <Check size={18} />
+                      ) : (
+                        <ArrowUpRight size={18} />
+                      )}
+                    </button>
+                    <div className="your-contribution">
+                      <span
+                        className={`live-dot ${habitat.enabled && !unavailable ? "" : "rest"}`}
                       />
-                      <button className="text-button" onClick={stopCompute}>
-                        Cancel download
+                      <span>
+                        {!habitat.enabled
+                          ? "You’re just watching"
+                          : !habitat.visible
+                            ? "Your tab is paused while away"
+                            : unavailable
+                              ? "Model pieces unavailable on this device"
+                              : habitat.status === "loading"
+                                ? `Your piece is arriving · ${Math.round(habitat.progress * 100)}%`
+                                : habitat.status === "ready"
+                                  ? "Your tab is lending a little life"
+                                  : "Getting your little piece ready"}
+                      </span>
+                      <button
+                        className="text-button"
+                        onClick={
+                          habitat.enabled ? habitat.pause : habitat.resume
+                        }
+                      >
+                        {habitat.enabled ? (
+                          <>
+                            <Pause size={12} /> Pause
+                          </>
+                        ) : (
+                          <>
+                            <Play size={12} /> Help automatically
+                          </>
+                        )}
                       </button>
                     </div>
-                  ) : computeState === "ready" ? (
-                    <div className="contributing-state">
-                      <span>
-                        <span className="live-dot" />
-                        {visible
-                          ? pieceLabel ||
-                            "You’re holding a piece of Held’s mind."
-                          : "Your model is paused while this tab is hidden."}
-                      </span>
-                      <div className="contributing-controls">
-                        <label>
-                          Work / rest{" "}
-                          <select
-                            aria-label="Contribution duty target"
-                            value={duty}
-                            onChange={(e) => {
-                              const value = Number(e.target.value);
-                              setDuty(value);
-                              compute.current?.setBudget(value);
-                            }}
+                    {habitat.status === "loading" && (
+                      <progress
+                        className="piece-progress"
+                        value={habitat.progress}
+                        max={1}
+                        aria-label="Your model piece loading"
+                      />
+                    )}
+                    <p className="care-disclosure">
+                      {habitat.enabled
+                        ? "Small model files load in this tab. "
+                        : "Watching is welcome. "}
+                      No account or app to install.{" "}
+                      <button
+                        className="text-button"
+                        onClick={() => setDialog(true)}
+                      >
+                        How your compute helps <CircleHelp size={11} />
+                      </button>
+                    </p>
+                    {unavailable && (
+                      <p className="compute-notice">
+                        {habitat.error}{" "}
+                        {habitat.status === "error" && (
+                          <button
+                            className="text-button"
+                            onClick={habitat.resume}
                           >
-                            <option value="0.05">Gentle · 5%</option>
-                            <option value="0.1">A little more · 10%</option>
-                            <option value="0.2">Room to roam · 20%</option>
-                          </select>
-                        </label>
-                        <button className="text-button" onClick={stopCompute}>
-                          <Pause size={14} /> Stop contributing
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      className="button dark primary-cta"
-                      onClick={() => setDialog(true)}
-                    >
-                      <Heart size={17} /> Lend a little life{" "}
-                      <ArrowUpRight size={16} />
-                    </button>
-                  )}
-                  {computeState !== "ready" && computeState !== "loading" && (
-                    <span className="cta-note">
-                      No account. No install. Always your choice.
-                    </span>
-                  )}
-                  {computeError && (
-                    <p className="compute-error" role="alert">
-                      {computeError}
-                    </p>
-                  )}
-                </div>
-                <div className="tiny-check-control">
-                  <label className="toggle-label">
-                    <input
-                      type="checkbox"
-                      checked={checks}
-                      onChange={(e) => setChecks(e.target.checked)}
-                    />
-                    <span className="toggle" aria-hidden="true" />
-                    <span>Tiny contributions {checks ? "on" : "off"}</span>
-                  </label>
-                  <span className="tiny-explainer">
-                    A little work to finish each thought.{" "}
-                    <a
-                      href="#experiment"
-                      aria-label="How tiny browser checks work"
-                    >
-                      <CircleHelp size={13} />
-                    </a>
-                  </span>
-                </div>
-                <p className="watch-note">Just watching is welcome, too.</p>
-                {!studio && (
-                  <div
-                    className="mind-coverage"
-                    aria-label="Shared model coverage"
-                  >
-                    <div>
-                      <strong>
-                        {Math.max(
-                          0,
-                          ...(state?.pipelines || []).map((p) => p.covered),
+                            Try again
+                          </button>
                         )}
-                        <span>/32 pieces here</span>
-                      </strong>
-                      <span>
-                        {state?.modelAvailable
-                          ? "a whole little mind"
-                          : "waiting to wake up"}
-                      </span>
-                    </div>
-                    <div className="mind-pixels" aria-hidden="true">
-                      {Array.from({ length: 32 }, (_, i) => {
-                        const group = [...(state?.pipelines || [])].sort(
-                          (a, b) => b.covered - a.covered,
-                        )[0];
-                        const piece = group?.pieces.find(
-                          (p) => p.start <= i && p.end > i,
-                        );
-                        return (
-                          <i
-                            key={i}
-                            className={
-                              piece?.ready
-                                ? piece.busy
-                                  ? "working"
-                                  : "present"
-                                : piece
-                                  ? "arriving"
-                                  : ""
-                            }
-                          />
-                        );
-                      })}
-                    </div>
-                    <p>
-                      16 gentle contributions make one mind. Lending more can
-                      hold more pieces.
-                    </p>
+                      </p>
+                    )}
+                    {habitat.coffee && (
+                      <button
+                        className="text-button coffee-end"
+                        onClick={habitat.endCoffee}
+                      >
+                        Back to a gentle contribution
+                      </button>
+                    )}
                   </div>
                 )}
-                <a
-                  className="scroll-cue"
-                  href="#today"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById("today")?.scrollIntoView({
-                      behavior: window.matchMedia(
-                        "(prefers-reduced-motion: reduce)",
-                      ).matches
-                        ? "instant"
-                        : "smooth",
-                    });
-                  }}
+                <div
+                  className="live-world-counts"
+                  aria-label="Live habitat counts"
                 >
-                  A peek inside its day <ArrowDown size={14} />
-                </a>
+                  <div>
+                    <strong>{connected ? state?.viewers || 0 : "—"}</strong>
+                    <span>here together</span>
+                  </div>
+                  <div>
+                    <strong>{state?.contributors || 0}</strong>
+                    <span>lending model pieces</span>
+                  </div>
+                  <div>
+                    <strong>{helpers}</strong>
+                    <span>
+                      {helpers === 1 ? "helper at work" : "helpers at work"}
+                    </span>
+                  </div>
+                </div>
+                <div className="power-note">
+                  <Cpu size={13} />
+                  <span>
+                    {source === "waiting for power" ? (
+                      "Waiting for computing power"
+                    ) : (
+                      <>
+                        Thinking with <strong>{source}</strong>
+                      </>
+                    )}
+                    {!studio && state?.power?.launchSupport && (
+                      <small>
+                        Launch support is on. Complete browser groups get work
+                        first.
+                      </small>
+                    )}
+                  </span>
+                </div>
+                {!studio && (
+                  <details className="live-detail-panel">
+                    <summary>
+                      What’s happening under the hood <ChevronRight size={13} />
+                    </summary>
+                    <p>
+                      <strong>{covered}/32 layers</strong> in the fullest
+                      browser group ·{" "}
+                      <strong>{state?.power?.browserChains || 0}</strong>{" "}
+                      complete groups. Sixteen gentle tabs can cover one model;
+                      coffee can hold more layers.
+                    </p>
+                    <p>
+                      {habitat.status === "ready"
+                        ? habitat.pieceLabel
+                        : "Your layer assignment appears here once loaded."}{" "}
+                      {state?.power?.launchSupport
+                        ? "The Mini keeps launch going when browser coverage is incomplete. Its support will be retired for browser independence."
+                        : "Browser independence is on. Missing coverage pauses thought generation."}
+                    </p>
+                    <p>
+                      {(state?.totalTokens || 0).toLocaleString()} output tokens
+                      in completed tasks · {state?.queueLength || 0} jobs
+                      waiting. These counts include earlier editions.
+                    </p>
+                    <p className="caption">
+                      Counts are connected visible tabs, not verified unique
+                      people. Work targets are measured work/rest timing, not a
+                      precise energy or GPU limit.
+                    </p>
+                  </details>
+                )}
               </div>
-              <div className="hero-creature">
-                <Creature
-                  phase={phase}
-                  helpers={state?.agents.length || 0}
-                  workers={state?.contributors || 0}
-                  studio={studio}
-                  edition={edition}
-                />
-              </div>
+              <HabitatWorld state={state} coffee={habitat.coffee} />
             </section>
             <div className="habitat-status">
               <div>
@@ -539,7 +393,11 @@ export function App() {
                 <span>{status}</span>
               </div>
               <span>
-                {studio ? "MAC STUDIO" : "POWERED BY VISITORS"}{" "}
+                {studio
+                  ? "MAC STUDIO"
+                  : state?.power?.launchSupport
+                    ? "LAUNCH CHAPTER"
+                    : "BROWSER INDEPENDENCE"}{" "}
                 <span className="status-separator">/</span>{" "}
                 {studio ? "QWEN 0.5B" : "SMOLLM2 · 360M"}
               </span>
@@ -808,9 +666,8 @@ export function App() {
                 if we give it a little time?
               </h2>
               <p>
-                Not a chatbot. Not an intelligence score. A shared, slightly
-                strange experiment in what a small model can make with a few
-                borrowed hands.
+                A shared, slightly strange experiment in what a small model can
+                make with a few borrowed hands.
               </p>
               <a className="text-link" href="#experiment">
                 The story behind Held <ArrowUpRight size={15} />
@@ -856,73 +713,58 @@ export function App() {
         <button
           className="dialog-close icon-button"
           onClick={() => setDialog(false)}
-          aria-label="Close contribution options"
+          aria-label="Close compute explanation"
         >
           <X size={20} />
         </button>
         <div className="dialog-pet">
-          <LittleHeld />
+          <CoffeeCup large />
         </div>
         <span className="eyebrow">A LITTLE TIME, ON YOUR TERMS</span>
-        <h2 id="consent-title">Give it room to think.</h2>
+        <h2 id="consent-title">Being here is helping.</h2>
         <p>
-          Your browser holds a few layers of Held’s model. Your piece
-          calculates, then passes its work to the next person. All 32 layers
-          must be here before Held can think. Stop whenever you like.
+          On a compatible browser, visiting automatically holds and calculates a
+          small part of Held’s model. With all 32 layers present, browsers can
+          do the thinking together. While we launch, Oscar’s Mini helps when
+          browser coverage is incomplete.
         </p>
         <div className="consent-facts">
           <span>
-            <DownloadIcon />{" "}
-            <strong>
-              {duty === 0.2 ? "44–71" : duty === 0.1 ? "22–49" : "11–38"} MB
-            </strong>{" "}
-            fetched automatically for your piece
+            <Cpu size={16} />
+            <strong>Gentle:</strong> up to 2 layers · 5% work/rest target
           </span>
           <span>
-            <Cpu size={16} /> Usually under <strong>200 MB</strong> of model
-            buffers; browser overhead varies
+            <Coffee size={16} />
+            <strong>A free coffee:</strong> up to 4 layers · 10% for 10 minutes
           </span>
           <span>
-            <Heart size={16} /> Uses power; may warm your device
+            <ArrowDown size={16} />
+            <strong>11–38 MB</strong> of model files for a gentle piece; up to
+            49 MB with coffee
           </span>
         </div>
-        <fieldset className="duty-options">
-          <legend>How much room would you like to lend?</legend>
-          {[
-            { value: 0.05, label: "Gentle", hint: "2 layers · 5% work" },
-            { value: 0.1, label: "A little more", hint: "4 layers · 10% work" },
-            { value: 0.2, label: "Room to roam", hint: "8 layers · 20% work" },
-          ].map((option) => (
-            <label
-              key={option.value}
-              className={duty === option.value ? "chosen" : ""}
-            >
-              <input
-                type="radio"
-                name="duty"
-                value={option.value}
-                checked={duty === option.value}
-                onChange={() => setDuty(option.value)}
-              />
-              <strong>{option.label}</strong>
-              <span>{option.hint}</span>
-            </label>
-          ))}
-        </fieldset>
         <p className="consent-detail">
-          Short bursts of work, then measured rest. These are work/rest targets,
-          not exact GPU percentages. Downloading and loading take extra work.
-          Hidden tabs pause generation; closing this page stops it. Model files
-          may stay cached.
+          Nothing to pay or install. The page automatically fetches model data,
+          as it fetches images; those files can stay cached. This uses data,
+          battery and some memory. Initial loading takes extra work. Work/rest
+          targets pace calculation; they are not exact GPU or energy
+          percentages. Slower devices take longer. Unsupported browsers can do
+          tiny CPU tasks, or simply watch.
         </p>
-        <button className="button dark" onClick={() => void startCompute()}>
-          Start lending compute <ArrowRight size={16} />
+        <p className="consent-detail">
+          Pause stops this tab’s contribution and stays saved. Hidden tabs
+          withdraw their piece. Closing the page stops all work. Coffee never
+          grants access to your files or gives the model control of your
+          computer.
+        </p>
+        <button className="button dark" onClick={() => setDialog(false)}>
+          Got it <Check size={16} />
         </button>
         <button
           className="text-button just-watch"
           onClick={() => {
+            habitat.pause();
             setDialog(false);
-            setChecks(false);
           }}
         >
           I’ll just watch
@@ -930,7 +772,4 @@ export function App() {
       </dialog>
     </>
   );
-}
-function DownloadIcon() {
-  return <ArrowDown size={16} />;
 }

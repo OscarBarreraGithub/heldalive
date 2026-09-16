@@ -12,3 +12,4 @@ coverage/
 worker-configuration.d.ts
 
 public/weights/
+__pycache__/

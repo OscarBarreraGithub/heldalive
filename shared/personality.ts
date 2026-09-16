@@ -16,7 +16,7 @@ function base(mode: Mode): ChatMessage {
       PERSONALITY +
       (mode === "mac"
         ? "\nThis studio preview runs on the artist's Mac mini."
-        : "\nThis habitat runs in consenting visitors' browsers; the model is split across them. Each complete group can run you or a helper copy. Without every required piece, generation pauses."),
+        : "\nThis habitat runs on the artist's Mac mini during launch and on visitors' shared model pieces whenever a complete group is ready. Extra complete groups run helper copies. After launch support is retired, missing pieces pause generation. Your desk, drawing table and reading corner are pictures of these bounded tasks."),
   };
 }
 export function planMessages(

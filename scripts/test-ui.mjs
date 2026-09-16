@@ -3,13 +3,17 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true });
-await mkdir(".local/qa/edition03", { recursive: true });
+await mkdir(".local/qa/edition04", { recursive: true });
 const errors = [];
 try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
     acceptDownloads: true,
+  });
+  await context.addInitScript(() => {
+    if (!localStorage.getItem("held-participation"))
+      localStorage.setItem("held-participation", "watch");
   });
   const page = await context.newPage();
   page.on("pageerror", (e) => errors.push(e.message));
@@ -28,29 +32,33 @@ try {
   );
   await page.goto(base);
   await page
-    .getByRole("heading", { name: "This little AI lives between us." })
+    .getByRole("heading", { name: "This little AI lives here. With us." })
     .waitFor();
-  await page.getByRole("button", { name: "Lend a little life" }).click();
+  await page.getByRole("button", { name: "How your compute helps" }).click();
   await page.getByRole("dialog").waitFor({ state: "visible" });
   assert.match(await page.getByRole("dialog").innerText(), /11–38/);
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   assert.equal(
     await page
-      .getByRole("button", { name: "Lend a little life" })
+      .getByRole("button", { name: "How your compute helps" })
       .evaluate((el) => document.activeElement === el),
     true,
     "Focus returns to opener",
   );
-  await page.getByRole("button", { name: "Lend a little life" }).click();
+  await page.getByRole("button", { name: "How your compute helps" }).click();
   await page.getByRole("button", { name: "I’ll just watch" }).click();
-  const checks = page.getByRole("checkbox", { name: /Tiny contributions/ });
-  await checks.uncheck();
   await page.reload();
+  await page.getByText("You’re just watching", { exact: true }).waitFor();
+  assert.equal(
+    await page.evaluate(() => localStorage.getItem("held-participation")),
+    "watch",
+  );
   await page
-    .getByRole("heading", { name: "This little AI lives between us." })
-    .waitFor();
-  assert.equal(await checks.isChecked(), false, "Tiny check opt out persists");
+    .getByRole("button", { name: "Inspect reading and memory" })
+    .click();
+  await page.getByRole("region", { name: "The reading corner" }).waitFor();
+  await page.getByRole("button", { name: "Close station details" }).click();
   await page.getByRole("button", { name: "Say hello to Held" }).click();
   await page.getByText("oh, hello you!", { exact: true }).waitFor();
   assert.equal(
@@ -77,7 +85,7 @@ try {
     "No visitor message input",
   );
   await page.screenshot({
-    path: ".local/qa/edition03/desktop.png",
+    path: ".local/qa/edition04/desktop.png",
     fullPage: true,
   });
   for (const section of ["collection", "experiment", "math"]) {
@@ -124,7 +132,7 @@ try {
       }
     }
     await page.screenshot({
-      path: `.local/qa/edition03/${section}.png`,
+      path: `.local/qa/edition04/${section}.png`,
       fullPage: true,
     });
   }
@@ -142,16 +150,14 @@ try {
       );
       if (width === 390)
         await page.screenshot({
-          path: `.local/qa/edition03/mobile-${section}.png`,
+          path: `.local/qa/edition04/mobile-${section}.png`,
           fullPage: true,
         });
     }
     await page.goto(base);
-    await page.getByRole("button", { name: "Lend a little life" }).click();
+    await page.getByRole("button", { name: "How your compute helps" }).click();
     assert.equal(
-      await page
-        .getByRole("button", { name: "Start lending compute" })
-        .isVisible(),
+      await page.getByRole("button", { name: "Got it" }).isVisible(),
       true,
     );
     await page.keyboard.press("Escape");
@@ -159,11 +165,11 @@ try {
   assert.equal(
     modelRequests.length,
     0,
-    "Watching and inspecting consent must never download a model",
+    "Saved watch-only and inspecting the explanation must never download a model",
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: four pages at 320/390/768/1440px, no overflow, consent, keyboard/focus, persistent choices and opt out, local greeting, no prompt input, archive download, math slider, research assets, no spectator model downloads, no page errors",
+    "PASS: four pages at 320/390/768/1440px, no overflow, compute explanation, station inspector, keyboard/focus, persistent choices and opt out, local greeting, no prompt input, archive download, math slider, research assets, no spectator model downloads, no page errors",
   );
 } finally {
   await browser.close();

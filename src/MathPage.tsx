@@ -135,10 +135,12 @@ export function MathPage() {
           <span className="section-number">02 / A REAL DEPENDENCY</span>
           <h2>Missing a piece means missing a thought.</h2>
           <p>
-            A chain cannot run if any required layer is absent. When a holder
-            leaves, unfinished work is canceled and queued. A new contribution
-            fills the gap and restarts that task. Saved drawings and memory
-            files remain.
+            A browser chain cannot run if any required layer is absent. When a
+            holder leaves, its unfinished task is queued. During launch, the
+            artist’s Mini supports the public habitat when no browser chain is
+            complete. After that support is retired, only replacement browser
+            coverage can restart thinking. Saved drawings and memory files
+            remain.
           </p>
           <code className="equation">P(whole chain available) = pˢ</code>
           <p>

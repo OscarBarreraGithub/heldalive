@@ -1,16 +1,16 @@
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { writeFile, mkdir } from "node:fs/promises";
-const base = process.env.HELD_TEST_URL || "http://127.0.0.1:5173";
+const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const pages = [];
 const state = () =>
   fetch(base + "/api/state?room=browser").then((r) => r.json());
-await mkdir(".local/qa/edition03", { recursive: true });
+await mkdir(".local/qa/edition04", { recursive: true });
 try {
   const before = await state();
   const since = Date.now();
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 16; i++) {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.addInitScript(() => {
@@ -32,11 +32,9 @@ try {
         console.log("browser", i, m.text().slice(0, 200));
     });
     await page.goto(base);
-    await page.getByRole("button", { name: "Lend a little life" }).click();
-    await page.getByLabel("Room to roam", { exact: false }).check();
-    await page.getByRole("button", { name: "Start lending compute" }).click();
+    await page.getByRole("button", { name: "Give Held a coffee" }).click();
     await page
-      .getByRole("button", { name: "Stop contributing" })
+      .getByText("Your tab is lending a little life", { exact: true })
       .waitFor({ timeout: 120000 });
   }
   let finished;
@@ -89,7 +87,7 @@ try {
     "PASS actual model proposal, five recall approaches, paired decision, two shared inference chains",
   );
   await writeFile(
-    ".local/qa/edition03/workshop-result.json",
+    ".local/qa/edition04/workshop-result.json",
     JSON.stringify(
       { elapsedMs: Date.now() - since, parallel, before, finished },
       null,

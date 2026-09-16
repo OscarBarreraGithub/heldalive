@@ -25,6 +25,9 @@ try {
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
   });
+  await context.addInitScript(() =>
+    localStorage.setItem("held-participation", "watch"),
+  );
   const page = await context.newPage();
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -35,17 +38,21 @@ try {
       await check(page, `${section} at ${width}px`);
     }
     await page.goto(base);
-    await page.getByRole("button", { name: "Lend a little life" }).click();
+    await page.getByRole("button", { name: "How your compute helps" }).click();
     await check(page, `Contribution dialog at ${width}px`);
     await page.keyboard.press("Escape");
+    await page
+      .getByRole("button", { name: "Inspect computer and agents" })
+      .click();
+    await check(page, `Station inspector at ${width}px`);
   }
   await page.goto(base + "?room=studio");
   await page
-    .getByRole("heading", { name: "This little AI has a studio." })
+    .getByRole("heading", { name: "This little AI lives here. With us." })
     .waitFor();
   await check(page, "Mac studio");
   console.log(
-    "PASS: automated WCAG A/AA scans on all four pages, consent, mobile and Mac studio. This does not replace human accessibility testing.",
+    "PASS: automated WCAG A/AA scans on all four pages, explanation, mobile and Mac studio. This does not replace human accessibility testing.",
   );
 } finally {
   await browser.close();

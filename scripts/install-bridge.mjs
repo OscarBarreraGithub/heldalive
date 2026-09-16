@@ -15,11 +15,13 @@ if (process.platform !== "darwin")
     "This installer is for macOS LaunchAgents. Run npm run bridge directly elsewhere.",
   );
 const root = process.cwd();
-const runtime = join(homedir(), "Library/Application Support/HeldAlive");
+const runtimeBase = join(homedir(), "Library/Application Support/HeldAlive");
 const config = resolve(process.env.HELD_CONFIG || ".local/bridge.json");
 const parsed = JSON.parse(await readFile(config, "utf8"));
 if (!parsed.url || !parsed.token)
   throw new Error("Complete the bridge configuration first.");
+const publicLaunch = parsed.room === "browser";
+const runtime = publicLaunch ? join(runtimeBase, "launch") : runtimeBase;
 let node = "/opt/homebrew/bin/node";
 try {
   await access(node);
@@ -32,7 +34,7 @@ const escape = (value) =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
-const label = "com.heldalive.bridge";
+const label = publicLaunch ? "com.heldalive.launch" : "com.heldalive.bridge";
 const directory = join(homedir(), "Library/LaunchAgents");
 await mkdir(directory, { recursive: true });
 await mkdir(runtime, { recursive: true, mode: 0o700 });
@@ -47,6 +49,10 @@ await build({
     js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);",
   },
 });
+await copyFile(
+  resolve("bridge/native_model.py"),
+  join(runtime, "native_model.py"),
+);
 await copyFile(config, join(runtime, "bridge.json"));
 await chmod(join(runtime, "bridge.json"), 0o600);
 await mkdir(join(runtime, "logs"), { recursive: true, mode: 0o700 });

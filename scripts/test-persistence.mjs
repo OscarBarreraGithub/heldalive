@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { WebSocket } from "ws";
 const base = "http://127.0.0.1:8793";
@@ -131,8 +132,21 @@ try {
   );
   assert.equal(before.agents.length, 1);
   assert.ok(before.artworkCount > 0);
+  const config = JSON.parse(await readFile(".local/bridge-local.json", "utf8"));
+  const response = await fetch(base + "/api/launch-support?room=browser", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${config.token}` },
+    body: JSON.stringify({ enabled: false }),
+  });
+  assert.equal(response.status, 200);
   await stop();
   await start();
+  assert.equal(
+    (await fetch(base + "/api/state?room=browser").then((r) => r.json())).power
+      .launchSupport,
+    false,
+    "Independence choice persists through process restart",
+  );
   const after = await fetch(base + "/api/state?room=browser").then((r) =>
     r.json(),
   );

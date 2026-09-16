@@ -51,3 +51,9 @@ A familiar digital pet makes invisible infrastructure tangible. Its apparently i
 - No claim of having processed arXiv, increased intelligence, or supported thousands of simultaneous helpers without doing and measuring it.
 - Memory experiments begin with synthetic, exactly scored recall tasks and fixed size budgets. Results are a small, untrusted-browser demonstration, not a general benchmark of agent memory.
 - Arbitrary code execution, real paper processing, stronger-model selection and thousands of simultaneous helpers remain alternative/future projects. The shared-layer model and bounded memory workshop are the chosen implementation.
+
+## Edition 04 corrections and new direction
+
+Oscar clarified that automatic visits must perform actual inference, not only sampling or arithmetic checks. Extra contribution becomes a **free coffee**, with clear explanation and an easy pause. The public creature initially lives on the Mac mini and hands work to browsers as capacity becomes available. Launch support is visible; later browser independence removes that fallback.
+
+The creature comes out of its analog toy. It inhabits the page, moving between a computer (plans and helper delegation), drawing table, reading/memory corner and quiet free-time spot. Show actual visitors and active agents, and let viewers inspect more without overwhelming the first screen. No visible test-browser windows. Current decisions and acceptance checks are in edition04/PLAN.md.

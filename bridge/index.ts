@@ -1,4 +1,6 @@
 import { WebSocket } from "ws";
+import { NativeModel } from "./native-model";
+import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import { LOCAL_MODEL, jobSchema } from "../shared/protocol";
 import type { Job, ServerEvent } from "../shared/protocol";
@@ -8,6 +10,10 @@ type Config = {
   token: string;
   ollamaUrl?: string;
   model?: string;
+  room?: "main" | "browser";
+  engine?: "ollama" | "mlx";
+  python?: string;
+  modelPath?: string;
 };
 const configPath = process.env.HELD_CONFIG || ".local/bridge.json";
 const config: Config = JSON.parse(await readFile(configPath, "utf8"));
@@ -16,6 +22,16 @@ if (!["127.0.0.1", "localhost", "[::1]"].includes(endpoint.hostname))
   throw new Error("Ollama must be a loopback service.");
 if (!config.token || !config.url)
   throw new Error("Bridge configuration requires a URL and token.");
+const native =
+  config.engine === "mlx"
+    ? new NativeModel(
+        config.python || "python3",
+        fileURLToPath(new URL("./native_model.py", import.meta.url)),
+        config.modelPath || "",
+      )
+    : null;
+if (config.room === "browser" && !native)
+  throw new Error("The public launch bridge must use the pinned native model.");
 let active: AbortController | null = null;
 let socket: WebSocket | null = null;
 let stopping = false;
@@ -30,6 +46,10 @@ async function generate(ws: WebSocket, job: Job) {
   };
   const timeout = setTimeout(() => controller.abort(), 85_000);
   try {
+    if (native) {
+      await native.generate(job, send, controller.signal);
+      return;
+    }
     const response = await fetch(new URL("/api/chat", endpoint), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -97,7 +117,10 @@ async function generate(ws: WebSocket, job: Job) {
 
 function connect() {
   if (stopping) return;
-  const url = new URL("/api/socket?room=main&role=bridge", config.url);
+  const url = new URL(
+    `/api/socket?room=${config.room || "main"}&role=bridge`,
+    config.url,
+  );
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   const ws = new WebSocket(url, {
     headers: { Authorization: `Bearer ${config.token}` },
@@ -111,20 +134,33 @@ function connect() {
       `Connected to ${new URL(config.url).host}; local model ${config.model || LOCAL_MODEL}.`,
     );
     try {
-      const check = await fetch(new URL("/api/tags", endpoint), {
-        signal: AbortSignal.timeout(5000),
-      });
-      const tags = (await check.json()) as { models: { name: string }[] };
-      const ready = tags.models?.some(
-        (m) => m.name === (config.model || LOCAL_MODEL),
-      );
-      ws.send(JSON.stringify({ type: "ready", ready: Boolean(ready) }));
-      if (!ready) console.error("Required local model is not installed.");
+      if (native) {
+        await native.ready;
+        if (ws.readyState === WebSocket.OPEN)
+          ws.send(
+            JSON.stringify({
+              type: "ready",
+              ready: true,
+              modelId: "smollm2-360m-q4-v1",
+            }),
+          );
+      } else {
+        const check = await fetch(new URL("/api/tags", endpoint), {
+          signal: AbortSignal.timeout(5000),
+        });
+        const tags = (await check.json()) as { models: { name: string }[] };
+        const ready = tags.models?.some(
+          (m) => m.name === (config.model || LOCAL_MODEL),
+        );
+        ws.send(JSON.stringify({ type: "ready", ready: Boolean(ready) }));
+        if (!ready) console.error("Required local model is not installed.");
+      }
     } catch {
-      console.error("Ollama is not available.");
+      console.error("Local model is not available.");
       ws.close();
       return;
     }
+    if (ws.readyState !== WebSocket.OPEN) return;
     heartbeat = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN)
         ws.send(JSON.stringify({ type: "ping" }));
@@ -154,6 +190,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const)
   process.on(signal, () => {
     stopping = true;
     active?.abort();
+    native?.close();
     socket?.close();
     setTimeout(() => process.exit(0), 250);
   });

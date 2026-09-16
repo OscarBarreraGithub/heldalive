@@ -37,7 +37,7 @@ export function ArtCard({
   function download() {
     const blob = new Blob(
       [
-        `${art.title}\n\n${art.text}\n\nMade by Held · ${new Date(art.at).toISOString()}\n${art.source === "browser" ? "Browser-powered" : "Mac studio"} · heldalive.com\n`,
+        `${art.title}\n\n${art.text}\n\nMade by Held · ${new Date(art.at).toISOString()}\n${art.source === "browser" ? "Browser-powered" : "Mac mini"} · heldalive.com\n`,
       ],
       { type: "text/plain" },
     );
@@ -67,8 +67,8 @@ export function ArtCard({
             })}{" "}
             ·{" "}
             {art.source === "browser"
-              ? "made in a browser"
-              : "from the Mac studio"}
+              ? "made across browsers"
+              : "made on the Mini"}
           </p>
         </div>
         <div className="art-actions">

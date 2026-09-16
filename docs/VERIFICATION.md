@@ -1,32 +1,48 @@
-# Verification
+# Edition 02 verification
 
-Initial verification on September 15, 2026, Apple Silicon Mac with 24 GiB RAM.
+Date: 16 September 2026. Development machine: Apple Silicon Mac, 24 GiB RAM. This is a record of exercised behavior, not a security or performance certification.
 
-## Passed locally
+## Build and focused checks
 
-- Strict TypeScript check, seven focused unit tests, production frontend build.
-- Worker deployment dry run; local startup profiling.
-- Real Ollama Qwen 2.5 0.5B inference, streamed through the authenticated bridge to the room.
-- Real WebGPU model load in Chromium after explicit consent, followed by a completed 22-token browser inference (observed job wall time 1.65 seconds) and explicit withdrawal. This is one hardware observation, not a population benchmark or a guarantee.
-- Unauthorized bridge rejection, foreign-origin rejection, assigned-worker-only completion, shared broadcast, persisted counters, withdrawal without fallback, note rate limiting, and public-state field boundaries.
-- Desktop and 320/390/768-pixel layouts, no horizontal overflow, dialog open/close and Escape, reduced-motion layout, and no browser runtime errors.
-- Spectator visits and declining the contribution dialog make no model/MLC/WASM download requests.
-- Desktop and phone screenshots visually inspected. Screenshot artifacts live in ignored `.local/qa/`.
+- TypeScript, 11 unit tests and production build pass (`npm run check`).
+- Deployment dry run passes. Approximately 43 KiB Worker bundle before compression; frontend entry approximately 278 KiB JS plus 40 KiB CSS, before compression.
+- The WebLLM runtime is a large lazy chunk and triggers Vite’s size warning. Its roughly 6 MB runtime modules and model assets load only after inference consent. Watching/declining consent produces zero model/MLC/WASM requests in the UI test.
+- Existing research sources, figures, numerical inputs/outputs and the prior two-round audit/review are packaged alongside the public PDFs. The website adds an illustrative throughput calculator; it does not refit the earlier research or claim real AI propagation rates.
 
-## Boundaries
+## Protocol and persistence
 
-- The integrated in-app browser failed during runtime setup; a separate local Playwright Chromium harness performed visual and interaction testing.
-- Browser performance has not been validated on physical phones or a representative cross-browser/device matrix.
-- The browser study distributes complete inference jobs, not model shards. No claim of a multi-host critical threshold is made.
-- Public browser results are not cryptographically verified. Notes are rate-limited but the tiny model's personality and output are not perfectly controllable.
-- Domain/live deployment verification is recorded in the build ledger as it completes.
+`npm run test:integration` uses marked fixtures on localhost only. It passed signed-cookie authentication, foreign-origin/forged-cookie rejection, daily vote/visit deduplication, no free-text protocol, parallel helper assignments, assigned-owner completion, disconnect reassignment, persisted drawings, memory packing/recall/exact scoring, audit credit deduplication, all-worker withdrawal, no Mac fallback and public/private field separation.
 
-## Live deployment checks
+`node scripts/test-persistence.mjs` launches a separate local Worker, completes one drawing, interrupts a second lease with a full process restart, and checks retained archive/counters/project. The remaining drawing is reassigned with a new lease ID and saved. This passed.
 
-- Production Cloudflare site successfully streamed the same Mac-generated thought to two independent browsers. One observed warm 28-token task took 297 ms end-to-end.
-- The first production browser-model download exposed missing CORS headers at the upstream model host. This was fixed using a same-origin streaming endpoint restricted to pinned, allowlisted model files. Known manifest path returned 200; unapproved filename returned 404.
-- After the fix, a fresh real browser loaded the model from the deployed site and completed a 20-token thought in 1.688 seconds. After Stop and disconnect, the browser room reported zero contributors and `modelAvailable=false`; the independent Mac room remained available.
-- The installed Mac bridge was deliberately restarted through launchctl and reconnected successfully.
-- GitHub Actions initial check/build/dry-run passed. Subsequent final commit checks are recorded in the ledger.
+Tests must run after the frontend build completes. One concurrent build invalidated connected local test sockets through Wrangler’s asset reload; the protocol suite passed when rerun against the stable build.
 
-- Automated WCAG A/AA scans found four low-contrast small labels; colors were corrected. Both study pages and the consent dialog then passed with zero reported violations. This automated result is not a complete accessibility certification.
+## Actual model execution
+
+Real headed Chromium WebGPU sessions loaded Qwen after explicit consent and performed planning, delegated drawings, compression, recall and reflection. The first art session created two drawings and stopped with zero contributors, active jobs or new tokens. Local test state also contains protocol fixtures, so cumulative local scores are not reported as model benchmark results. Actual model evidence uses only newly generated records and per-run counter differences.
+
+Early recall replies copied the example answers. Removing that example and using structured JSON reduced this interface failure; weak or incorrect answers remain visible. Raw replies, response-format status, questions, original records and truncation flags make failures auditable. The model sometimes invents claims in its journal. The site explains that recorded results, not narration, are evidence.
+
+The automated browser could not naturally become hidden when switching tabs on this Mac. The final browser test therefore explicitly labels a synthetic visibility event through the app’s real handler. It verifies withdrawal/interrupt behavior, but does not establish how every real device suspends tabs. Explicit Stop and later absence of new generation are tested without that override.
+
+Live release observations are appended below after deployment.
+
+## Interface and creature
+
+- All four pages at 320, 390, 768 and 1440 pixels: no horizontal overflow.
+- Consent dismissal, Escape and focus return; no model download while inspecting or declining consent.
+- Tiny-check opt-out and daily vote persist after reload. Greeting animates locally without a model prompt. No visitor text input.
+- Gallery bookmark and plain-text download; corrupt local bookmarks do not crash it.
+- Calculator changes with its inputs; both research PDFs and source audit return successfully.
+- Six progressive creature states rendered and visually inspected; corrected a shell highlight, screen gradient, limb rotation origin and 320px overflow. See `design/README.md` and `design/six-passes.png`.
+- Desktop and mobile WCAG A/AA automated scans pass on all pages, the consent dialog and Mac studio. Fixed contrast failures and made overflowing ASCII blocks keyboard-focusable.
+- No page JavaScript errors in the checked UI paths. Reduced-motion layout is exercised; production always uses the finished creature design.
+
+## Remaining limits
+
+- One Mac’s GPU observations are not representative device benchmarks. Physical phones, Safari/Firefox inference and constrained-device memory were not exhaustively tested.
+- Eight concurrent job slots and 300 room connections are configured limits, not tested public capacity. Independent helpers were tested; no 10k-user load or thousand-agent demonstration is claimed.
+- Browser outputs are untrusted. Score checks do not verify genuine inference. Anonymous cookie identities are not people and do not prevent Sybil voting.
+- The memory task is a tiny synthetic demonstration with repeated case patterns; it does not establish improved general memory or intelligence. Model weights remain fixed.
+- The public habitat runs complete copies and pauses when workers leave. It does not shard a thought, impose a fake critical mass, or erase saved state on departure.
+- Automated accessibility scans do not replace screen-reader and human usability review. Generated public text can still be wrong or unsuitable.

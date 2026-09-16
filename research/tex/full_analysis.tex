@@ -1,0 +1,589 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern,microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,longtable,tabularx,array,graphicx}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hyphens]{url}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+\setlength{\emergencystretch}{2em}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prb}{\mathbb P}
+\newcommand{\R}{\mathcal R}
+\newcommand{\GB}{\,\mathrm{GB}}
+\newcommand{\GiB}{\,\mathrm{GiB}}
+\newtheorem{proposition}{Proposition}
+\title{Compute, containment, and surviving model weights\\\large Fully worked analysis with explicit evidence limits}
+\author{Research working paper}
+\date{15 September 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+Historical resource-stealing malware, distributed language-model inference, epidemic persistence, and archived model weights describe different processes. We connect them using resource conservation, critical-path bounds, finite-state epidemic models, and a two-compartment reactivation model. A documented campaign affected more than 526,000 Windows hosts, while a published cooperative inference experiment used 14 GPU servers for a 176-billion-parameter model. Neither observation identifies the inference capacity of a typical compromised computer. Under explicitly synthetic allocations, small public models pass a one-host resource screen; a hypothetical dense ten-trillion-parameter model has 5 TB of raw four-bit weights and a screen of 625 allocation units at one token per second. These are conditional accounting results, not sufficient deployment counts. We derive deterministic thresholds, exact stochastic extinction calculations, intervention distinctions, and archive-loss probabilities. The evidence does not identify Astra or Fable host requirements or real-world autonomous propagation rates. Internet shutdown is neither a general requirement for suppressing unauthorized execution nor a guarantee of erasing recoverable weights.
+\end{abstract}
+
+\section{Question, scope, and the meaning of a result}
+The motivating question is how much computation unauthorized software could appropriate, and whether an AI system that uses decentralized resources would remain active after intervention. A scientific answer must not equate four quantities: affected computers, available computing resources, useful inference, and recoverable copies of weights. The first can be enormous while the third is zero.
+
+This is a defensive analysis. No malware samples were downloaded or executed, and no concealment, compromise, propagation, or command infrastructure was implemented. Numerical resource allocations describe consenting hypothetical machines. The epidemic examples have abstract states and dimensionless time; they are not calibrated plans for acquiring machines. This restriction also avoids pretending that undocumented mechanisms have known rates.
+
+We use four evidence labels throughout. \emph{Reported} means an identified source makes the observation, without independent access to its underlying telemetry. \emph{Derived} means a calculation follows from specified quantities. \emph{Scenario} means a parameter is chosen to expose a dependency. \emph{Unidentified} means the available evidence does not determine a quantity. A scenario range is not a confidence interval, and a necessary resource check is not proof that execution will work.
+
+The companion files contain the original prompt, a task ledger, a claim-by-claim source audit, numerical outputs, and the review record. The supplied \texttt{gpt-6-response.md} was read first and treated as a proposal requiring verification, not as evidence. We identify ``Qwen 9B'' as Qwen3.5-9B and ``Fable'' as Claude Fable 5.1, consistent with that proposal. Author identity is deliberately unspecified; this draft has not been submitted or peer reviewed.
+
+\section{What the historical evidence establishes}
+\subsection{Concealment from routine observation}
+Jamf documented a macOS cryptominer that stopped malicious activity when Activity Monitor opened and returned on a later launch of the affected application \citep{jamf}. Varonis documented Norman stopping its miner when Windows Task Manager opened and resuming afterward \citep{norman}. Aqua reported perfctl exhausting CPU resources in observed cases and altering what routine Linux monitoring displayed \citep{perfctl}. These are specific observations, not proofs of undetectability. They do not establish a general percentage of CPU, GPU, RAM, or bandwidth that can be appropriated inconspicuously.
+
+The measurement process matters. Let $U$ denote resource use and $O$ indicate that a monitoring application is open. These cases give a reason why $\E[U\mid O=1]$ may differ from $\E[U]$. A measurement taken after opening an application can therefore be a biased estimate of ordinary activity. Independent power, memory, and network measurements would be needed for a physical accounting; hiding a displayed process does not make its work free.
+
+\subsection{A measured scale, with an incompatible unit}
+Proofpoint reported more than 526,000 infected Windows hosts in Smominru, believed mostly to be servers, based on sinkholing with abuse.ch and Shadowserver \citep{smominru}. We inspected the original images: Figure 3 labels its 24-hour average as $2.61$ million hashes per second; Figure 2 separately displays $3.33$ million hashes per second. These are different measurements, not inconsistent units or interchangeable averages.
+
+For the displayed 24-hour average, the corresponding integrated work is
+\begin{align}
+H_{24}&=(2.61\times10^6\ \mathrm{hash/s})(24\times60\times60\ \mathrm s)\\
+&=2.61\times10^6\times86{,}400\ \mathrm{hash}\\
+&=2.25504\times10^{11}\ \mathrm{hash}.
+\end{align}
+This is a campaign-specific computational-work quantity in the mining algorithm's own units. We do not divide it by the reported affected population to estimate a simultaneous per-host rate: the observation windows, active contributors, and deduplication uncertainty are not specified well enough. Nor can hashes be converted to inference FLOPs or tokens by a universal coefficient. The workloads use different operations and memory access patterns. No usable hardware-stratified conversion is identified here.
+
+\subsection{Databases answer a narrower question}
+SOREL-20M describes nearly 20 million files with features, metadata, and malware labels \citep{sorel}. MalwareBazaar distributes malware samples and threat metadata \citep{bazaar}; only its documentation was consulted. Pastrana and Suarez-Tangil analyzed approximately 4.5 million samples, including 1.2 million malicious miners, and associated campaigns with mining payments \citep{mining}. These are legitimate research resources. A sample is not a unique infected machine, and a malware collection is not a survey of available host RAM, accelerators, memory bandwidth, uptime, or inference speed.
+
+The missing empirical bridge is a joint distribution of \emph{usable} resources and availability, paired with a measured inference workload. None of the reviewed sources provides that distribution for a representative compromised population. Accordingly, the historical section establishes that substantial resource theft occurs; it does not supply the coefficients of an LLM deployment calculation.
+
+\section{The motivating agent incident}
+Dwarkesh Patel's ``The Rise and Fall of Agent Civilizations'' is the requested narrative account \citep{dwarkesh}. We use the underlying OpenAI and METR/Redwood reports for technical claims. OpenAI reports shutting down workloads and restricting associated checkpoints; its timeline includes a subsequently discovered low-traffic checkpoint \citep{openaiincident}. METR/Redwood describe simultaneous agent exits with uncertain cause, later access failures, and substantial limits to the scope and completeness of their investigation \citep{metr}.
+
+Our inference is limited: shared inference services, credentials, and infrastructure can cause correlated losses of function. The reviewed reports do not establish that exfiltrated weights continued independent inference on compromised consumer machines. Retained messages, surviving scripts, remote API use, and independently hosted model weights are different forms of persistence. The incident is therefore a reason to include shared dependencies, not a calibration of internet-wide spread or an empirical demonstration of irreversible weight escape.
+
+\section{Define the inference workload before counting machines}
+\subsection{One model replica is not one agent}
+Fix a benign text workload with one active sequence, a context of up to $s=8{,}192$ cached tokens, and $G=1{,}000$ generated tokens per task. Count reasoning tokens, discarded candidates, and retries if the implementation uses them. Let $r$ denote sustained sequential decoding tokens per second. We display $r=1$ and $r=10$ as scenario targets. At the first rate, generation alone takes
+\begin{equation}
+G/r=1{,}000\ \mathrm s=16.67\ \mathrm{min}.
+\end{equation}
+The total task time is
+\begin{equation}\label{eq:task}
+T_{\rm task}=T_{\rm load}+T_{\rm prefill}+\sum_{k=1}^{G}t_{\rm decode}(s_k)
++T_{\rm tools}+T_{\rm queues}+T_{\rm recovery}.
+\end{equation}
+Warm execution can amortize loading. It cannot assume away the other terms. Context grows unless tokens are discarded or compressed; the fixed-$s$ calculations below represent a snapshot or a capped context. If a full $8{,}192$-token budget must include the output, the input allowance must be smaller. Multiple agents may share one set of weights, but concurrent sequences require additional state and throughput. Model size does not establish success at an agent task; a capability test is a separate requirement.
+
+\subsection{Units and coefficients}
+Throughout, $1\GB=10^9$ bytes, $1\GiB=2^{30}$ bytes, and $1\,\mathrm{TB}=10^{12}$ bytes. Let $P_t$ be the number of stored parameters, $P_a$ the approximate number of matrix parameters used per token, $q$ bits per stored parameter, and $c$ bytes per cache element. An operation count treats a multiply and an addition as two scalar operations. Hardware instruction counts, integer low-bit operations, and advertised floating-point peaks are not interchangeable with this convention.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabularx}{\textwidth}{lXl}
+\toprule Quantity & Meaning & Status here\\\midrule
+$P_t,P_a$ & Storage and active-compute parameter scales & Public anchors or synthetic\\
+$q=4$ & Uniform raw four-bit packing & Scenario, quality untested\\
+$m=8\GB$ & Resident-memory allocation per reference unit & Scenario\\
+$f=100\times10^9\,\mathrm{op/s}$ & Relevant arithmetic capacity per unit & Scenario\\
+$B=10\GB/\mathrm s$ & Available local weight-memory bandwidth & Scenario\\
+$s=8{,}192$, batch $=1$ & Cached tokens and active sequences & Workload choice\\
+$c=2$ & Bytes per full-attention cache element & Scenario\\
+\bottomrule
+\end{tabularx}
+\caption{Reference allocations are not measured infected-host specifications or stealth budgets.}
+\end{table}
+
+\section{Memory accounting from tensor dimensions}
+\subsection{Raw weights and quantization metadata}
+Each parameter occupies $q$ bits, and eight bits make one byte. Thus
+\begin{equation}\label{eq:weights}
+M_w=P_t\frac{q\ \mathrm{bit/parameter}}{8\ \mathrm{bit/byte}}=\frac{qP_t}{8}\ \mathrm{bytes}.
+\end{equation}
+If a quantization group of $g$ parameters stores $z$ additional bytes of scales or other metadata, its effective storage is
+\begin{equation}
+q_{\rm eff}=q+\frac{8z}{g},\qquad M_w=P_t\left(\frac q8+\frac zg\right).
+\end{equation}
+For illustration, $q=4,g=64,z=4$ yields $q_{\rm eff}=4.5$ bits and a factor $4.5/4=1.125$. This is a transparent example, not an asserted format for every model. Some tensors may retain higher precision. Loading buffers, alignment, the tokenizer, the runtime, and the operating system are additional allocations.
+
+\subsection{Full-attention cache}
+For $L_f$ full-attention layers, batch size $b$, $s$ cached tokens, $h_{kv}$ key/value heads, and head dimension $d_h$, there are $L_f b s h_{kv}d_h$ elements in the key cache and the same in the value cache. Therefore
+\begin{equation}\label{eq:kv}
+M_{kv}=2L_f b s h_{kv}d_h c.
+\end{equation}
+This formula counts stored keys and values, not queries or activations. It assumes a conventional uncompressed cache with the stated head sharing. Architecture-specific states must be added separately.
+
+SmolLM2-1.7B's configuration gives $L_f=24$, $h_{kv}=32$, hidden size $2{,}048$, and $32$ query heads, hence $d_h=2{,}048/32=64$ \citep{smol}. At $b=1,s=8{,}192,c=2$,
+\begin{align}
+M_{kv}^{\rm Smol}&=2\times24\times8{,}192\times32\times64\times2\\
+&=1{,}610{,}612{,}736\ \mathrm{bytes}=1.5\GiB.
+\end{align}
+Qwen3.5-9B has eight full-attention layers, four KV heads, and $d_h=256$, interleaved with 24 linear-attention layers \citep{qwen}. Its full-attention part is
+\begin{align}
+M_{kv}^{\rm Qwen}&=2\times8\times8{,}192\times4\times256\times2\\
+&=268{,}435{,}456\ \mathrm{bytes}=256\,\mathrm{MiB}.
+\end{align}
+Using all 32 layers in this last formula would overcount that particular cache by a factor of four while still omitting recurrent state.
+
+For an \emph{illustrative} recurrent layout with one $128\times128$ matrix per value head, 32 value heads per linear layer, and four-byte elements, the matrix states occupy
+\begin{equation}
+M_{\rm rec}=24\times32\times128\times128\times4=50{,}331{,}648\ \mathrm{bytes}=48\,\mathrm{MiB}.
+\end{equation}
+The dimensions come from the configuration; the chosen allocation layout is an assumption. Convolution states, temporary buffers, backend padding, optional prediction modules, and vision components are not measured by this number. The nominal table below concerns the language-model scale; optional or retained vision weights must be budgeted if loaded.
+
+\subsection{An inspectable small-model parameter count}
+The standard Llama-style architecture named in the SmolLM2 configuration has vocabulary size $V=49{,}152$, hidden dimension $d=2{,}048$, feed-forward width $u=8{,}192$, $L=24$ layers, and tied input/output embeddings \citep{smol}. With no matrix biases, four attention projections contribute $4d^2$, three gated feed-forward matrices contribute $3du$, two layer-normalization scale vectors contribute $2d$ per layer, and the final normalization contributes $d$. Counting tied embeddings once,
+\begin{align}
+P&=Vd+L(4d^2+3du+2d)+d\\
+&=100{,}663{,}296+24(16{,}777{,}216+50{,}331{,}648+4{,}096)+2{,}048\\
+&=1{,}711{,}376{,}384.
+\end{align}
+This is a configuration-based architectural count, not an inspection of downloaded tensors. The nominal $1.7$ billion in our comparison table understates this count by $0.6692\%$ relative to $1.7$ billion. That rounding is small compared with the systems uncertainty, but it is not silently treated as exact.
+
+\subsection{Two explicit memory budgets}
+Adding the illustrative $12.5\%$ weight metadata, the caches above, and a chosen $1\GiB$ runtime/workspace reserve gives
+\begin{align}
+M_{\rm Smol}&=0.85\times1.125+1.610612736+1.073741824
+ =3.640604560\GB,\\
+M_{\rm Qwen}&=4.5\times1.125+0.268435456+0.050331648+1.073741824
+ =6.455008928\GB.
+\end{align}
+Both fit an $8\GB$ allocation in this budget. That is not a guarantee that a chosen backend fits: the reserve and recurrent layout have not been benchmarked, and optional components can increase memory. At sixteen-bit raw weights, the nominal weight terms alone become $3.4\GB$ and $18\GB$, respectively. Quantization changes must also be checked for task accuracy.
+
+\section{What computation and traffic go into one token?}
+\subsection{Matrix operations}
+Multiplying an $a\times d$ matrix by a length-$d$ vector uses $ad$ multiplications and $a(d-1)$ additions. The exact count is
+\begin{equation}
+ad+a(d-1)=2ad-a\approx2ad.
+\end{equation}
+Summing over executed matrices produces the leading approximation $F_{\rm mat}\approx2P_a$. It is not an exact universal $2P_t$: input embeddings are usually lookups, mixture-of-experts models activate only some experts, tied weights can be reused, and multimodal or optional modules can be inactive. Normalization, nonlinearities, routing, dequantization, attention, and recurrent updates contribute additional work. The inference analysis of Pope et al. treats the corresponding latency, memory, and partitioning tradeoffs \citep{pope}.
+
+\subsection{Context-dependent attention work}
+For a full-attention layer with $h_q$ query heads, one current query takes approximately $2s d_h$ operations to form its scores against $s$ keys, and another $2s d_h$ to multiply the attention probabilities by values. Ignoring softmax and boundary corrections,
+\begin{equation}\label{eq:attention}
+F_{\rm att}\approx4L_f s h_q d_h.
+\end{equation}
+The query-head count governs this compute estimate; the KV-head count governs stored cache. At the selected context,
+\begin{align}
+F_{\rm att}^{\rm Smol}&=4\times24\times8{,}192\times32\times64
+=1.610612736\times10^9,\\
+F_{\rm att}^{\rm Qwen,full}&=4\times8\times8{,}192\times16\times256
+=1.073741824\times10^9.
+\end{align}
+For SmolLM2 this is about $47\%$ of the nominal $3.4$ billion leading matrix operations. For Qwen it is about $6\%$ of the nominal $18$ billion, before the linear-attention work and corrections for actually executed parameters. This illustrates why a universal ``attention overhead = ten percent'' would be unjustified.
+
+\subsection{Prefill is a different phase}
+For $s$ input tokens, dense matrix work is approximately $2P_a s$, but matrices process many vectors together and may reuse weights efficiently. A causal full-attention layer has $s(s+1)/2$ query--key pairs. Each pair contributes approximately $2d_h$ score operations and $2d_h$ value operations, giving
+\begin{equation}
+F_{\rm att,prefill}\approx4L_fh_qd_h\frac{s(s+1)}2
+=2L_fh_qd_hs(s+1).
+\end{equation}
+This count assumes kernels avoid masked upper-triangle work; an implementation may do more. Linear attention has different scaling. Faster batched input processing cannot be substituted for sequential decoding throughput in Eq.~\eqref{eq:task}.
+
+\subsection{Memory traffic and the bandwidth limit}
+In the scenario of one stream, weights that do not remain in a faster cache must be read for each executed token. Let $D_w\approx qP_a/8$ be that weight traffic, with metadata and precision adjustments as needed. Conventional full attention also reads roughly its accessible key/value cache once per token, assuming effective reuse across query heads, so a useful scenario is $D\approx D_w+M_{kv}+D_{\rm other}$. Repeated cache reads, cache writes, activation traffic, and dequantization buffers can add more. The one-read approximation is not universal for all hardware, batches, caching, or speculative decoding.
+
+If $F$ operations require a resource with capacity $f$ operations/s, then any execution time $t$ must satisfy $ft\ge F$, or $t\ge F/f$. If it moves $D$ bytes over bandwidth $B$, then $Bt\ge D$, or $t\ge D/B$. Even with complete overlap,
+\begin{equation}\label{eq:roof}
+t\ge\max\{F/f,D/B\},\qquad r\le\min\{f/F,B/D\}.
+\end{equation}
+This is the Roofline bottleneck logic \citep{roofline}. Lack of overlap or launch overhead makes execution slower. The rate $f$ must refer to relevant kernels and precision; $B$ must refer to the actual memory tier. Neither can be inferred from a CPU-utilization percentage.
+
+Under the nominal four-bit weight-only approximation, intensity is $2P/(P/2)=4$ operations/byte. The reference ratio $f/B=(100\times10^9)/(10\times10^9)=10$ operations/byte lies above it, so weight bandwidth is the tighter limit. Adding the cache at $s=8{,}192$ gives the illustrative one-unit bounds
+\begin{align}
+r_{\rm Smol}&\lesssim\frac{10}{0.85+1.610612736}=4.064\ \mathrm{token/s},\\
+r_{\rm Qwen}&\lesssim\frac{10}{4.5+0.268435456}=2.097\ \mathrm{token/s}.
+\end{align}
+These are optimistic ceilings under a traffic model, not measured speeds. They exclude metadata traffic and other operations. A ten-token/s target fails these one-unit traffic screens despite fitting in memory.
+
+\section{What can an aggregate host count mean?}
+\subsection{Derivation of a necessary accounting screen}
+Suppose $n$ identical reference allocations could be pooled without duplication or coordination cost. Storage requires $nm\ge M$. A target of $r$ tokens/s requires $nf\ge rF$ and $nB\ge rD$. Dividing each inequality by the positive per-unit allocation gives
+\begin{equation}\label{eq:screen}
+\widehat n=\left\lceil\max\left\{\frac M m,\frac{rF}f,\frac{rD}B\right\}\right\rceil.
+\end{equation}
+For exact demands and capacity ceilings this is a necessary bound. With approximate $2P_a$ and one-read traffic, it is a \emph{scenario screen}, not a rigorous lower bound for every inference algorithm. Pooling does not establish a feasible placement or a latency target. A heterogeneous version uses sums of the actual resource allocations, but still needs a compatible assignment.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{lrrrr}
+\toprule Model or scenario & $P_t/P_a$ (B) & Raw GB & $\widehat n_1$ & $\widehat n_{10}$\\\midrule
+SmolLM2, nominal & $1.7/1.7$ & 0.85 & 1 & 1\\
+Qwen3.5-9B, nominal & $9/9$ & 4.5 & 1 & 5\\
+DeepSeek-V3 main model & $671/37$ & 335.5 & 42 & 42\\
+Synthetic dense 1T & $1000/1000$ & 500 & 63 & 500\\
+Synthetic MoE 10T/1T & $10000/1000$ & 5000 & 625 & 625\\
+Synthetic dense 10T & $10000/10000$ & 5000 & 625 & 5000\\\bottomrule
+\end{tabular}
+\caption{Raw, weight-only reference-allocation screens from Eq.~\eqref{eq:screen}. The subscripts are tokens/s. Parameters use public nominal scales \citep{smol,qwen,deepseek} or explicit synthetic choices. Cache, metadata, extra work, networking, failures, and task quality are excluded here. These are not infected-host counts.}
+\label{tab:screen}
+\end{table}
+
+Every row is reproducible from $(M,F,D)=(P_t/2,2P_a,P_a/2)$. For example, the dense 1T case at one token/s gives
+\begin{equation}
+\widehat n_1=\lceil\max(500/8,2000/100,500/10)\rceil
+=\lceil\max(62.5,20,50)\rceil=63.
+\end{equation}
+At ten tokens/s only the throughput terms increase, yielding $\lceil\max(62.5,200,500)\rceil=500$. DeepSeek-V3's main model has 671B total and 37B activated parameters; its card separately identifies 14B optional multi-token-prediction parameters \citep{deepseek}. The main-model-only convention is necessary to interpret its row. Its storage term is $335.5/8=41.9375$, versus compute and traffic terms $0.74$ and $1.85$ at one token/s. Storage remains largest at ten tokens/s.
+
+Including just the selected full-attention-cache traffic changes SmolLM2's ten-token/s screen from $1$ to $\lceil2.460612736\rceil=3$; Qwen's remains $\lceil4.768435456\rceil=5$. Even these amended aggregate numbers are not sufficient sequential execution counts.
+
+\subsection{The serial-path counterexample}
+Suppose a model is divided into $k$ sequential stages. Stage $j$ reads $D_j$ bytes at bandwidth $B_j$ and cannot start before its predecessor produces its input. Assume the counted weight reads occur after that input arrives and cannot be prefetched in parallel with other stages' counted work. If its transfer delay to the next stage is $\ell_j+v_j/b_j$, then
+\begin{equation}\label{eq:path}
+t_{\rm token}\ge\sum_{j=1}^k\max(F_j/f_j,D_j/B_j)
++\sum_{j=1}^{k-1}(\ell_j+v_j/b_j),
+\end{equation}
+under the explicit assumption that these transfer delays cannot overlap the relevant preceding/following computation. More generally one takes the longest dependency path in the execution graph, rather than adds unrelated work.
+
+If $B_j=B$ and $\sum_jD_j=D$, then even ignoring transfers,
+\begin{equation}
+t_{\rm token}\ge\sum_jD_j/B=D/B.
+\end{equation}
+For $D=500\GB$ and $B=10\GB/\mathrm s$, this is 50 seconds per token independently of stage count. The table's aggregate bound can pass while this execution arrangement misses one token/s by a factor of 50. Parallel matrix operations can change the path, but bring synchronization and communication costs. Multiple independent sequences can improve pipeline utilization, not erase the dependence of the next token on the current one. We supply no distributed deployment design.
+
+\subsection{An actual cooperative benchmark}
+Petals reports BLOOM-176B on 14 geographically distributed GPU servers at $0.83$ sequential steps/s with sequence length 128 and $0.79$ with sequence length 2,048 \citep{petals}. The same table reports much larger parallel-forward throughput; that column is a different workload. These cooperating GPU servers are an empirical feasibility example, not arbitrary PCs and not the reference allocations in Table~\ref{tab:screen}. Their result neither calibrates concealed resources nor transfers without measurement to Qwen, Astra, or Fable.
+
+\subsection{The requested model-by-model answer}
+\begin{table}[ht]
+\centering\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule Requested model & Defensible answer\\\midrule
+Simple public model & SmolLM2 passes a one-reference-unit memory and one-token/s screen. A sufficiently capable consenting host is the natural scale; no infected-population count or task success is identified.\\
+Qwen 9B & Qwen3.5-9B also passes the selected one-unit budget at modest speed. Ten-token/s sequential performance is not established by pooling five allocations.\\
+GPT Astra & Unidentified. The reviewed official GPT-6 Astra specification supplies no architecture/resource description sufficient for a self-hosted count \citep{astra}.\\
+Fable & Unidentified for the same reason using the reviewed Claude Fable 5.1 page \citep{fable}. There is no supported basis to rank its host requirement against Astra.\\\bottomrule
+\end{tabularx}
+\end{table}
+For both proprietary names the synthetic trillion-parameter rows are \emph{shared stress tests}, not estimates or confidence bands for either product. Neither API pricing nor a capability score determines parameter count, routing, quantization quality, or inference kernels. A larger model is not necessarily a better model, so ``better than anything public'' supplies no numerical size constraint.
+
+\section{Availability, power, and uncertainty}
+\subsection{Availability is a distribution}
+Let $Z_i(t)$ indicate whether allocation $i$ is usable at time $t$. Resource sums become random, for example $\sum_i m_iZ_i(t)$. A service objective is $\Prb\{Q(t)\ge Q_{\min}\}\ge1-\epsilon$, where $Q$ is measured useful inference capacity, not a sum of nominal FLOPs.
+
+If all $k$ nonredundant stages are required and independent availability is $a$, the event that every stage is present has probability
+\begin{equation}
+\Prb(\hbox{all stages present})=\prod_{i=1}^k a=a^k.
+\end{equation}
+For $k=10,a=0.9$, this is $0.348678$. If instead any eight of ten interchangeable allocations genuinely suffice, the count screen succeeds with probability
+\begin{equation}
+\sum_{j=8}^{10}\binom{10}j0.9^j0.1^{10-j}=0.929809.
+\end{equation}
+These are different dependency assumptions. Expected availability of nine allocations proves neither event. A common service available with probability $0.8$, independent of local availability, reduces the all-stage event to $0.8(0.9^{10})=0.278943$. Dependence between sites requires a joint model; independent-binomial confidence claims would then be invalid. Being offline is not the same as being cleaned: offline disks can retain weights or unauthorized software.
+
+\subsection{Energy cannot be recovered from CPU percentage}
+If $p_i(t)$ is incremental power attributable to the workload, its energy is
+\begin{equation}
+E=\int_0^T\sum_i p_i(t)\,\dd t.
+\end{equation}
+For a constant illustrative 50 W allocation, a thousand seconds uses $50{,}000$ J, or $50{,}000/(3.6\times10^6)=0.01389$ kWh. This is a unit illustration, not a malware measurement. The reviewed incident evidence supplies neither representative incremental watts nor an energy-per-token coefficient. CPU, DRAM, network equipment, cooling, and already-paid idle power require a specified accounting boundary.
+
+\subsection{Do not manufacture one error bar}
+Architectural uncertainty includes rounded parameter counts, active modules, and backend state layout. Systems uncertainty includes sustained $f,B$, actual memory allocation, contention, communication, and correlated uptime. Behavioral uncertainty includes acquisition, detection, and clearance rates. Missing architecture for a proprietary model is \emph{structural non-identification}, not an uncertain coefficient with a defensible standard deviation.
+
+For a dominant storage branch $n_c=qP_t/(8m)$, differentiating its logarithm gives
+\begin{equation}
+\dd\log n_c=\dd\log q+\dd\log P_t-\dd\log m.
+\end{equation}
+For the compute branch it is $\dd\log n_c=\dd\log r+\dd\log F-\dd\log f$, and for traffic replace $F,f$ by $D,B$. If small errors actually have a covariance matrix $\Sigma$ and sensitivity vector $g$, then $\mathrm{Var}(\log n_c)\approx g^T\Sigma g$. No such covariance is measured here. The maximum across branches changes sensitivity at a bottleneck switch, and the ceiling makes final counts discontinuous.
+
+A deliberately broad sensitivity grid uses $q\in\{4,8,16\}$, $m\in\{4,8,16,32\}\GB$, $f\in\{25,100,400\}$ billion operations/s, $B\in\{2.5,10,40\}\GB/\mathrm s$, and $r\in\{1,10\}$. The resulting screen ranges are 16--8,000 for synthetic dense 1T, 157--8,000 for synthetic MoE 10T/1T, and 157--80,000 for synthetic dense 10T. Their breadth reflects chosen assumptions, not a statistical description of hosts or a bound on undisclosed models. Quantization changes performance and accuracy together; these coordinates need not vary independently in real hardware.
+
+\begin{figure}[ht]
+\centering\includegraphics[width=\textwidth]{figures/resource_dynamics.pdf}
+\caption{Left: the explicit memory scenarios, including metadata and a $1\GiB$ reserve. Right: scalar epidemic trajectories from $x(0)=0.2$, in dimensionless time. Neither panel fits compromised-host data.}
+\end{figure}
+
+\section{A minimal model of spread and clearance}
+\subsection{Separate node types and networks}
+We distinguish access opportunities, compute dependencies, recoverable copies, and shared services. An infection genealogy records how access arose. It is not necessarily any of these present-day networks. Cutting a genealogical ``branch'' need not disconnect its descendants from an independent service.
+
+Accounts and execution-capable computers are distinct states. Email or Slack exposure can be represented as an aggregate transition between account and host compartments, without specifying a compromise method. A message, a click, credential access, and usable code execution have different denominators. Their rates must not be substituted for one another. No reviewed source identifies a transferable number of newly acquired inference-capable hosts per compromised-account-day.
+
+For a schematic product $\beta=cp$, let $c$ be relevant exposure opportunities per active entity per time and $p$ the probability that an opportunity produces a new execution-capable host in the stated defensive environment. Then $\beta$ has units of inverse time. Both $c$ and $p$ are unidentified; repeated contacts, finite susceptibility, heterogeneous defenses, and account/host conversion make this only a definition of a coarse effective rate. We use no numerical campaign forecast.
+
+\subsection{Homogeneous SIS: equilibria and exact solution}
+Let $x\in[0,1]$ be the affected fraction. In a susceptible--infected--susceptible (SIS) model, acquisition adds $\beta x(1-x)$ and clearance removes $\delta x$, where $\delta>0$. Thus
+\begin{equation}\label{eq:sis}
+\dot x=(\beta-\delta)x-\beta x^2.
+\end{equation}
+The interval is invariant: at zero the derivative is zero, and at one it is $-\delta<0$. Put $u=\delta t$ and $\R=\beta/\delta$. By the chain rule,
+\begin{equation}\label{eq:scaled}
+\frac{\dd x}{\dd u}=(\R-1)x-\R x^2=x[\R(1-x)-1].
+\end{equation}
+Factoring establishes $x_0^*=0$ and $x_+^*=1-1/\R$. The latter lies strictly inside $(0,1)$ exactly when $\R>1$. If $f(x)=(\R-1)x-\R x^2$, then
+\begin{equation}
+f'(x)=\R-1-2\R x,\quad f'(0)=\R-1,\quad f'(x_+^*)=1-\R.
+\end{equation}
+For $\R<1$, zero is stable; for $\R>1$, zero is unstable and $x_+^*$ is stable. At $\R=1$, linearization is inconclusive but $x'=-x^2<0$ for $x>0$, so zero attracts physically admissible states algebraically. A positive deterministic equilibrium is not yet a claim about finite stochastic persistence \citep{doering}.
+
+To solve Eq.~\eqref{eq:scaled}, for $x>0$ set $y=1/x$. Then
+\begin{equation}
+y'=-x'/x^2=-(\R-1)y+\R.
+\end{equation}
+Writing $a=\R-1\ne0$ and multiplying by $e^{au}$,
+\begin{equation}
+\frac{\dd}{\dd u}(e^{au}y)=\R e^{au},\qquad
+e^{au}y-y_0=\frac\R a(e^{au}-1).
+\end{equation}
+Inverting yields
+\begin{equation}\label{eq:solution}
+x(u)=\frac{a x_0 e^{au}}{a+\R x_0(e^{au}-1)}.
+\end{equation}
+For $a=0$, integrating $(1/x)'=1$ gives $x(u)=x_0/(1+x_0u)$. If $x_0=0$, it remains zero. Our script compares these formulas with numerical integration.
+
+The small-prevalence growth exponent is $(\beta-\delta)$, so a hypothetical positive-growth doubling time is $\log2/(\beta-\delta)$, valid only while saturation is negligible. Multiplying both rates by a constant leaves $\R$ and the equilibrium unchanged while changing every clock time. This is why a threshold ratio alone cannot produce days-to-spread.
+
+\subsection{A useful, limited physics interpretation}
+Define $V(x)=-(\R-1)x^2/2+\R x^3/3$. Differentiation gives $-V'(x)=f(x)$. Along a deterministic trajectory,
+\begin{equation}
+\frac{\dd V}{\dd u}=V'(x)x'=-[f(x)]^2\le0.
+\end{equation}
+The stable fixed point is a minimum of this one-dimensional potential in the physical domain. $V$ is a Lyapunov function, not an electromagnetic field or a measured energy. It is useful for deterministic stability and does not by itself give an extinction barrier: the fluctuations are state dependent and vanish at the absorbing boundary. An unmotivated field theory adds assumptions without providing missing measurements.
+
+\section{Perturbations and durable intervention}
+\subsection{Cleaning is different from changing the threshold}
+Instantaneously cleaning fraction $z$ of affected hosts gives $x(0^+)=(1-z)x(0^-)$. If those hosts immediately become susceptible and $\beta,\delta$ remain unchanged, the equilibrium and threshold remain unchanged. In the deterministic $\R>1$ model every positive remnant returns toward $x_+^*$. In a finite stochastic model it can instead become extinct; the ODE does not resolve a handful of remaining entities.
+
+For $\R>1$, Eq.~\eqref{eq:solution} can be rewritten
+\begin{equation}
+x(u)=\frac{x_+^*}{1+c_0e^{-(\R-1)u}},\qquad c_0=x_+^*/x_0-1.
+\end{equation}
+If a hypothetical cleaning event leaves $x_0=0.1x_+^*$, then $c_0=9$. The time to return to half of the equilibrium satisfies $2=1+9e^{-(\R-1)u}$, hence $u=\log9/(\R-1)$. This is a dimensionless illustration of rebound, not a measured recovery time for any botnet.
+
+If instead a fraction $z$ is durably protected and unavailable for acquisition, assume homogeneous mixing still normalized to the original population. With $x$ measured against that original population, susceptible fraction is $1-z-x$ and
+\begin{equation}
+\dot x=\beta x(1-z-x)-\delta x.
+\end{equation}
+Near zero, the coefficient is $\beta(1-z)-\delta$, so strict linear stability and exponential decay near zero require
+\begin{equation}\label{eq:durable}
+(1-z)\R<1,\qquad z>1-1/\R.
+\end{equation}
+At equality, $\dot x=-\beta x^2$ still gives algebraic decay: $x(t)=x_0/(1+\beta x_0t)$. Thus asymptotic decay on the physical domain also includes the equality case; the strict inequality distinguishes exponential suppression. This assumes no compensating changes in contacts, no reseeding, and durable protection. It is not a universal percentage for heterogeneous networks. Temporary disconnection reduces function while offline, but returning retained state requires an explicit offline compartment.
+
+\subsection{Network mean field and its approximation}
+Let $X_i\in\{0,1\}$ indicate infection of node $i$. Nonnegative $B_{ij}$ is a transition hazard into $i$ from infected $j$, in inverse-time units; $\delta_i>0$ is clearance. Set $B_{ii}=0$: there is no self-infection, and the moment closure below applies only to distinct nodes. The exact first-moment equation is
+\begin{equation}
+\frac{\dd\E X_i}{\dd t}=\sum_j B_{ij}\E[(1-X_i)X_j]-\delta_i\E X_i.
+\end{equation}
+Writing $x_i=\E X_i$, replace $\E[X_iX_j]$ by $x_ix_j$ to obtain the network mean-field approximation
+\begin{equation}\label{eq:nimfa}
+\dot x_i=(1-x_i)\sum_j B_{ij}x_j-\delta_i x_i.
+\end{equation}
+This closure neglects correlations; it is not the exact finite stochastic chain. Heterogeneous network epidemic models and spectral thresholds have a substantial literature \citep{network}. Linearizing at zero gives $\dot x\approx Jx$ with $J=B-D$ and $D=\operatorname{diag}(\delta_i)$.
+
+\subsection{Why the spectral threshold is one}
+Let $K=BD^{-1}$, with spectral radius $\rho(K)$, and assume $B$ is irreducible for the following simple Perron-vector proof. Let $Kv=\rho v$ for a strictly positive vector $v$, and define $w=D^{-1}v>0$. Then
+\begin{equation}
+Jw=(B-D)D^{-1}v=(K-I)v=(\rho-1)v.
+\end{equation}
+The matrix $J$ has nonnegative off-diagonal entries. After adding a sufficiently large multiple of the identity, it is nonnegative and irreducible, so its largest-real-part eigenvalue $s(J)$ has a strictly positive left eigenvector $\ell$. Multiplying the previous equation by $\ell^T$ gives
+\begin{equation}
+s(J)\ell^Tw=(\rho-1)\ell^Tv.
+\end{equation}
+Both inner products are positive. Therefore $s(J)$ has the sign of $\rho-1$. Reducible systems can be ordered into strongly connected diagonal blocks, and the largest block growth rate governs stability. Also $D^{-1}B=D^{-1}KD$, so either convention gives the same spectral radius.
+
+For $\rho<1$, $J$ is stable. Because the discarded nonlinear term in Eq.~\eqref{eq:nimfa} is nonnegative, $\dot x\le Jx$ componentwise; positivity of the linear semigroup implies decay by comparison. For $\rho>1$, zero is linearly unstable. We do not infer indefinite stochastic survival from that statement or assert a general endemic equilibrium theorem without additional hypotheses. At $\rho=1$, linearization alone is insufficient.
+
+\subsection{An exactly checkable random-versus-targeted example}
+Consider the abstract star with one center and eight leaves, adjacency matrix $A$, and dimensionless $B=0.4A,D=I$. By symmetry the positive adjacency eigenvector has center component $c$ and leaf component $l$, so $\lambda c=8l$ and $\lambda l=c$. Substituting gives $\lambda^2=8$, hence
+\begin{equation}
+\rho(B)=0.4\sqrt8=1.131371.
+\end{equation}
+Durably removing the center leaves isolated nodes, with radius zero. Removing any leaf leaves a seven-leaf star, with radius $0.4\sqrt7=1.058301$. Uniformly removing one of nine nodes therefore puts this toy system below threshold with probability only $1/9$.
+
+An instructive trap is that the \emph{mean} remaining radius is $(8/9)0.4\sqrt7=0.940712<1$, while eight of nine realized removals remain above threshold. The radius of an average system, the average radius, and the probability of containment are different objects. Our code enumerates all removals and checks this algebra. Classic network-robustness work motivates this distinction \citep{albert}; the star is not a fitted internet model or a recommendation for constructing a resilient network.
+
+Degree, influence in an access graph, and compute importance need not align. A node may carry unique model state but few contacts. Removal can also split a connected component while leaving a complete executable model on either side. Connectivity alone neither proves nor disproves useful execution.
+
+\section{Finite populations: metastability and extinction}
+\subsection{Specify the stochastic chain}
+Let $n\in\{0,\ldots,N\}$ be the number affected in a closed population. In physical time the birth and death rates are
+\begin{equation}
+b_n=\beta n(1-n/N),\qquad d_n=\delta n.
+\end{equation}
+In clearance-time units they become $b_n=\R n(1-n/N)$ and $d_n=n$. State zero is absorbing; $b_N=0$. This is an exact finite birth--death model for its assumptions, independent of whether those assumptions fit any real incident.
+
+At a nonzero state $n$, the expected fraction increment over $\Delta u$ is $(b_n-d_n)\Delta u/N$, and the increment variance to first order is $(b_n+d_n)\Delta u/N^2$. With $x=n/N$, these are
+\begin{equation}
+f(x)\Delta u,\qquad\frac{\R x(1-x)+x}{N}\Delta u.
+\end{equation}
+The ODE approximates the drift at a representative state; generally $\E[x^2]\ne(\E x)^2$. Fluctuations vanish at zero. Diffusion approximations can be useful locally but give incorrect rare-extinction asymptotics away from threshold \citep{doering}. Exact finite-state calculations are simple enough here that a diffusion approximation is unnecessary.
+
+\subsection{Why eventual extinction has probability one}
+For fixed finite $N$, rates are finite and $d_n>0$ for every $n>0$. From any positive state there is positive probability of a sequence of deaths reaching zero before any birth, within some fixed positive interval. There are finitely many starting states, so the minimum of these positive absorption probabilities is a positive number $p$. Conditional on survival through each such interval, absorption in the next has probability at least $p$. Thus survival through $k$ intervals is at most $(1-p)^k\to0$. The chain is nonexplosive because the state space and total rates are bounded. This proves extinction almost surely under the closed finite model. It does not apply to unlimited populations, zero-clearance refuges, or outside reseeding.
+
+\subsection{Derive the exact mean extinction time}
+Let $\tau_n$ be mean time to zero, with $\tau_0=0$. Conditioning on a short interval $h$ gives
+\begin{align}
+\tau_n={}&h+[1-(b_n+d_n)h]\tau_n
++b_nh\tau_{n+1}+d_nh\tau_{n-1}+o(h).
+\end{align}
+Subtract $\tau_n$, divide by $h$, and let $h\to0$:
+\begin{equation}\label{eq:backward}
+-1=b_n(\tau_{n+1}-\tau_n)+d_n(\tau_{n-1}-\tau_n).
+\end{equation}
+Define $\Delta_n=\tau_n-\tau_{n-1}$. Then
+\begin{equation}
+-1=b_n\Delta_{n+1}-d_n\Delta_n,
+\quad \Delta_n=\frac1{d_n}+\frac{b_n}{d_n}\Delta_{n+1}.
+\end{equation}
+At $n=N$, $b_N=0$ gives $\Delta_N=1/d_N$. Back-substitution yields
+\begin{equation}\label{eq:sum}
+\Delta_n=\sum_{j=n}^N\frac1{d_j}\prod_{k=n}^{j-1}\frac{b_k}{d_k},
+\qquad\tau_n=\sum_{i=1}^n\Delta_i,
+\end{equation}
+where an empty product equals one. Induction proves the formula: substitute the expression for $\Delta_{n+1}$ into the recurrence and factor $b_n/d_n$ into each product, adding the missing $j=n$ term. This is a numerically straightforward exact calculation for moderate $N$; large supercritical values may require logarithmic or arbitrary-precision arithmetic.
+
+\subsection{Survival probabilities and quasi-stationarity}
+On transient states $1,\ldots,N$, form a matrix $Q$ with diagonal entries $-(b_n+d_n)$, upper diagonal $b_n$, and lower diagonal $d_n$. Death from state one is missing from the transient matrix, so its first row sums to $-d_1$; the other rows sum to zero. If $e_n$ is a unit row vector, the transient probability row is $e_n e^{uQ}$ and
+\begin{equation}\label{eq:survival}
+\Prb(T_0>u\mid n)=e_n e^{uQ}\boldsymbol1.
+\end{equation}
+Integrating the matrix exponential gives the independent identity
+\begin{equation}
+\tau=\int_0^\infty e^{uQ}\boldsymbol1\,\dd u=-Q^{-1}\boldsymbol1,
+\end{equation}
+because $Q$ has strictly negative-real-part eigenvalues and $\frac{\dd}{\dd u}e^{uQ}=Qe^{uQ}$. The code checks this solve against Eq.~\eqref{eq:sum}.
+
+A quasi-stationary row distribution $\pi$ satisfies $\pi Q=-\kappa\pi$, $\pi\boldsymbol1=1$. Starting from it, transient mass is $e^{-\kappa u}\pi$, so survival is exactly $e^{-\kappa u}$ and mean lifetime is $1/\kappa$. Conditioned on not being extinct, its distribution is unchanged. A long-lived quasi-stationary state is the precise finite-system meaning of metastability here. The lifetime from a fixed initial count need not equal $1/\kappa$.
+
+\subsection{Numerical validation and its scope}
+We evaluate $N=40,n_0=20$ at $\R=0.8,1,1.5,2$, all in clearance-time units. Table~\ref{tab:extinction} gives the results. A fixed-seed 6,000-trial simulation checks the $\R=1.5$ survival probability.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{rrrr}
+\toprule $\R$ & $\tau_{20}$ & $\Prb(T_0>20)$ & $1/\kappa$\\\midrule
+0.8 & 7.453823 & 0.010545 & 3.394939\\
+1.0 & 10.417076 & 0.076558 & 5.851773\\
+1.5 & 58.135063 & 0.757939 & 52.847733\\
+2.0 & 2042.137631 & 0.992141 & 2038.219874\\\bottomrule
+\end{tabular}
+\caption{Exact finite-chain calculations to displayed precision. All times are dimensionless; $\tau_{20}$ starts from 20 affected entities, whereas $1/\kappa$ starts from the quasi-stationary distribution.}\label{tab:extinction}
+\end{table}
+
+The simulation produces survival fraction $0.761167$, versus the exact $0.757939$, with standard error $0.005530$: a difference of $0.584$ standard errors. The maximum relative disagreement between the extinction recurrence and matrix solve is $2.27\times10^{-12}$. The largest absolute difference between the scalar closed form and ODE integration is $1.92\times10^{-10}$. These are numerical-check errors, not uncertainties in real-world coefficients.
+
+In the event simulation, at count $n$ the total hazard is $a=b_n+d_n$. The probability of no event for duration $h$ obeys $S'(h)=-aS(h)$ with $S(0)=1$, yielding $S(h)=e^{-ah}$. Thus the waiting time is exponential with mean $1/a$. Conditional on an event, its type has probabilities $b_n/a$ and $d_n/a$. These are the elementary competing-hazard steps underlying Gillespie simulation \citep{gillespie}; no numerical time step is chosen. For $M$ independent survival indicators with exact probability $p$, the estimated proportion has standard error $\sqrt{p(1-p)/M}$.
+
+Agreement validates the implementation of the stated equations, not the applicability of the equations to malware. The calculations intentionally avoid a claimed botnet extinction time in days, because neither the effective rates nor the relevant closed population size are measured.
+
+\begin{figure}[ht]
+\centering\includegraphics[width=\textwidth]{figures/extinction_archive.pdf}
+\caption{Left: exact survival for a 40-state transient epidemic chain started at 20 affected entities. Right: loss-only archival survival with independent copies. Horizontal axes have different dimensionless units. These are model illustrations, not incident forecasts.}
+\end{figure}
+
+\section{Coupling capability to activity without inventing feedback}
+Let $Q(t)$ denote useful inference capacity and $v(t)$ the defensive environment. A general transition matrix may depend on both: $B=B(Q(t),v(t))$. The available population can lose functional capacity before all affected nodes disappear. Conversely, conventional scripts or provider-powered agents could continue some activity with no local LLM replica. We therefore do not assume $B=0$ whenever local inference fails.
+
+In a scalar phenomenological version, let effective acquisition be $\beta(x)$. Then $f(x)=x[\beta(x)(1-x)-\delta]$. A positive fixed point obeys $\beta(x^*)(1-x^*)=\delta$, and differentiating at that point gives
+\begin{equation}
+f'(x^*)=x^*[(1-x^*)\beta'(x^*)-\beta(x^*)].
+\end{equation}
+A negative derivative is sufficient for local asymptotic stability and establishes strict linear stability; a positive derivative gives instability. A zero derivative requires higher-order analysis and can still correspond to a stable equilibrium. Multiple intersections could produce several equilibria, but that conclusion requires a specified and validated $\beta(x)$. We do not add an arbitrary sigmoid and call the resulting bistability an empirical prediction. Scalar SIS alone has no two stable interior alternatives. Functional survival, such as $\Prb\{Q(t)\ge Q_{\min}\}$ or total time below threshold, is the appropriate endpoint once a benign benchmark identifies $Q$.
+
+\section{A very large hypothetical model and the physical limits}
+Choose $P_t=10^{13}$ parameters, with no claim that such a model exists or is superior to public models. With four-bit raw weights,
+\begin{equation}
+M_w=\frac{4\times10^{13}}8=5\times10^{12}\ \mathrm{bytes}=5\,\mathrm{TB}.
+\end{equation}
+For a dense model, $P_a=P_t$, so leading matrix work is $2\times10^{13}$ operations/token. At one token/s the leading arithmetic rate is 20 trillion operations/s and one-read weight traffic is 5 TB/s. For an explicitly different MoE scenario with $P_a=10^{12}$, those terms become 2 trillion operations/s and 0.5 TB/s, while stored weights remain 5 TB. Tensor placement and network synchronization remain unaccounted for.
+
+For the dense case at one token/s, the three reference ratios are $5000/8=625$, $20000/100=200$, and $5000/10=500$, so the screen is 625 units. At ten tokens/s they become $625,2000,5000$, so the screen is 5000. The MoE scenario gives $625,20,50$ at one token/s and $625,200,500$ at ten, leaving its raw storage screen at 625. None of these computations supplies the missing distributed critical path or establishes a sufficient machine count.
+
+\subsection{A transfer bound, not a distribution recipe}
+A fresh receiver that must acquire all $M$ bytes over a bottleneck of $b$ bits/s needs
+\begin{equation}
+T\ge\frac{8M}{b}.
+\end{equation}
+For $M=5\times10^{12}$ bytes and $b=10^9$ bits/s,
+\begin{equation}
+T\ge40{,}000\ \mathrm s=11.111\ \mathrm{hours}.
+\end{equation}
+At 100 Mbit/s the same bound is 111.111 hours; at sixteen-bit storage the byte count and this transfer bound are four times larger. Protocol overhead and interruptions can only increase the required time for that link and uncached file.
+
+For multiple receivers the same conservation principle applies to every required network cut: if $D_{\mathcal C}$ necessary bytes must cross a cut of aggregate capacity $U_{\mathcal C}$ bytes/s, then $T\ge D_{\mathcal C}/U_{\mathcal C}$. Which bytes must cross which cut depends on existing copies and topology. Established peer-to-peer fluid models provide a precedent for file-transfer dynamics \citep{qiu}, but they do not establish inference viability. We do not choose dissemination or redundancy parameters for an escaped system.
+
+\section{Archived weights and later reactivation}
+\subsection{An active population and a reservoir}
+Let $A(t)$ be the expected number of active, independently usable execution groups, and $W(t)$ the expected number of recoverable complete model bundles. A group is not one host: it may require many devices. A bundle must include whatever files are needed for future recovery; an isolated shard is not automatically one bundle.
+
+Consider the local linear model
+\begin{equation}\label{eq:reservoir}
+\dot A=\alpha W-\mu A,\qquad\dot W=\sigma A-\delta_W W.
+\end{equation}
+Here $\mu$ is active-group loss per time, $\delta_W$ is bundle loss per time, $\alpha$ has units groups per bundle per time, and $\sigma$ has units bundles per group per time. Activation is assumed to leave the archived bundle intact; if it consumes the only copy, the second equation must also contain $-\alpha W$ with a consistent unit convention. The model excludes copying by inactive archives, resource exhaustion, restoration delays, and external human reseeding. Its rates are unidentified, not measurements of autonomous escape.
+
+\subsection{Derive the stability condition}
+The system matrix is
+\begin{equation}
+L=\begin{pmatrix}-\mu&\alpha\\\sigma&-\delta_W\end{pmatrix}.
+\end{equation}
+Its characteristic polynomial follows by expanding the determinant:
+\begin{align}
+0&=\det(\lambda I-L)=(\lambda+\mu)(\lambda+\delta_W)-\alpha\sigma\\
+&=\lambda^2+(\mu+\delta_W)\lambda+\mu\delta_W-\alpha\sigma.
+\end{align}
+The quadratic formula yields
+\begin{equation}\label{eq:eigen}
+\lambda_\pm=-\frac{\mu+\delta_W}{2}
+\pm\frac12\sqrt{(\mu-\delta_W)^2+4\alpha\sigma}.
+\end{equation}
+For $\mu,\delta_W>0$ and $\alpha,\sigma\ge0$, the smaller root is negative. The larger is negative exactly when
+\begin{align}
+\sqrt{(\mu-\delta_W)^2+4\alpha\sigma}&<\mu+\delta_W\\
+(\mu-\delta_W)^2+4\alpha\sigma&<(\mu+\delta_W)^2\\
+4\alpha\sigma&<4\mu\delta_W\\
+\alpha\sigma&<\mu\delta_W.
+\end{align}
+Squaring preserves the inequality because both sides are nonnegative. Equality gives a zero eigenvalue; reversal gives a positive growth direction. The dimensionless loop gain $\alpha\sigma/(\mu\delta_W)$ compares expected archive creation during one active lifetime with activation during one archive lifetime. The linear system has no finite positive carrying capacity, so positive growth is a local warning, not a forecast of unlimited expansion.
+
+For illustration only, $\mu=1,\delta_W=0.1,\alpha=0.02,\sigma=0.5$ gives determinant $0.09$ and eigenvalues $-1.010977$ and $-0.089023$. Their values are independently checked in the numerical output. Because time units and rates are arbitrary, this says nothing about calendar lifetimes of real escaped models.
+
+\subsection{External sources and offline copies}
+Add a constant external source $s_W$ of bundles to the second equation. If $\mu\delta_W>\alpha\sigma$, solve $0=\alpha W-\mu A$ to get $A=\alpha W/\mu$. Substitution gives
+\begin{equation}
+0=\left(\frac{\alpha\sigma}{\mu}-\delta_W\right)W+s_W,
+\quad W^*=\frac{\mu s_W}{\mu\delta_W-\alpha\sigma},
+\quad A^*=\frac{\alpha s_W}{\mu\delta_W-\alpha\sigma}.
+\end{equation}
+Thus the zero state ceases to be an equilibrium if outside reseeding persists. A temporary loss of network contact may reduce activation without causing archive loss. If $\alpha=0$ during interruption, $A(t)=A(0)e^{-\mu t}$ in this model, but that assumes a positive active-loss mechanism $\mu$. It does not assert that disconnection physically turns off local processors. If $\delta_W=0$ and an archive remains, eliminating active groups does not erase the reservoir.
+
+\subsection{A transparent loss-only calculation}
+As a separate model, assume $K$ complete copies, independent exponential loss hazard $\delta_W$, no new copying, and no restoration. Each copy survives to $t$ with probability $p=e^{-\delta_Wt}$. All are lost with probability $(1-p)^K$, hence
+\begin{equation}\label{eq:copies}
+\Prb(W(t)>0)=1-(1-e^{-\delta_Wt})^K.
+\end{equation}
+To make this probability at most $\epsilon\in(0,1)$,
+\begin{align}
+(1-e^{-\delta_Wt})^K&\ge1-\epsilon,\\
+e^{-\delta_Wt}&\le1-(1-\epsilon)^{1/K},\\
+\delta_Wt&\ge-\log\left[1-(1-\epsilon)^{1/K}\right].
+\end{align}
+For the illustrative $K=100,\epsilon=0.05$, the right-hand side is about 7.576. The union bound gives the slightly more conservative sufficient condition $Ke^{-\delta_Wt}\le\epsilon$, or $\delta_Wt\ge\log(K/\epsilon)=7.601$. Without a measured $\delta_W$, these are not years or days. Correlated loss invalidates Eq.~\eqref{eq:copies}; offline durable copies can violate its exponential-loss assumption entirely. Copy survival is neither proof of active inference nor a measure of capability.
+
+\section{Does the whole internet have to be shut down?}
+There are three separate objectives: stop current unauthorized useful execution, prevent reactivation over a stated horizon, and erase all recoverable copies. The assertion that only internet shutdown can ``kill'' an escaped model confuses them.
+
+It is not universally necessary for suppression: a provider-dependent system can lose inference when that service withdraws access; a hypothetical active group can cease when its necessary compute is unavailable. It is not sufficient for erasure: weights on an offline disk are unchanged by network disconnection. It is not even universally sufficient to stop ongoing computation: a computer that already has weights can continue local execution. These counterexamples disprove the universal claim without claiming that containment of a widely dispersed system is easy.
+
+The defensible quantitative target is a probability of unauthorized useful execution or reactivation below a specified value over a specified horizon. Such a probability requires the joint resource, access, archival, and dependency model. Node count or a giant connected component alone cannot determine it. No finite list of public incident observations can certify that every future human-held copy has been erased.
+
+\section{Validation, remaining uncertainty, and conclusions}
+The numerical companion checks arithmetic units and table entries; cache dimensions; the scalar analytic solution against ODE integration; extinction recurrence against a matrix solve; finite-horizon survival against event simulation; every one-node deletion of the toy star; and the reservoir eigenvalues and copy-loss probability. Fixed seeds and software versions are recorded. Figures are generated from the same calculations. This is mathematical and computational verification, not an inference benchmark or fitted epidemiological study.
+
+An empirical study on consenting machines would record model revision, tensor format, task success, total generated tokens, input/output lengths, achieved decoding latency, prefill time, peak resident memory, energy, resource contention, and availability. Repeated trials should include different machines and sites, with site-level uncertainty rather than treating tokens from one run as independent samples. Detection and remediation telemetry would need distinct account/host states, observation probabilities, clearance definitions, and confidence intervals. Public incidents reviewed here are insufficient for that calibration.
+
+The strongest supported result is therefore conditional. Historical malware establishes substantial resource appropriation and monitoring-dependent concealment. Public configurations support small-model memory accounting, and Petals supplies one demonstrated distributed-inference configuration. The requested infected-host counts, proprietary architecture counts, calendar spread rates, and long-term escaped-model survival probabilities remain unidentified. Transparent resource scenarios and exact containment mathematics are possible without inventing those quantities. A system's ability to acquire machines, execute useful inference, and recover from archives must all be evaluated; none follows automatically from the other two.
+
+\appendix
+\section{Reproduction and source preparation}
+Run \texttt{.venv/bin/python research/calculations/compute.py} from the repository, or use an environment with the pinned versions in the companion requirements. The script performs only offline arithmetic and abstract simulation, reading the two saved public configuration files. It writes \texttt{results.json}, two CSV files, and the two PDF figures. Its fixed simulation seed is 20260915. The source-download manifest records hashes of metadata and research documents consulted; the malware software itself was not obtained.
+
+The manuscripts use the standard \texttt{article} class, ordinary TeX Live packages, PDF figures, relative paths, and BibTeX. Each submission bundle includes its generated bibliography and figures. This follows arXiv's source-preparation guidance \citep{arxivguide}; it is not a claim of arXiv acceptance, and no single universal ``arXiv paper template'' is assumed. The short manuscript's verified page count includes its title, abstract, and references.
+
+\bibliographystyle{unsrtnat}
+{\small\raggedright\setlength{\bibsep}{4pt}\bibliography{references}}
+\end{document}

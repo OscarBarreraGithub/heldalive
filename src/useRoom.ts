@@ -1,18 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Job, ServerEvent, Snapshot } from "../shared/protocol";
-
+import type {
+  AuditJob,
+  Job,
+  Profile,
+  ServerEvent,
+  Snapshot,
+} from "../shared/protocol";
 export function useRoom(
   room: string,
   onJob: (job: Job) => void,
   onCancel: () => void,
+  onAudit: (job: AuditJob) => void,
 ) {
   const [state, setState] = useState<Snapshot | null>(null);
+  const [profile, setProfile] = useState<Profile>({
+    days: 0,
+    today: false,
+    choice: null,
+    completedJobs: 0,
+    checks: 0,
+  });
   const [connected, setConnected] = useState(false);
   const [notice, setNotice] = useState("");
-  const [accepted, setAccepted] = useState(0);
   const wsRef = useRef<WebSocket | null>(null);
-  const handlers = useRef({ onJob, onCancel });
-  handlers.current = { onJob, onCancel };
+  const handlers = useRef({ onJob, onCancel, onAudit });
+  handlers.current = { onJob, onCancel, onAudit };
   const send = useCallback((event: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN)
       wsRef.current.send(JSON.stringify(event));
@@ -22,7 +34,23 @@ export function useRoom(
     let reconnect: ReturnType<typeof setTimeout>;
     let heartbeat: ReturnType<typeof setInterval>;
     let delay = 1000;
-    function connect() {
+    async function connect() {
+      try {
+        const response = await fetch("/api/identity", {
+          credentials: "same-origin",
+        });
+        if (!response.ok) throw new Error();
+      } catch {
+        if (!disposed) {
+          setNotice("The habitat is temporarily out of reach. Retrying…");
+          reconnect = setTimeout(
+            () => void connect(),
+            Math.min((delay *= 2), 15000),
+          );
+        }
+        return;
+      }
+      if (disposed) return;
       const url = new URL("/api/socket", window.location.href);
       url.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       url.searchParams.set("room", room);
@@ -39,25 +67,21 @@ export function useRoom(
         send({ type: "ping", visible: !document.hidden });
         heartbeat = setInterval(
           () => send({ type: "ping", visible: !document.hidden }),
-          15_000,
+          15000,
         );
       };
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data) as ServerEvent;
-          if (data.type === "state") setState(data);
+          if (data.type === "state" && data.version === 2) setState(data);
+          if (data.type === "profile") setProfile(data.profile);
           if (data.type === "job") handlers.current.onJob(data.job);
           if (data.type === "cancel") handlers.current.onCancel();
+          if (data.type === "audit") handlers.current.onAudit(data.job);
           if (data.type === "error") setNotice(data.message);
-          if (data.type === "accepted") {
-            setAccepted(Date.now());
-            setNotice(
-              "Your note is in the room. It may shape the next thought.",
-            );
-          }
         } catch {
           setNotice(
-            "The connection stumbled. Reconnecting will restore the room.",
+            "The connection stumbled. Reconnecting restores the habitat.",
           );
         }
       };
@@ -66,15 +90,15 @@ export function useRoom(
         setConnected(false);
         handlers.current.onCancel();
         if (!disposed) {
-          reconnect = setTimeout(connect, delay);
-          delay = Math.min(delay * 2, 15_000);
+          reconnect = setTimeout(() => void connect(), delay);
+          delay = Math.min(delay * 2, 15000);
         }
       };
       ws.onerror = () => ws.close();
     }
     const visibility = () => send({ type: "ping", visible: !document.hidden });
     document.addEventListener("visibilitychange", visibility);
-    connect();
+    void connect();
     return () => {
       disposed = true;
       clearTimeout(reconnect);
@@ -83,5 +107,5 @@ export function useRoom(
       document.removeEventListener("visibilitychange", visibility);
     };
   }, [room, send]);
-  return { state, connected, notice, accepted, send };
+  return { state, profile, connected, notice, send };
 }

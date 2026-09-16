@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { readFile } from "node:fs/promises";
-import { LOCAL_MODEL } from "../shared/protocol";
+import { LOCAL_MODEL, jobSchema } from "../shared/protocol";
 import type { Job, ServerEvent } from "../shared/protocol";
 
 type Config = {
@@ -37,12 +37,13 @@ async function generate(ws: WebSocket, job: Job) {
       body: JSON.stringify({
         model: config.model || LOCAL_MODEL,
         messages: job.messages,
+        format: jobSchema(job.kind),
         stream: true,
         keep_alive: "10m",
         options: {
-          num_predict: Math.min(job.maxTokens, 90),
+          num_predict: Math.min(job.maxTokens, 180),
           num_ctx: 2048,
-          temperature: 0.8,
+          temperature: job.temperature ?? 0.8,
           top_p: 0.9,
           repeat_penalty: 1.12,
         },

@@ -1,5 +1,5 @@
 import type { WebWorkerMLCEngine } from "@mlc-ai/web-llm";
-import { BROWSER_MODEL } from "../shared/protocol";
+import { BROWSER_MODEL, jobSchema } from "../shared/protocol";
 import type { Job } from "../shared/protocol";
 import { MODEL_ASSET_PREFIX } from "../shared/modelAssets";
 
@@ -8,10 +8,12 @@ export class BrowserCompute {
   private engine: WebWorkerMLCEngine | null = null;
   private epoch = 0;
   private cancelled = false;
+  private busy = false;
   async load(onProgress: (progress: number, text: string) => void) {
     const epoch = ++this.epoch;
-    const { CreateWebWorkerMLCEngine, prebuiltAppConfig } =
-      await import("@mlc-ai/web-llm");
+    const { CreateWebWorkerMLCEngine, prebuiltAppConfig } = await import(
+      "@mlc-ai/web-llm"
+    );
     if (epoch !== this.epoch) return false;
     this.worker = new Worker(new URL("./compute.worker.ts", import.meta.url), {
       type: "module",
@@ -49,17 +51,21 @@ export class BrowserCompute {
     return true;
   }
   async run(job: Job, send: (event: unknown) => void) {
-    if (!this.engine) {
+    if (!this.engine || this.busy) {
       send({ type: "failed", jobId: job.id });
       return;
     }
     this.cancelled = false;
+    this.busy = true;
     const epoch = this.epoch;
     try {
       const stream = await this.engine.chat.completions.create({
         messages: job.messages,
+        response_format: jobSchema(job.kind)
+          ? { type: "json_object", schema: JSON.stringify(jobSchema(job.kind)) }
+          : undefined,
         max_tokens: job.maxTokens,
-        temperature: 0.8,
+        temperature: job.temperature ?? 0.8,
         top_p: 0.9,
         stream: true,
         stream_options: { include_usage: true },
@@ -75,6 +81,8 @@ export class BrowserCompute {
         send({ type: "done", jobId: job.id, tokens });
     } catch {
       if (epoch === this.epoch) send({ type: "failed", jobId: job.id });
+    } finally {
+      this.busy = false;
     }
   }
   pause() {

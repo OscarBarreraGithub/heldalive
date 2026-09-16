@@ -40,6 +40,7 @@ Build a complete, tested art platform at heldalive.com, publish its GitHub repos
 The requested first stage is a working Mac-hosted test. This is implemented, with an additional working browser whole-thought provider. Multi-browser model sharding is explicitly documented as the later production stage and is not represented as already implemented. The user-facing About text explains this distinction.
 
 ## Final checks and pending external action
+
 - The deployed browser study also passed real WebGPU inference: 20 tokens in 1.688 seconds in one observed job; zero contributors after withdrawal; no Mac fallback.
 - Model CORS issue resolved with a bounded same-origin asset endpoint and immutable upstream revisions. Seven focused unit tests pass.
 - Automated accessibility checks pass on both rooms and the consent dialog after improving small-label contrast. Layout/interaction checks pass at desktop and 320/390/768-pixel widths.

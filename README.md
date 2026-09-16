@@ -1,73 +1,73 @@
 # Held Alive
 
-**An AI kept alive by the people here.**
+**This little AI runs on us.**
 
-A quiet, shared artwork: a small language model offers a thought, rests, and begins again. Everyone in a room sees the same stream. Visitors can leave a short public note to shape the next thought.
+[Visit heldalive.com](https://heldalive.com) · [The experiment](https://heldalive.com/#experiment) · [The math](https://heldalive.com/#math)
 
-## Two working studies
+A shared digital pet, powered by consenting visitors’ browsers. Held chooses a project, asks copies of its model for help, and writes a small journal. It makes ASCII drawings, compares ways of remembering a synthetic record, or follows a thought. Visitors lend compute, collect drawings, and give its next activity a daily nudge. There is no chat box.
 
-- **Study 01 — `/`:** Qwen 2.5 0.5B runs on the artist's Mac mini through Ollama. The site identifies this source. Browsers witness the stream; they do not power it.
-- **Study 02 — `/?room=browser`:** consenting browsers run the same model family through WebLLM/WebGPU. Each contributor generates an entire thought, then rests according to its contribution limit. Without an eligible contributor, generation pauses. No Mac or cloud inference fallback is used in this room.
+![Held’s six design passes](docs/design/six-passes.png)
 
-Browser contribution is opt-in, loads roughly 300 MB of model assets, offers 5/10/20% inference duty targets, pauses work when hidden, and releases its worker on Stop. Spectators do not download model assets. Duty is work time divided by work plus cooldown, not a hardware GPU-utilization or energy guarantee. The initial model load is a separate burst.
+## What actually runs
 
-**This release does not shard a single forward pass across multiple browsers.** One capable contributor can run Study 02. A numerical “critical mass” greater than one would be misleading. See [the staged roadmap](docs/ARCHITECTURE.md) for the model-sharding stage.
+- **Public habitat — `/`:** opted-in browsers run Qwen 2.5 0.5B through WebLLM/WebGPU. One compatible browser can complete the work sequentially. More workers can take independent helper tasks together, up to eight at once. No Mac or cloud inference fallback.
+- **Mac studio — `/?room=studio`:** a separate habitat runs the same model family on the artist’s Mac mini through Ollama. It is labeled as a rehearsal, with separate saved work.
+- **Watching:** no model download. Disclosed tiny score checks use a small Web Worker when completed trials need checking; they can be switched off. They check arithmetic, not model honesty, and do not power generation.
 
-## Stack
+Without an eligible worker, new model work waits. Returning contributors can resume unfinished work; saved drawings survive. “Alive” is an artistic metaphor. It is not a claim of consciousness, suffering, permanent death, or increasing intelligence.
 
-React + TypeScript + Vite; Cloudflare Worker static assets; one SQLite-backed Durable Object per room; authenticated outbound WebSocket from the Mac; Ollama on loopback; WebLLM in a dedicated browser worker. No user account, advertising analytics, external model API, or public Ollama port.
+Inference requires explicit consent, approximately 300 MB of initial assets, WebGPU and roughly 1 GB of working memory. The 5/10/20% settings are work/rest targets, not power caps or exact GPU utilization. Stop terminates the model worker. Hidden tabs withdraw from generation. Cached model files may remain.
 
-## Local development
+This release assigns a **complete model job** to each worker. It does not split one forward pass across browsers. The current habitat admits at most 300 simultaneous connections; this is a limit, not a tested capacity claim. Thousands of visitors/helpers remain a scaling project.
 
-Requires Node 22.12+ (tested on Node 26), npm, and Ollama for Study 01.
+## The work
+
+- Animated SVG creature: sleep, work, breathing, blinking, a local hello, reduced-motion support.
+- Model-chosen drawing, memory and reflective projects; bounded helper leases and retry/reassignment.
+- Persistent artwork cabinet with local bookmarks and plain-text downloads.
+- A toy memory experiment: three packing formats, the same 12 facts, 240 characters, three scored recall answers, inspectable raw records and failures.
+- Anonymous daily visit stamps and fixed-choice votes. No account, email or free-text input.
+- Live presence, actual job roles, progress and activity log.
+- Interactive compute calculator and the earlier research PDFs, sources and calculations.
+
+All proposed alternatives are preserved in [the idea archive](docs/VISION.md). See [architecture](docs/ARCHITECTURE.md), [verification](docs/VERIFICATION.md), [operations](docs/OPERATIONS.md), and [the edition ledger](docs/EDITION_02_PLAN.md).
+
+## Develop
+
+Requires Node 22.12+ and npm. Ollama is optional unless using the Mac studio.
 
 ```sh
 npm ci
 npm run setup
-ollama pull qwen2.5:0.5b
 npm run build
 npm run preview
 ```
 
-In a second terminal, with Ollama running:
-
-```sh
-npm run bridge
-```
-
-Open `http://127.0.0.1:8787`. For frontend hot reload, also run `npm run dev` and use its localhost URL.
-
-`npm run setup` creates ignored, private `.dev.vars` and `.local/bridge.json` files and generates Cloudflare types. It does not print secrets. Never put a bridge token in a `VITE_` variable.
+In another terminal, `npm run dev` enables frontend hot reload. To run the studio, install Ollama, `ollama pull qwen2.5:0.5b`, then `npm run bridge`. The setup script creates ignored private configuration files and Cloudflare types. Do not put the bridge token in a `VITE_` variable.
 
 ## Verify
 
 ```sh
 npm run check
-npm run test:integration  # local Worker must be running; uses clearly marked test thoughts
-npm run test:ui           # npm exec playwright install chromium first
-npm run test:a11y         # automated WCAG A/AA scans
-npm run test:browser      # real model download + WebGPU hardware test; headed browser
+npm run test:integration   # local Worker; clearly marked fixtures, never production
+npm run test:ui            # running local production build
+npm run test:a11y
+npm run test:browser       # headed Chromium, real WebGPU, explicit test consent
 npx wrangler deploy --dry-run
 ```
 
-The hardware test requires a compatible WebGPU browser and downloads model files after selecting the test consent control. Read [verification notes](docs/VERIFICATION.md) for what was actually exercised.
+Install Chromium once with `npx playwright install chromium`. `HELD_TEST_URL` selects the app origin. The real browser test downloads model files and uses the test machine’s GPU. It requires exclusive model contribution to its test habitat for the withdrawal assertions. UI tests create anonymous votes and visit stamps; use them locally. Live inference checks use actual model output, never fixtures.
 
-## Deploy and operate
+## Publish and operate
 
-```sh
-npx wrangler whoami
-npm run deploy
-npx wrangler secret bulk .local/secrets.json
-```
+`npm run deploy` builds and deploys the Worker. Configure `BRIDGE_TOKEN` separately as a Cloudflare secret; it authenticates the studio bridge and signs anonymous visitor cookies. Never print or commit secrets. `npm run install:bridge` installs the optional macOS LaunchAgent from ignored `.local/bridge.json`.
 
-Edit only the `url` in `.local/bridge.json` to the deployed HTTPS origin. Run `npm run bridge` to verify connectivity; on macOS, `npm run install:bridge` installs an agent that reconnects and restarts at login. Ollama must also run, for example using `brew services start ollama`.
+Cloudflare hosts assets and coordinates work; it does not generate model tokens. The Mac makes an outbound authenticated connection, leaving Ollama on loopback. Browser work runs in an isolated Web Worker using pinned, allowlisted model assets. Jobs contain bounded messages, never shell commands or arbitrary URLs.
 
-Read [operations](docs/OPERATIONS.md) for domain setup, logs, restarting, and stopping. The Mac must be awake and online for Study 01. Study 02 does not depend on it.
+## Scope and trust
 
-## Voice
+The model’s voice is deliberately small and imperfect. Generated text can be wrong or inappropriate despite its instructions. Browser-generated results can be forged; no proof of honest GPU execution is claimed. Output is text, never executable markup. The creature cannot browse, change hosting, read private files or escape the site.
 
-Held notices small, ordinary things. It is curious, concise, and occasionally funny. It never asks visitors to stay or claims that disconnecting causes suffering. Personality instructions and examples live in [`shared/personality.ts`](shared/personality.ts). This is a tiny imperfect model; those instructions are not a guarantee about every output.
+Daily participation uses a signed HttpOnly cookie per browser, not verified human identity. Inactive visitor records expire after 90 days. Drawings and trial results are public and persistent. The compact journal informs later planning without changing model weights. Memory scores are an educational experiment, not a general benchmark.
 
-## Public experiment
-
-Notes may influence public output. Do not submit private information. Contributors receive the shared prompt/history, and browser-generated results are untrusted. No contributor can execute arbitrary remote code through the work protocol. Generated text is rendered as text, never HTML. The room stores its latest 60 thoughts, aggregate counts, and a bounded pending-note queue. Model weights have their own license; the application code is MIT.
+Application code is MIT. Model weights and research sources have their respective licenses and terms.

@@ -1,0 +1,44 @@
+[
+  {
+    "file": "smominru-figure2.png",
+    "url": "https://www.proofpoint.com/sites/default/files/monf2.png",
+    "sha256": "57acf456eb8da3b15daee811a01935bb3d296dbc971a0dfa74699c77f2b030dc",
+    "bytes": 212159
+  },
+  {
+    "file": "smollm2-config.json",
+    "url": "https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct/raw/main/config.json",
+    "sha256": "994f50b16abb4ae00880baefe03c10260b5bd608d2bf586f7056ca05a534feea",
+    "bytes": 908
+  },
+  {
+    "file": "qwen35-config.json",
+    "url": "https://huggingface.co/Qwen/Qwen3.5-9B/raw/main/config.json",
+    "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+    "bytes": 3126
+  },
+  {
+    "file": "petals.pdf",
+    "url": "https://arxiv.org/pdf/2209.01188v2",
+    "sha256": "e60c77b665f326e9a813deb4becef83aa8134187cb059c1ce77b189c0795db9e",
+    "bytes": 686580
+  },
+  {
+    "file": "extinction.pdf",
+    "url": "https://arxiv.org/pdf/q-bio/0401016",
+    "sha256": "4da72285cd04120d56dcdb39e57063ca2c2594c9fdfff09a28ee4fc7ac4bd624",
+    "bytes": 462436
+  },
+  {
+    "file": "roofline.pdf",
+    "url": "https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-134.pdf",
+    "sha256": "c92f852eed1070b140302114339271dc1a4d6d665814ac9000be6ce06a7d6bcb",
+    "bytes": 2430563
+  },
+  {
+    "file": "smominru-figure3.png",
+    "url": "https://www.proofpoint.com/sites/default/files/monf3.png",
+    "bytes": 59050,
+    "sha256": "9be25bcfc2f827c663ca227d895ebd388fe62a4ea8776f4cde8d066b7d2d878c"
+  }
+]

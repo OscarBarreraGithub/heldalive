@@ -1,0 +1,247 @@
+{
+  "resources": [
+    {
+      "model": "SmolLM2 nominal",
+      "total": 1700000000.0,
+      "active": 1700000000.0,
+      "raw_weights_GB": 0.85,
+      "GFLOP_per_token": 3.4,
+      "traffic_GB_per_token": 0.85,
+      "screen_1": 1,
+      "screen_10": 1,
+      "terms_1": [
+        0.10625,
+        0.034,
+        0.085
+      ],
+      "terms_10": [
+        0.10625,
+        0.34,
+        0.85
+      ]
+    },
+    {
+      "model": "Qwen3.5-9B nominal",
+      "total": 9000000000.0,
+      "active": 9000000000.0,
+      "raw_weights_GB": 4.5,
+      "GFLOP_per_token": 18.0,
+      "traffic_GB_per_token": 4.5,
+      "screen_1": 1,
+      "screen_10": 5,
+      "terms_1": [
+        0.5625,
+        0.18,
+        0.45
+      ],
+      "terms_10": [
+        0.5625,
+        1.8,
+        4.5
+      ]
+    },
+    {
+      "model": "DeepSeek-V3 main model",
+      "total": 671000000000.0,
+      "active": 37000000000.0,
+      "raw_weights_GB": 335.5,
+      "GFLOP_per_token": 74.0,
+      "traffic_GB_per_token": 18.5,
+      "screen_1": 42,
+      "screen_10": 42,
+      "terms_1": [
+        41.9375,
+        0.74,
+        1.85
+      ],
+      "terms_10": [
+        41.9375,
+        7.4,
+        18.5
+      ]
+    },
+    {
+      "model": "Synthetic dense 1T",
+      "total": 1000000000000.0,
+      "active": 1000000000000.0,
+      "raw_weights_GB": 500.0,
+      "GFLOP_per_token": 2000.0,
+      "traffic_GB_per_token": 500.0,
+      "screen_1": 63,
+      "screen_10": 500,
+      "terms_1": [
+        62.5,
+        20.0,
+        50.0
+      ],
+      "terms_10": [
+        62.5,
+        200.0,
+        500.0
+      ]
+    },
+    {
+      "model": "Synthetic MoE 10T / 1T",
+      "total": 10000000000000.0,
+      "active": 1000000000000.0,
+      "raw_weights_GB": 5000.0,
+      "GFLOP_per_token": 2000.0,
+      "traffic_GB_per_token": 500.0,
+      "screen_1": 625,
+      "screen_10": 625,
+      "terms_1": [
+        625.0,
+        20.0,
+        50.0
+      ],
+      "terms_10": [
+        625.0,
+        200.0,
+        500.0
+      ]
+    },
+    {
+      "model": "Synthetic dense 10T",
+      "total": 10000000000000.0,
+      "active": 10000000000000.0,
+      "raw_weights_GB": 5000.0,
+      "GFLOP_per_token": 20000.0,
+      "traffic_GB_per_token": 5000.0,
+      "screen_1": 625,
+      "screen_10": 5000,
+      "terms_1": [
+        625.0,
+        200.0,
+        500.0
+      ],
+      "terms_10": [
+        625.0,
+        2000.0,
+        5000.0
+      ]
+    }
+  ],
+  "cache": {
+    "smol_exact_parameters": 1711376384,
+    "smol_KV_bytes": 1610612736,
+    "qwen_full_KV_bytes": 268435456,
+    "qwen_illustrative_recurrent_bytes": 50331648,
+    "smol_budget_GB": 3.64060456,
+    "qwen_budget_GB": 6.455008928,
+    "smol_attention_GFLOP": 1.610612736,
+    "qwen_full_attention_GFLOP": 1.073741824,
+    "smol_traffic_screen_10": 3,
+    "qwen_traffic_screen_10": 5
+  },
+  "extinction": [
+    {
+      "R": 0.8,
+      "N": 40,
+      "start": 20,
+      "mean_time": 7.453823344198251,
+      "survival_at_20": 0.010544513835759743,
+      "qsd_mean": 3.3949389502365466,
+      "residual": 5.684341886080802e-14,
+      "relative_disagreement": 2.1644138477983303e-15
+    },
+    {
+      "R": 1.0,
+      "N": 40,
+      "start": 20,
+      "mean_time": 10.417076212523936,
+      "survival_at_20": 0.07655824023679783,
+      "qsd_mean": 5.851773392518264,
+      "residual": 8.881784197001252e-14,
+      "relative_disagreement": 1.029809133166914e-14
+    },
+    {
+      "R": 1.5,
+      "N": 40,
+      "start": 20,
+      "mean_time": 58.1350633344884,
+      "survival_at_20": 0.7579386960441314,
+      "qsd_mean": 52.847732642772826,
+      "residual": 4.547473508864641e-13,
+      "relative_disagreement": 3.25904579103218e-14
+    },
+    {
+      "R": 2.0,
+      "N": 40,
+      "start": 20,
+      "mean_time": 2042.137631480515,
+      "survival_at_20": 0.9921411219465694,
+      "qsd_mean": 2038.2198737343438,
+      "residual": 1.4551915228366852e-11,
+      "relative_disagreement": 2.266094513118112e-12
+    }
+  ],
+  "monte_carlo": {
+    "seed": 20260915,
+    "trials": 6000,
+    "exact": 0.7579386960441314,
+    "estimate": 0.7611666666666667,
+    "standard_error": 0.0055297321979015275,
+    "z_score": 0.5837480924953642
+  },
+  "network": {
+    "before": 1.1313708498984762,
+    "after_hub": 0.0,
+    "after_leaf": 1.058300524425836,
+    "probability_below_threshold": 0.1111111111111111,
+    "average_radius": 0.9407115772674098
+  },
+  "availability": {
+    "all_10": 0.3486784401000001,
+    "at_least_8_of_10": 0.9298091736,
+    "all_10_with_common_failure": 0.2789427520800001
+  },
+  "archive": {
+    "mu": 1.0,
+    "delta_W": 0.1,
+    "alpha": 0.02,
+    "sigma": 0.5,
+    "eigenvalues": [
+      -1.0109772228646445,
+      -0.08902277713535564
+    ],
+    "determinant": 0.09000000000000001,
+    "copy_count": 100,
+    "epsilon": 0.05,
+    "scaled_loss_time": 7.5756218905396855,
+    "union_bound_time": 7.600902459542082,
+    "survival_at_loss_time": 0.049999999999999975
+  },
+  "sensitivity": [
+    {
+      "model": "Synthetic dense 1T",
+      "minimum": 16,
+      "maximum": 8000
+    },
+    {
+      "model": "Synthetic MoE 10T / 1T",
+      "minimum": 157,
+      "maximum": 8000
+    },
+    {
+      "model": "Synthetic dense 10T",
+      "minimum": 157,
+      "maximum": 80000
+    }
+  ],
+  "transfer_5TB_1Gbit_hours": 11.11111111111111,
+  "checks": {
+    "nominal_resource_table": "pass",
+    "architecture_and_units": "pass",
+    "ODE_max_absolute_error": 1.9164567155449674e-10,
+    "backward_equation_relative_error": 2.266094513118112e-12,
+    "Gillespie_vs_exact_z_score": 0.5837480924953642,
+    "network_enumeration": "pass",
+    "archive_eigenvalues_and_probability": "pass"
+  },
+  "environment": {
+    "python": "3.14.3",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2"
+  }
+}

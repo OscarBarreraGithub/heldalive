@@ -2,35 +2,50 @@ import { chromium } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import assert from "node:assert/strict";
 const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext();
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
-try {
-  const page = await context.newPage();
-  for (const route of ["/", "/?room=browser"]) {
-    await page.goto(base + route);
-    const result = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-      .analyze();
-    assert.deepEqual(
-      result.violations.map((v) => ({
-        id: v.id,
-        impact: v.impact,
-        targets: v.nodes.map((n) => n.target),
-      })),
-      [],
-      `Accessibility violations on ${route}`,
-    );
-  }
-  await page.getByRole("button", { name: "Lend a little compute" }).click();
-  const modal = await new AxeBuilder({ page })
+async function check(page, name) {
+  const r = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
     .analyze();
   assert.deepEqual(
-    modal.violations.map((v) => v.id),
+    r.violations.map((v) => ({
+      id: v.id,
+      impact: v.impact,
+      nodes: v.nodes.map((n) => ({
+        target: n.target,
+        summary: n.failureSummary,
+      })),
+    })),
     [],
+    name,
   );
+}
+try {
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 1000 },
+    reducedMotion: "reduce",
+  });
+  const page = await context.newPage();
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const section of ["habitat", "collection", "experiment", "math"]) {
+      await page.goto(base + "#" + section);
+      await page.locator("h1").waitFor();
+      await page.waitForTimeout(300);
+      await check(page, `${section} at ${width}px`);
+    }
+    await page.goto(base);
+    await page.getByRole("button", { name: "Lend a little life" }).click();
+    await check(page, `Contribution dialog at ${width}px`);
+    await page.keyboard.press("Escape");
+  }
+  await page.goto(base + "?room=studio");
+  await page
+    .getByRole("heading", { name: "This little AI has a studio." })
+    .waitFor();
+  await check(page, "Mac studio");
   console.log(
-    "PASS: automated WCAG A/AA checks on both studies and contribution consent.",
+    "PASS: automated WCAG A/AA scans on all four pages, consent, mobile and Mac studio. This does not replace human accessibility testing.",
   );
 } finally {
   await browser.close();

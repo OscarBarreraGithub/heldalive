@@ -1,0 +1,12 @@
+[
+  {
+    "archive": "full_analysis_source.zip",
+    "compiles_from_extracted_files": true,
+    "pages": 21
+  },
+  {
+    "archive": "short_paper_source.zip",
+    "compiles_from_extracted_files": true,
+    "pages": 4
+  }
+]

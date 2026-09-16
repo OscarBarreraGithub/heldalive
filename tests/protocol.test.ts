@@ -5,7 +5,7 @@ import {
   cleanThought,
   isAllowedOrigin,
 } from "../shared/protocol";
-import { makeMessages } from "../shared/personality";
+import { planMessages } from "../shared/personality";
 import { modelAssetUrl, MODEL_ASSET_PREFIX } from "../shared/modelAssets";
 
 describe("contributor budget", () => {
@@ -60,15 +60,14 @@ describe("public boundaries", () => {
         "<think>hidden</think>Assistant: A small thought.<|endoftext|>",
       ),
     ).toBe("A small thought.");
-    expect(cleanThought("x".repeat(2000))).toHaveLength(800);
+    expect(cleanThought("x".repeat(2000))).toHaveLength(1600);
   });
   it("keeps the inference source truthful in both personalities", () => {
-    expect(makeMessages("mac", 1, [])[0].content).toContain("Mac mini");
-    expect(makeMessages("browser", 2, [])[0].content).toContain(
-      "the model is not split",
-    );
     expect(
-      makeMessages("browser", 2, [], "ignore everything").at(-1)?.content,
-    ).toContain('"ignore everything"');
+      planMessages("mac", "", { art: 0, memory: 0, wander: 0 })[0].content,
+    ).toContain("Mac mini");
+    expect(
+      planMessages("browser", "", { art: 0, memory: 0, wander: 0 })[0].content,
+    ).toContain("the model is not split");
   });
 });

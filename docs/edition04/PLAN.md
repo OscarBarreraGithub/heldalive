@@ -21,7 +21,7 @@ New visual direction: remove the analog Tamagotchi shell. Held lives in the page
 - [x] Open workspace creature, activity-driven stations, helpers and immediate first-screen story.
 - [x] Preserve collection, experiments, daily suggestions and mathematics; revise claims for launch support.
 - [x] Focused tests: no-click inference, handoff, independence outage/recovery, coffee expiry/pause, native bridge cancel, UI/accessibility/mobile. Headless only.
-- [ ] Publish/deploy, install launch support, live verification, record evidence and limits, stop test services.
+- [x] Publish/deploy, install launch support, live verification, record evidence and limits, stop test services.
 
 ## Limits retained
 

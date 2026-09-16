@@ -19,7 +19,7 @@ The public habitat uses **SmolLM2-360M-Instruct**, quantized to four bits. Its 3
 
 Endpoint pieces also hold the vocabulary weights. Mixed capacities work; a holder may get fewer layers to fill a gap. These counts follow the artwork's chosen budgets: this tiny model can fit on one capable device, but this installation deliberately shares its calculation. More complete chains support concurrent helper copies, up to eight. The 300-connection admission limit is not a tested scalability claim.
 
-Cloudflare serves assets, routes bounded work and stores completed records. **It does not perform missing model inference.** Losing a required layer cancels that browser chain’s unfinished task. During launch, the Mini can take waiting work when no chain is complete. An authenticated operator switch permanently saves the choice to retire launch support: then insufficient browser coverage stops generation. A replacement can fill the gap and restart it. Records and model weights survive; “alive” describes ongoing computation, not consciousness, suffering or permanent deletion.
+Cloudflare serves assets, routes bounded work and stores completed records. **It does not perform missing model inference.** Losing a required layer cancels that browser chain’s unfinished task. During launch, the Mini can take waiting work when no chain is complete. An authenticated operator switch persists the choice to retire launch support: then insufficient browser coverage stops generation. A replacement can fill the gap and restart it. Records and model weights survive; “alive” describes ongoing computation, not consciousness, suffering or permanent deletion.
 
 Visitors need no account, application or manual installation. Small model files load automatically in compatible visible tabs. A saved Pause or initial data-saving preference prevents this. WebGPU with float16 is required for layer work. An interior two-layer piece used about 14 MB of GPU buffers on the development Mac; endpoints use more, and browser/JS/cache overhead is additional. Work/rest targets are 5% normally and 10% with coffee, not electrical or exact GPU utilization caps. Loading is additional work. Pause terminates the worker; hidden pages withdraw. Cached files can remain.
 
@@ -67,6 +67,7 @@ node scripts/test-coffee.mjs # real no-click load, coffee, expiry, saved Pause
 npm run test:browser       # 16 untouched visits: real GPU inference and withdrawal
 node scripts/test-memory-workshop.mjs
 node scripts/test-persistence.mjs
+node scripts/test-live.mjs  # real public inference; no fixtures or operator switch
 npm run deploy
 ```
 

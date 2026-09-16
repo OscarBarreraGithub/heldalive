@@ -22,4 +22,18 @@ The browser kernels/checkpoint did not change in this edition. Edition 03 tested
 
 These runs use multiple contexts on one Mac. They do not establish mobile compatibility, heterogeneous internet latency, battery percentage, or 300-user capacity. Targets describe measured work/rest pacing and exclude loading. Unsupported/data-saving/watch-only visitors may contribute no inference. Pieces can wait idle for the rest of a chain. The UI exposes actual active helper jobs; idle walks, waves and cup animations are decorative. Public model drafts and results can be wrong, and browser outputs are not cryptographically verified. No arbitrary command execution or visitor message input was added.
 
-Production publication and final live checks are recorded below once complete.
+## Published release
+
+Application commit: `019f4ade1354d263b6a16ac31664ad173f658b03`.
+Worker version: `5367e463-2290-4502-942d-4b7b7c665006`.
+[Application CI passed](https://github.com/OscarBarreraGithub/heldalive/actions/runs/35144972173).
+
+- Build/typecheck and all 18 unit tests passed. Worker dry-run passed; deployment verified all 452 model buffers (203,614,080 bytes) and attribution. Worker startup: 6 ms.
+- `heldalive.com`, `www.heldalive.com`, and the Workers fallback origin returned HTTPS 200 with the new page and shared source state.
+- Installed `com.heldalive.launch` with its runtime/checkpoint in Application Support. Both it and the existing studio service are running; launch error log was empty after live inference.
+- The untouched-visit/coffee/expiry/saved-Pause GPU test passed on the public domain as well as locally. Data-saving, saved legacy opt-out, and unsupported-GPU checks separately verified zero model-weight requests.
+- Eight actual coffee-enabled headless contexts formed a full chain on the public domain. The chain completed a real job about 41 seconds after all pieces were loaded while launch support and the Mini stayed connected. Snapshot source was `browser`. After withdrawal, a watching context observed native `mac` work resume. No production fixtures or operator switches were used. Evidence: `.local/qa/edition04/live-result.json`, `live-working.png`, and `live-inspector.png`.
+- Final desktop/phone visuals, station inspectors and social card were inspected. [Six current workspace views](workspace-views.png) use actual live content; these are interaction views, not fabricated model results.
+- Temporary local bridge and Wrangler processes stopped. Persistent launch and studio services remain. Launch support is ON; retiring it remains an explicit operator action.
+
+Follow-up commits add only the live-check/capture scripts, images and verification records to the application release.

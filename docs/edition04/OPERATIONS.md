@@ -61,6 +61,8 @@ npm run deploy
 
 All browser tests are headless. The GPU test opens sixteen untouched contexts (or eight coffees), verifies real inference, then withdraws/restores a required piece. With `HELD_TEST_LAUNCH=1`, it first allows native launch support and then switches it off for the independence assertion, restoring it in cleanup. Use local test configuration matching the base URL. Do not combine fixture and actual-inference tests on one room. Do not mistake sixteen contexts on one Mac for sixteen heterogeneous physical devices or a WAN scalability measurement.
 
+After deployment, `node scripts/test-live.mjs` opens eight coffee-enabled contexts and verifies actual public inference without changing launch support; `HELD_TEST_PEERS=16` uses untouched visits instead. It produces genuine public model work.
+
 Deployment requires authenticated Wrangler and hash-checked model assets (`npm run model:download`). GitHub CI performs source checks/build/Worker dry-run, not GPU tests or automatic deployment. Reinstall the launch service after bridge changes. Do not expose secrets in command arguments or logs.
 
 ## Limits

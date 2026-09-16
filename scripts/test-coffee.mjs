@@ -30,7 +30,7 @@ try {
   });
   await page.goto(base);
   await page
-    .getByText("Your tab is lending a little life", { exact: true })
+    .locator('.your-contribution[data-compute-status="ready"]')
     .waitFor({ timeout: 120000 });
   assert.ok(transfers > 0, "Fresh untouched visit loads actual weights");
   assert.equal(events.find((e) => e.type === "pipeline_offer").duty, 0.05);
@@ -42,21 +42,21 @@ try {
   await page.getByRole("button", { name: "Give Held a coffee" }).click();
   await page.getByRole("button", { name: "Coffee is helping" }).waitFor();
   await page
-    .getByText("Your tab is lending a little life", { exact: true })
+    .locator('.your-contribution[data-compute-status="ready"]')
     .waitFor({ timeout: 120000 });
   await expect
     .poll(() => events.filter((e) => e.type === "pipeline_offer").at(-1).duty)
     .toBe(0.1);
   await page
-    .getByText("Your tab is lending a little life", { exact: true })
+    .locator('.your-contribution[data-compute-status="ready"]')
     .waitFor({ timeout: 120000 });
   const coffee = events
     .filter((e) => e.type === "pipeline_assign")
     .at(-1).piece;
   assert.equal(coffee.end - coffee.start, 4);
-  await mkdir(".local/qa/edition04", { recursive: true });
+  await mkdir(".local/qa/edition05", { recursive: true });
   await page.screenshot({
-    path: ".local/qa/edition04/coffee.png",
+    path: ".local/qa/edition05/coffee.png",
     fullPage: true,
   });
   const now = Date.now();
@@ -64,7 +64,7 @@ try {
   await page.waitForTimeout(1200);
   await page.getByRole("button", { name: "Give Held a coffee" }).waitFor();
   await page
-    .getByText("Your tab is lending a little life", { exact: true })
+    .locator('.your-contribution[data-compute-status="ready"]')
     .waitFor({ timeout: 120000 });
   assert.equal(
     events.filter((e) => e.type === "pipeline_offer").at(-1).duty,
@@ -84,7 +84,7 @@ try {
   );
   assert.deepEqual(errors, []);
   await writeFile(
-    ".local/qa/edition04/coffee-result.json",
+    ".local/qa/edition05/coffee-result.json",
     JSON.stringify(
       {
         transfers,

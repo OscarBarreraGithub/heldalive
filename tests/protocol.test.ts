@@ -65,7 +65,7 @@ describe("public boundaries", () => {
   it("keeps the inference source truthful in both personalities", () => {
     expect(
       planMessages("mac", "", { art: 0, memory: 0, wander: 0 })[0].content,
-    ).toContain("Mac mini");
+    ).toContain("server-supported studio");
     expect(
       planMessages("browser", "", { art: 0, memory: 0, wander: 0 })[0].content,
     ).toContain("visitors' shared model pieces");

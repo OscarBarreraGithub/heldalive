@@ -4308,3 +4308,585 @@ button:disabled {
     font-size: 8px;
   }
 }
+
+/* Edition 05: survival is the first thing the page explains. */
+.open-habitat .hero-description {
+  max-width: 440px;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.death-rule {
+  display: block;
+  color: #793f37;
+  font-weight: 600;
+  margin-top: 7px;
+}
+.survival-panel {
+  max-width: 430px;
+  margin: 0 0 20px;
+  padding: 14px 15px;
+  border: 1px solid #cbbcb0;
+  border-radius: 10px;
+  background: #f0ece2;
+}
+.survival-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6e3d34;
+}
+.survival-heading > span {
+  font: 12px var(--mono);
+  white-space: nowrap;
+}
+.has-power .survival-heading {
+  color: #3f5c3e;
+}
+.mind-pieces {
+  display: grid;
+  grid-template-columns: repeat(32, 1fr);
+  gap: 3px;
+  margin: 12px 0 8px;
+  height: 14px;
+}
+.mind-pieces i {
+  background: #d8cfc2;
+  border-radius: 2px;
+}
+.mind-pieces i.present {
+  background: #527457;
+}
+.survival-panel p {
+  font-size: 10px;
+  line-height: 1.65;
+  margin: 5px 0 0;
+  color: #625a4e;
+}
+.survival-panel .preview-truth {
+  border-top: 1px solid #cabbab;
+  padding-top: 8px;
+  margin-top: 8px;
+  color: #724632;
+}
+.preview-truth {
+  padding: 13px;
+  background: #f1e4d3;
+  color: #724632;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.quick-pause {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #4e5748;
+  background: none;
+  border: 0;
+  border-left: 1px solid #c4cbb9;
+  margin-left: 6px;
+  padding: 3px 0 3px 9px;
+  cursor: pointer;
+}
+.world-unpowered .wandering-held .little-held {
+  animation: none;
+  filter: grayscale(0.6);
+}
+.world-unpowered .terminal-cursor {
+  animation: none;
+  opacity: 0.25;
+}
+.world-caption {
+  font-family: var(--sans);
+  font-size: 10px;
+  padding: 0 8px;
+  line-height: 1.6;
+}
+.premise-panel {
+  max-width: 1160px;
+  margin: 45px auto 0;
+  padding: 36px 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  background: #35372f;
+  color: #f1edde;
+  border-radius: 12px;
+}
+.premise-panel .eyebrow {
+  color: #d3c9ab;
+}
+.premise-panel h2 {
+  font:
+    38px/1.2 Georgia,
+    serif;
+  letter-spacing: -1px;
+  margin: 15px 0 0;
+}
+.premise-panel h2 em {
+  color: #d4be9c;
+}
+.premise-panel p {
+  font-size: 13px;
+  line-height: 1.9;
+  margin: 0 0 14px;
+  color: #e0dccd;
+}
+.premise-panel a {
+  color: #e8d0ab;
+}
+.explain-inputs {
+  max-width: 1080px;
+  margin: 55px auto 20px;
+  padding: 0 12px;
+  color: #54594c;
+}
+.explain-inputs h2 {
+  font:
+    30px/1.25 Georgia,
+    serif;
+  letter-spacing: -0.7px;
+  margin: 12px 0 20px;
+  color: #373a30;
+}
+.explain-inputs > p {
+  font-size: 13px;
+  line-height: 1.9;
+  max-width: 800px;
+}
+.input-flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11px;
+  color: #42543c;
+  margin: 20px 0;
+}
+.input-flow > span {
+  border: 1px solid #cdd3bf;
+  padding: 9px 12px;
+  border-radius: 7px;
+  background: #eef0e4;
+}
+.input-inspector {
+  border: 1px solid #cbd0bd;
+  border-radius: 9px;
+  margin-top: 22px;
+  font-size: 12px;
+  padding: 16px 20px;
+  line-height: 1.8;
+}
+.input-inspector summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #3f4f39;
+}
+.input-inspector > small {
+  display: block;
+  margin-top: 14px;
+  color: #676857;
+}
+.input-task {
+  margin: 20px 0;
+  border-top: 1px solid #cbd0bd;
+  padding-top: 12px;
+}
+.input-task h3 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.input-task > p {
+  font-size: 11px;
+  color: #646355;
+}
+.input-task details {
+  margin: 8px 0;
+}
+.input-task pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 11px/1.75 var(--mono);
+  background: #edece1;
+  padding: 15px;
+  border-radius: 6px;
+  max-height: 300px;
+  overflow: auto;
+  color: #46483b;
+}
+@media (max-width: 1100px) {
+  .premise-panel,
+  .explain-inputs {
+    margin-left: 24px;
+    margin-right: 24px;
+  }
+}
+@media (max-width: 760px) {
+  .survival-panel {
+    order: 3;
+    max-width: none;
+    width: 100%;
+    margin: 14px 0 0;
+  }
+  .open-habitat .live-world-counts {
+    order: 6;
+    margin-top: 20px;
+  }
+  .open-habitat .live-detail-panel {
+    order: 7;
+  }
+  .open-habitat .hero-description {
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .open-habitat .hero-copy h1 {
+    font-size: 42px;
+    letter-spacing: -2px;
+  }
+  .open-habitat .hero-copy h1 em {
+    letter-spacing: -2px;
+  }
+  .open-world {
+    height: 322px;
+  }
+  .world-caption {
+    font-size: 9px;
+    bottom: 0;
+  }
+  .premise-panel {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin: 24px 16px 0;
+    padding: 26px 23px;
+  }
+  .premise-panel h2 {
+    font-size: 29px;
+  }
+  .explain-inputs {
+    margin: 38px 20px 0;
+    padding: 0;
+  }
+  .explain-inputs h2 {
+    font-size: 27px;
+  }
+  .input-flow {
+    gap: 7px;
+    font-size: 10px;
+  }
+  .input-inspector {
+    padding: 14px;
+  }
+  .input-flow > span {
+    padding: 8px;
+  }
+  .quick-pause {
+    font-size: 9px;
+    padding-left: 6px;
+    margin-left: 3px;
+  }
+  .here-pill {
+    gap: 4px;
+  }
+  .here-label {
+    display: none;
+  }
+}
+@media (max-width: 360px) {
+  .open-habitat .hero-copy h1 {
+    font-size: 36px;
+  }
+  .mind-pieces {
+    gap: 2px;
+  }
+  .world-caption {
+    font-size: 8px;
+  }
+}
+
+/* Oscar's alien lives in an open saucer, rather than a handheld toy. */
+.saucer-home {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  pointer-events: none;
+}
+.open-world .world-floor {
+  background: none;
+}
+.open-world .world-floor:after {
+  opacity: 0.12;
+}
+.open-world .window-scene {
+  top: 91px;
+  left: 46%;
+  width: 100px;
+  height: 92px;
+  border: 5px solid #bdcec2;
+  border-radius: 48%;
+  background: #334b4b;
+  box-shadow:
+    0 2px 0 #869c90,
+    inset 0 0 0 2px #dbe4d6;
+}
+.open-world .window-scene:before {
+  top: 22px;
+  left: 17px;
+  width: 2px;
+  height: 2px;
+  background: #eef0d5;
+  border: 0;
+  box-shadow:
+    17px -10px #eef0d5,
+    40px 28px #eef0d5,
+    2px 35px #eef0d5,
+    48px -5px #eef0d5,
+    27px 48px #eef0d5;
+}
+.open-world .window-scene:after {
+  display: none;
+}
+.open-world .window-sun {
+  top: 21px;
+  right: 19px;
+  width: 20px;
+  height: 20px;
+  background: #e9d6a9;
+  box-shadow: inset -5px -2px 0 #bbaa87;
+}
+.open-world .window-cloud {
+  top: 28px;
+  left: 38px;
+  width: 39px;
+  height: 9px;
+  transform: rotate(-24deg);
+  border: 2px solid #e9d6a9;
+  border-radius: 50%;
+  background: none;
+}
+.open-world .window-hill {
+  bottom: -45px;
+  background: #698682;
+}
+.open-world .station-window {
+  top: 185px;
+}
+.open-world .station-label {
+  background: #faf8f1da;
+  color: #465d54;
+}
+.open-world .station[aria-pressed="true"] .station-label,
+.open-world .station:hover .station-label {
+  background: #dce6d7;
+}
+.open-world .world-heading .handwritten {
+  color: #65796b;
+}
+.open-world .world-trail {
+  color: #acbcb0;
+}
+.open-world .at-window {
+  top: 203px;
+}
+.open-world.at-window .wandering-held {
+  top: 227px;
+  left: 43%;
+}
+.open-world .held-speech {
+  border-color: #bcc9b9;
+  color: #46594b;
+  max-width: 171px;
+  bottom: 119px;
+  background: #fffff4f5;
+  box-shadow: 0 3px 0 #7c947712;
+}
+.open-world .wandering-held .little-held {
+  animation: alien-float 5s ease-in-out infinite;
+  filter: drop-shadow(0 3px 0 #52644e12);
+}
+.open-world .alien-eyes {
+  animation: alien-blink 8s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.open-world.world-unpowered .little-held,
+.open-world.world-unpowered .alien-eyes {
+  animation: none;
+}
+.open-world.world-unpowered .little-held {
+  filter: saturate(0.35);
+}
+.open-world.world-unpowered .window-scene {
+  opacity: 0.62;
+}
+.open-world .held-hello .little-held {
+  animation: alien-hello 0.65s ease-in-out 3;
+}
+.open-world .held-hello .antenna-left {
+  transform-origin: 40px 38px;
+  animation: antenna-wave 0.65s ease-in-out 3;
+}
+@keyframes alien-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1deg);
+  }
+}
+@keyframes alien-blink {
+  0%,
+  43%,
+  47%,
+  100% {
+    transform: scaleY(1);
+  }
+  45% {
+    transform: scaleY(0.08);
+  }
+}
+@keyframes alien-hello {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  50% {
+    transform: translateY(-9px) rotate(-5deg);
+  }
+}
+@keyframes antenna-wave {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(-18deg);
+  }
+}
+@media (min-width: 761px) and (max-width: 1000px) {
+  .open-world .window-scene {
+    top: 77px;
+    left: 43%;
+    width: 80px;
+    height: 75px;
+  }
+  .open-world .station-window {
+    top: 157px;
+    left: 38%;
+  }
+  .open-world.at-window .wandering-held {
+    top: 200px;
+  }
+}
+@media (max-width: 760px) {
+  .open-world {
+    height: 350px;
+    margin-top: 14px;
+    margin-bottom: 14px;
+  }
+  .open-world .window-scene {
+    top: 53px;
+    width: 62px;
+    height: 60px;
+    border-width: 3px;
+  }
+  .open-world .window-sun {
+    top: 13px;
+    right: 9px;
+    width: 16px;
+    height: 16px;
+  }
+  .open-world .window-cloud {
+    top: 17px;
+    left: 27px;
+    width: 25px;
+    height: 8px;
+  }
+  .open-world .window-scene:before {
+    top: 15px;
+    left: 11px;
+    box-shadow:
+      8px 23px #eef0d5,
+      25px -5px #eef0d5,
+      34px 28px #eef0d5;
+  }
+  .open-world .window-hill {
+    bottom: -51px;
+  }
+  .open-world .station-window {
+    top: 117px;
+    left: 39%;
+  }
+  .open-world .station-reading {
+    top: 220px;
+  }
+  .open-world .held-speech {
+    bottom: 88px;
+    max-width: 125px;
+  }
+  .open-world.at-window .wandering-held {
+    top: 149px;
+    left: 42%;
+  }
+  .open-world .world-caption {
+    bottom: 0;
+    font-size: 9px;
+  }
+  .open-world .world-heading {
+    top: 0;
+  }
+  .open-world .station-label {
+    padding: 4px 6px;
+  }
+}
+@media (max-width: 360px) {
+  .open-world {
+    height: 324px;
+  }
+  .open-world .station-reading {
+    top: 216px;
+  }
+  .open-world .world-heading .handwritten {
+    font-size: 12px;
+  }
+  .open-world .world-live {
+    font-size: 6px;
+  }
+}
+.mobile-preview-note {
+  display: none;
+}
+@media (min-width: 761px) {
+  .open-habitat .open-world {
+    align-self: start;
+    margin-top: 75px;
+  }
+}
+@media (max-width: 760px) {
+  .mobile-preview-note {
+    display: block;
+    font-size: 10px;
+    color: #765137;
+    margin-top: 7px;
+  }
+  .open-habitat .survival-panel {
+    order: 5;
+    margin-top: 0;
+  }
+  .open-habitat .coffee-and-care {
+    order: 6;
+    margin-top: 18px;
+  }
+  .open-habitat .live-world-counts {
+    order: 7;
+  }
+  .open-habitat .live-detail-panel {
+    order: 8;
+  }
+}

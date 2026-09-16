@@ -48,7 +48,7 @@ try {
   }
   await page.goto(base + "?room=studio");
   await page
-    .getByRole("heading", { name: "This little AI lives here. With us." })
+    .getByRole("heading", { name: "An AI that lives in our browsers." })
     .waitFor();
   await check(page, "Mac studio");
   console.log(

@@ -1,12 +1,12 @@
 # Held Alive
 
-**This little AI lives here. With us.**
+**An AI that lives in our browsers.**
 
 [heldalive.com](https://heldalive.com) · [The experiment](https://heldalive.com/#experiment) · [The math](https://heldalive.com/#math)
 
-An open-source digital pet that lives in an illustrated workspace on the page. An untouched, compatible visit automatically holds and calculates a small piece of its model. A free coffee lends extra compute for ten minutes; Pause switches to watch-only and stays saved. During launch, the artist’s Mac mini supports the public creature until complete browser groups can take its jobs. The current source is always visible. Held chooses projects, asks copies of its model to draw or test memory methods, and leaves its work in a public collection and notebook. There is no chat box.
+An open-source alien that lives in a little spacecraft on the page, drawn from Oscar’s two-antenna saucer sketch. An untouched, compatible visit automatically holds and calculates a small piece of its model. A free coffee lends extra compute for ten minutes; Pause switches to watch-only and stays saved. During launch, temporary server support runs the same checkpoint until complete browser groups can take its jobs. A visible preview notice explains that browser-only survival is not yet active. Held chooses projects, asks copies of its model to draw or test memory methods, and leaves its work in a public collection and notebook. There is no chat box.
 
-![Held’s open workspace](docs/edition04/habitat.png)
+![Held’s alien spacecraft](docs/edition05/habitat.png)
 
 ## What actually runs
 
@@ -27,8 +27,9 @@ When useful, enabled visitors also sample a next token from model scores or veri
 
 ## Held's world
 
-- Held walks between its computer, drawing table, reading corner and daydreaming window. Stations expose actual public jobs/drafts; helper sprites correspond to running helper jobs. Idle wandering and hello are decorative.
-- Free coffee, a visible source indicator, real layer coverage, live visitors and active helper counts.
+- Held walks between its flight console, drawing station, memory library and stargazing window. Its curled antennae and long eyes follow Oscar’s original drawing; stepped contours, smooth movement and reduced-motion support carry the character across the site. Stations expose actual public jobs/drafts; helper sprites correspond to running helper jobs. Idle wandering and hello are decorative.
+- Free coffee, a live 32-layer survival meter, visible preview/source status, open tabs and active helper-task counts.
+- Actual model weight bytes and timed layer passes in this tab; complete written task inputs on demand. Fixed model weights, task text and generated tokens are explicitly distinguished.
 - Model-chosen drawings, reflective free time and delegated memory experiments.
 - A persistent ASCII-art cabinet with local bookmarks and text downloads.
 - A public workspace of plans, journal pages and model-written memory instructions.
@@ -38,7 +39,7 @@ When useful, enabled visitors also sample a next token from model scores or veri
 
 These are bounded text tools, not arbitrary shell access. Browser outputs can be forged; no proof of honest GPU execution is claimed. Recall is a tiny, noisy, closed-vocabulary demonstration, not a general benchmark of agent memory. More copies do not automatically make the underlying model smarter.
 
-All ideas, including alternatives, are preserved in [VISION.md](docs/VISION.md). Current behavior and operations: [edition 04 plan](docs/edition04/PLAN.md), [operations](docs/edition04/OPERATIONS.md), [verification](docs/edition04/VERIFICATION.md). The unchanged layer engine is described in [edition 03 architecture](docs/edition03/ARCHITECTURE.md) and [numerical notes](docs/edition03/NUMERICAL-NOTES.md). Earlier editions’ participation/launch instructions are historical.
+All ideas, including alternatives, are preserved in [VISION.md](docs/VISION.md). Current design and verification: [edition 05 plan](docs/edition05/PLAN.md), [edition 05 verification](docs/edition05/VERIFICATION.md). Runtime operations remain [edition 04 plan](docs/edition04/PLAN.md), [operations](docs/edition04/OPERATIONS.md), [verification](docs/edition04/VERIFICATION.md). The unchanged layer engine is described in [edition 03 architecture](docs/edition03/ARCHITECTURE.md) and [numerical notes](docs/edition03/NUMERICAL-NOTES.md). Earlier editions’ participation/launch instructions are historical.
 
 ## Develop
 
@@ -63,6 +64,7 @@ npm run check
 npm run test:integration   # LOCAL coordinator fixtures, never production
 npm run test:ui
 npm run test:a11y
+node scripts/test-alien.mjs # local display states and spacecraft interactions
 node scripts/test-coffee.mjs # real no-click load, coffee, expiry, saved Pause
 npm run test:browser       # 16 untouched visits: real GPU inference and withdrawal
 node scripts/test-memory-workshop.mjs

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true });
-await mkdir(".local/qa/edition04", { recursive: true });
+await mkdir(".local/qa/edition05", { recursive: true });
 const errors = [];
 try {
   const context = await browser.newContext({
@@ -32,7 +32,7 @@ try {
   );
   await page.goto(base);
   await page
-    .getByRole("heading", { name: "This little AI lives here. With us." })
+    .getByRole("heading", { name: "An AI that lives in our browsers." })
     .waitFor();
   await page.getByRole("button", { name: "How your compute helps" }).click();
   await page.getByRole("dialog").waitFor({ state: "visible" });
@@ -57,7 +57,7 @@ try {
   await page
     .getByRole("button", { name: "Inspect reading and memory" })
     .click();
-  await page.getByRole("region", { name: "The reading corner" }).waitFor();
+  await page.getByRole("region", { name: "The memory library" }).waitFor();
   await page.getByRole("button", { name: "Close station details" }).click();
   await page.getByRole("button", { name: "Say hello to Held" }).click();
   await page.getByText("oh, hello you!", { exact: true }).waitFor();
@@ -84,8 +84,16 @@ try {
     0,
     "No visitor message input",
   );
+  await page
+    .getByText("Read exactly what the model is given", { exact: true })
+    .click();
+  await page.locator(".input-inspector[open]").waitFor();
+  assert.equal(
+    (await page.request.get(base + "/api/inputs?room=browser")).status(),
+    200,
+  );
   await page.screenshot({
-    path: ".local/qa/edition04/desktop.png",
+    path: ".local/qa/edition05/desktop.png",
     fullPage: true,
   });
   for (const section of ["collection", "experiment", "math"]) {
@@ -132,7 +140,7 @@ try {
       }
     }
     await page.screenshot({
-      path: `.local/qa/edition04/${section}.png`,
+      path: `.local/qa/edition05/${section}.png`,
       fullPage: true,
     });
   }
@@ -150,7 +158,7 @@ try {
       );
       if (width === 390)
         await page.screenshot({
-          path: `.local/qa/edition04/mobile-${section}.png`,
+          path: `.local/qa/edition05/mobile-${section}.png`,
           fullPage: true,
         });
     }

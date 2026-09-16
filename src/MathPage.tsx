@@ -137,7 +137,7 @@ export function MathPage() {
           <p>
             A browser chain cannot run if any required layer is absent. When a
             holder leaves, its unfinished task is queued. During launch, the
-            artist’s Mini supports the public habitat when no browser chain is
+            preview server supports the public habitat when no browser chain is
             complete. After that support is retired, only replacement browser
             coverage can restart thinking. Saved drawings and memory files
             remain.

@@ -9,6 +9,9 @@ import {
 } from "../shared/pipeline";
 import { loadTokenizer } from "./inference/runtime";
 type Send = (event: unknown) => void;
+export type BrowserUsage =
+  | { type: "loaded"; layers: number; modelBytes: number }
+  | { type: "work"; computeMs: number };
 export class BrowserCompute {
   private worker: Worker | null = null;
   private piece: Piece | null = null;
@@ -17,6 +20,7 @@ export class BrowserCompute {
   private duty = 0.05;
   private send: Send = () => {};
   private progress = (p: number, text: string) => {};
+  private reportUsage: (event: BrowserUsage) => void = () => {};
   private readyResolve: ((v: boolean) => void) | null = null;
   private readyReject: ((e: Error) => void) | null = null;
   private pending = new Map<
@@ -32,10 +36,12 @@ export class BrowserCompute {
     onProgress: (progress: number, text: string) => void,
     send: Send,
     duty: number,
+    reportUsage: (event: BrowserUsage) => void = () => {},
   ) {
     this.progress = onProgress;
     this.send = send;
     this.duty = duty;
+    this.reportUsage = reportUsage;
     this.stopped = false;
     const promise = new Promise<boolean>((resolve, reject) => {
       this.readyResolve = resolve;
@@ -76,6 +82,11 @@ export class BrowserCompute {
         if (this.worker !== worker || this.stopped) return;
         if (d.type === "progress") this.progress(d.progress, d.text);
         if (d.type === "loaded") {
+          this.reportUsage({
+            type: "loaded",
+            layers: this.piece!.end - this.piece!.start,
+            modelBytes: d.bytes,
+          });
           this.progress(
             1,
             `Holding layers ${this.piece!.start + 1}–${this.piece!.end} · ${(d.bytes / 1e6).toFixed(1)} MB`,
@@ -84,8 +95,10 @@ export class BrowserCompute {
           this.readyResolve?.(true);
           this.readyResolve = null;
         }
-        if (d.type === "result")
+        if (d.type === "result") {
+          this.reportUsage({ type: "work", computeMs: d.result.computeMs });
           this.send({ type: "pipeline_result", ...d.result });
+        }
         if (d.type === "failure") {
           if (d.rid)
             this.send({

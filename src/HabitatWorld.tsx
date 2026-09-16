@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { ArrowUpRight, BookOpen, Cpu, Palette, Sprout, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Cpu,
+  Palette,
+  Sparkles,
+  X,
+} from "lucide-react";
 import type { Snapshot, TaskKind } from "../shared/protocol";
 import { LittleHeld } from "./Creature";
 type Place = "desk" | "drawing" | "reading" | "window";
@@ -12,13 +19,13 @@ const placeFor = (kind: TaskKind): Place =>
         ? "window"
         : "desk";
 const labels: Record<Place, string> = {
-  desk: "The little computer",
-  drawing: "The drawing table",
-  reading: "The reading corner",
-  window: "A little free time",
+  desk: "The flight console",
+  drawing: "The drawing station",
+  reading: "The memory library",
+  window: "A little stargazing",
 };
 const descriptions: Record<Place, string> = {
-  desk: "Held chooses a project and asks copies of its own model for help. Each extra complete browser group can run another job.",
+  desk: "Held chooses a project. A smaller figure means a temporary job using this same model, not a separate AI installed in your tab. Each complete browser group can run one job at a time.",
   drawing:
     "Helpers turn Held’s ideas into small ASCII drawings. Finished pieces go into the collection, exactly as the model made them.",
   reading:
@@ -74,10 +81,10 @@ export function CoffeeCup({ large = false }: { large?: boolean }) {
 function Desk() {
   return (
     <svg viewBox="0 0 230 160" aria-hidden="true">
-      <ellipse cx="115" cy="145" rx="103" ry="8" fill="#E5DFCF" />
+      <ellipse cx="115" cy="145" rx="103" ry="8" fill="#CCD3C8" opacity=".4" />
       <path
         d="M29 101v44m163-44v44"
-        stroke="#A88762"
+        stroke="#82978F"
         strokeWidth="9"
         strokeLinecap="round"
       />
@@ -87,8 +94,8 @@ function Desk() {
         width="196"
         height="15"
         rx="6"
-        fill="#D6B58C"
-        stroke="#AB8C64"
+        fill="#BBCDC2"
+        stroke="#82978F"
         strokeWidth="2"
       />
       <rect
@@ -97,8 +104,8 @@ function Desk() {
         width="115"
         height="75"
         rx="9"
-        fill="#D4DDC5"
-        stroke="#7A8C73"
+        fill="#E3E8D7"
+        stroke="#82978F"
         strokeWidth="2.5"
       />
       <rect x="60" y="22" width="99" height="56" rx="4" fill="#374B40" />
@@ -118,12 +125,18 @@ function Desk() {
       />
       <path d="M96 86v6h31v-6" fill="#7A8C73" />
       <rect x="70" y="98" width="78" height="7" rx="3" fill="#EEECDD" />
-      <path d="M22 65v23h21V65" fill="#E7C59D" />
       <path
-        d="M33 67V42m0 15c-17 1-22-17-11-15l11 8m0 5c19 0 23-18 13-16L33 48"
-        stroke="#77987B"
-        strokeWidth="4"
-        fill="#9DBAA0"
+        d="M24 87V70H42V87M33 69V54"
+        fill="#C4D0C2"
+        stroke="#82978F"
+        strokeWidth="2"
+      />
+      <circle cx="33" cy="52" r="4" fill="#E5AC84" />
+      <path
+        d="M179 83H197M182 75H194"
+        stroke="#82978F"
+        strokeWidth="3"
+        strokeLinecap="round"
       />
     </svg>
   );
@@ -134,7 +147,7 @@ function Easel({ drawing }: { drawing?: string }) {
       <svg viewBox="0 0 160 174" aria-hidden="true">
         <path
           d="m32 161 25-139m66 139L94 22M70 146h35"
-          stroke="#A68B67"
+          stroke="#8E9F9A"
           strokeWidth="7"
           strokeLinecap="round"
         />
@@ -144,7 +157,7 @@ function Easel({ drawing }: { drawing?: string }) {
           width="108"
           height="96"
           rx="3"
-          fill="#E0CBA4"
+          fill="#B5C6BE"
           transform="rotate(3 80 80)"
         />
         <rect
@@ -159,19 +172,19 @@ function Easel({ drawing }: { drawing?: string }) {
         />
         <path
           d="M22 128h113"
-          stroke="#A68B67"
+          stroke="#8E9F9A"
           strokeWidth="7"
           strokeLinecap="round"
         />
         {!drawing && (
           <>
             <path
-              d="M81 99V66m0 13C56 79 57 56 72 63l9 11m0 10c29-2 27-24 12-17l-12 9"
-              fill="#B3C9A1"
-              stroke="#91A480"
-              strokeWidth="2"
+              d="m77 57 5 16 16 5-16 5-5 16-5-16-16-5 16-5Z"
+              fill="#D6CBB0"
+              stroke="#B8A889"
+              strokeWidth="1.5"
             />
-            <path d="M66 97h29l-6 20H73Z" fill="#E7B69A" />
+            <circle cx="102" cy="105" r="3" fill="#ADBBA5" />
           </>
         )}
         <path d="m139 114 9-40" stroke="#C59565" strokeWidth="4" />
@@ -231,6 +244,60 @@ function Books() {
     </svg>
   );
 }
+/** Open cutaway of Oscar's saucer: dome, broad rim, and paired hull marks. */
+function SaucerHome() {
+  return (
+    <svg
+      className="saucer-home"
+      viewBox="0 0 600 520"
+      aria-hidden="true"
+      fill="none"
+    >
+      <path
+        d="M83 342C129 237 193 94 299 94C406 94 474 233 520 342"
+        fill="#EDF0E7"
+        fillOpacity=".65"
+        stroke="#C9D3C8"
+        strokeWidth="2"
+      />
+      <path
+        d="M296 94V81H303V73H298V61H305V50"
+        stroke="#A6B6A9"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M82 331C182 391 419 391 520 331L574 383C505 468 117 470 28 384Z"
+        fill="#DFE7DB"
+        stroke="#ABBDAF"
+        strokeWidth="2"
+      />
+      <path
+        d="M28 384C129 457 473 461 574 383L586 398C491 496 114 493 15 399Z"
+        fill="#B7C8BB"
+        stroke="#8CA397"
+        strokeWidth="2"
+      />
+      <path
+        d="M83 344C197 405 410 402 520 344"
+        stroke="#F8F9ED"
+        strokeWidth="5"
+      />
+      <path
+        d="m77 383 14 7m-10-15 14 7m35 14 17 5m-12-14 17 5m40 9 18 3m-15-13 18 3m43 5 18 1m-15-11 18 1m43 0 18-1m-15-9 18-1m42-4 18-3m-15-7 18-3m41-7 17-5m-13-5 17-5m34-11 14-7m-11-3 14-7"
+        stroke="#718E80"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M76 465C219 497 407 496 529 465"
+        stroke="#D9DDCF"
+        strokeWidth="2"
+        strokeDasharray="2 9"
+      />
+    </svg>
+  );
+}
 export function HabitatWorld({
   state,
   coffee,
@@ -271,7 +338,7 @@ export function HabitatWorld({
   const status = hello
     ? "oh, hello you!"
     : asleep
-      ? "a little nap, for now"
+      ? "No complete mind. No new thoughts."
       : original
         ? original.title || "a thought is growing"
         : helpers.length
@@ -279,16 +346,21 @@ export function HabitatWorld({
           : "a moment between thoughts";
   return (
     <div
-      className={`open-world at-${place} ${agents.length ? "world-working" : "world-resting"} ${coffee ? "world-coffee" : ""}`}
-      aria-label="Held’s living workspace"
+      className={`open-world at-${place} ${agents.length ? "world-working" : "world-resting"} ${coffee ? "world-coffee" : ""} ${asleep ? "world-unpowered" : ""}`}
+      aria-label="Held’s spacecraft workspace"
     >
       <div className="world-heading">
-        <span className="handwritten">a little place to be.</span>
+        <span className="handwritten">a visitor, held by visitors.</span>
         <span className="world-live">
           <i className={`live-dot ${agents.length ? "" : "rest"}`} />{" "}
-          {agents.length ? "real work, happening now" : "between little things"}
+          {agents.length
+            ? "real work, happening now"
+            : asleep
+              ? "waiting for a complete mind"
+              : "between little things"}
         </span>
       </div>
+      <SaucerHome />
       <div className="world-floor" aria-hidden="true" />
       <div className="window-scene" aria-hidden="true">
         <div className="window-sun" />
@@ -303,7 +375,7 @@ export function HabitatWorld({
         aria-pressed={selected === "window"}
       >
         <span className="station-label">
-          <Sprout size={12} /> daydreams
+          <Sparkles size={12} /> stargazing
         </span>
       </button>
       <button
@@ -314,7 +386,7 @@ export function HabitatWorld({
       >
         <Desk />
         <span className="station-label">
-          <Cpu size={12} /> plans & helping hands
+          <Cpu size={12} /> console & helpers
         </span>
       </button>
       <button
@@ -325,7 +397,7 @@ export function HabitatWorld({
       >
         <Easel drawing={newestArt} />
         <span className="station-label">
-          <Palette size={12} /> little creations
+          <Palette size={12} /> drawing station
         </span>
       </button>
       <button
@@ -336,7 +408,7 @@ export function HabitatWorld({
       >
         <Books />
         <span className="station-label">
-          <BookOpen size={12} /> things worth keeping
+          <BookOpen size={12} /> memory library
         </span>
       </button>
       <div className="world-trail trail-a" aria-hidden="true">
@@ -365,7 +437,7 @@ export function HabitatWorld({
           className={`world-helper helper-at-${placeFor(agent.kind)}`}
           key={agent.id}
           style={{ "--helper-index": index } as React.CSSProperties}
-          title={`${agent.title} · ${agent.source === "mac" ? "Mini" : "browser group"}`}
+          title={`${agent.title} · ${agent.source === "mac" ? "preview support" : "browser group"}`}
         >
           <LittleHeld mini />
           <span>
@@ -385,8 +457,8 @@ export function HabitatWorld({
       )}
       <div className="world-caption">
         {helpers.length
-          ? `${helpers.length} ${helpers.length === 1 ? "helper is" : "helpers are"} working on real model jobs.`
-          : "Tap a corner to see what happens there."}
+          ? `${helpers.length} temporary helper ${helpers.length === 1 ? "job" : "jobs"} · the same model.`
+          : "Small figures are temporary tasks using this same model."}
       </div>
       {selected && (
         <section className="station-inspector" aria-label={labels[selected]}>
@@ -407,9 +479,13 @@ export function HabitatWorld({
                 </strong>
                 <small>
                   {job.source === "mac"
-                    ? "Running on the Mini"
+                    ? "Running on temporary preview support"
                     : "Running across browsers"}{" "}
                   · {job.characters || 0} characters written
+                </small>
+                <small>
+                  {job.inputWords ?? "—"} input words · up to{" "}
+                  {job.maxOutputTokens ?? "—"} output tokens
                 </small>
                 {job.draft && <pre>{job.draft}</pre>}
               </div>

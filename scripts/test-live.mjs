@@ -36,7 +36,7 @@ try {
     if (count === 8)
       await page.getByRole("button", { name: "Give Held a coffee" }).click();
     await page
-      .getByText("Your tab is lending a little life", { exact: true })
+      .locator('.your-contribution[data-compute-status="ready"]')
       .waitFor({ timeout: 120000 });
     console.log("Real live holder ready", i + 1);
   }
@@ -57,9 +57,9 @@ try {
     after.activity.some((e) => e.source === "browser" && e.at >= loadedAt),
   );
   assert.deepEqual(errors, []);
-  await mkdir(".local/qa/edition04", { recursive: true });
+  await mkdir(".local/qa/edition05", { recursive: true });
   await pages[0].screenshot({
-    path: ".local/qa/edition04/live-working.png",
+    path: ".local/qa/edition05/live-working.png",
     fullPage: true,
   });
   await pages[0]
@@ -67,9 +67,9 @@ try {
     .click();
   await pages[0]
     .locator(".open-world")
-    .screenshot({ path: ".local/qa/edition04/live-inspector.png" });
+    .screenshot({ path: ".local/qa/edition05/live-inspector.png" });
   await writeFile(
-    ".local/qa/edition04/live-result.json",
+    ".local/qa/edition05/live-result.json",
     JSON.stringify(
       {
         base,

@@ -34,7 +34,7 @@ try {
     await page.goto(base);
     await page.getByRole("button", { name: "Give Held a coffee" }).click();
     await page
-      .getByText("Your tab is lending a little life", { exact: true })
+      .locator('.your-contribution[data-compute-status="ready"]')
       .waitFor({ timeout: 120000 });
   }
   let finished;

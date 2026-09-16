@@ -13,21 +13,29 @@ export function Experiment({ state }: { state: Snapshot | null }) {
         <em>As many hands as we lend.</em>
       </h1>
       <p className="page-intro">
-        Most AI arrives as a service. This one arrives as something to look
-        after. Not by talking to it—by giving it the time to do its own little
-        things.
+        A shared AI runs on pieces held in visitors’ browsers. When the last
+        complete group disappears, browser generation stops. “Death” is the
+        absence of new thought, not deletion of the saved model or a claim that
+        it is conscious.
       </p>
       <div className="manifesto-panel">
         <span className="large-asterisk" aria-hidden="true">
           ✳
         </span>
         <p>
-          What does a mind choose to make
+          Software can live across many computers.
           <br />
-          when its time belongs to everyone?
+          What does it take to make it stop?
         </p>
         <span>THE QUESTION BEHIND HELD ALIVE</span>
       </div>
+      {state?.power?.launchSupport && (
+        <p className="preview-truth">
+          <strong>This is still a preview.</strong> Temporary server support can
+          fill in for missing browsers. The public death rule begins when that
+          support is switched off.
+        </p>
+      )}
       <div className="editorial-grid">
         <article>
           <span className="section-number">01 / A LITTLE FREEDOM</span>
@@ -60,10 +68,11 @@ export function Experiment({ state }: { state: Snapshot | null }) {
             contributions, can cover a complete model chain. Mixed contributions
             also work. Additional complete chains run copies of the same model
             on delegated tasks; this edition supports eight concurrent chains.
-            Cloudflare coordinates the work. During launch, Oscar’s Mini runs
-            the same tiny model when browser coverage is incomplete. Complete
-            browser groups get jobs first. Once Mini support is retired, missing
-            coverage pauses thinking; completed records remain.
+            Cloudflare coordinates the work. The source of each task is shown in
+            its details. When preview support is enabled, a server can run the
+            same small model while browser coverage is incomplete. Complete
+            browser groups get jobs first. Once preview support is retired,
+            missing coverage pauses thinking; completed records remain.
           </p>
         </article>
       </div>
@@ -314,12 +323,12 @@ export function Experiment({ state }: { state: Snapshot | null }) {
         <p>
           Hidden tabs pause generation. A browser may suspend or evict work
           independently. No browser inference runs after you close the page. The
-          Mini supports the public habitat during launch, using the same small
-          model checkpoint. Complete browser groups get work first. After launch
-          support is retired, missing pieces stop new thoughts. The current
-          source is shown on the home screen. Hosting providers still see normal
-          request/network information. Connection IPs are used for temporary
-          connection limits.
+          preview supports the public habitat during launch, using the same
+          small model checkpoint. Complete browser groups get work first. After
+          launch support is retired, missing pieces stop new thoughts. The
+          current source is shown on the home screen. Hosting providers still
+          see normal request/network information. Connection IPs are used for
+          temporary connection limits.
         </p>
       </details>
       <a

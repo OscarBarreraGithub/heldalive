@@ -159,6 +159,42 @@ try {
     viewer.state.active,
     "A spectator cannot complete another holder’s task",
   );
+  const inputResponse = await fetch(base + "/api/inputs?room=browser");
+  assert.equal(inputResponse.status, 200);
+  const inspected = (await inputResponse.json()).tasks.find(
+    (t) => t.id === planner.job.id,
+  );
+  assert.deepEqual(
+    inspected.messages,
+    planner.job.messages,
+    "The input inspector shows exactly the assigned task messages",
+  );
+  assert.equal(
+    inspected.inputWords,
+    planner.job.messages
+      .map((m) => m.content)
+      .join(" ")
+      .trim()
+      .split(/\s+/u).length,
+  );
+  assert.equal(inspected.maxOutputTokens, planner.job.maxTokens);
+  assert.deepEqual(
+    Object.keys(inspected).sort(),
+    [
+      "id",
+      "inputWords",
+      "kind",
+      "maxOutputTokens",
+      "messages",
+      "source",
+      "status",
+      "title",
+    ].sort(),
+  );
+  assert.equal(
+    (await fetch(base + "/api/inputs?room=browser", { method: "POST" })).status,
+    405,
+  );
   complete(
     planner.c,
     planner.job,

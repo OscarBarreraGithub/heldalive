@@ -42,6 +42,12 @@ export function useHabitat(room: string, studio: boolean) {
   const [pieceLabel, setPieceLabel] = useState("");
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
+  const [usage, setUsage] = useState({
+    layers: 0,
+    modelBytes: 0,
+    computeMs: 0,
+    passes: 0,
+  });
   const compute = useRef<BrowserCompute | null>(null);
   const checkWorker = useRef<Worker | null>(null);
   const sendRef = useRef<(event: unknown) => void>(() => {});
@@ -110,11 +116,13 @@ export function useHabitat(room: string, studio: boolean) {
   useEffect(() => {
     if (studio || !enabled || !visible || !habitat.connected) {
       setStatus("off");
+      setUsage((u) => ({ ...u, layers: 0, modelBytes: 0 }));
       return;
     }
     let disposed = false;
     let provider: BrowserCompute | null = null;
     setStatus("loading");
+    setUsage((u) => ({ ...u, layers: 0, modelBytes: 0 }));
     setProgress(0);
     setError("");
     if (!navigator.gpu) {
@@ -133,6 +141,7 @@ export function useHabitat(room: string, studio: boolean) {
           (p, label) => {
             if (disposed) return;
             if (p < 0) {
+              setUsage((u) => ({ ...u, layers: 0, modelBytes: 0 }));
               setStatus("error");
               setError(label);
               return;
@@ -147,12 +156,25 @@ export function useHabitat(room: string, studio: boolean) {
           },
           habitat.send,
           duty,
+          (event) => {
+            if (disposed) return;
+            setUsage((u) =>
+              event.type === "loaded"
+                ? { ...u, layers: event.layers, modelBytes: event.modelBytes }
+                : {
+                    ...u,
+                    computeMs: u.computeMs + event.computeMs,
+                    passes: u.passes + 1,
+                  },
+            );
+          },
         );
       })
       .catch((e) => {
         if (disposed) return;
         provider?.stop();
         if (compute.current === provider) compute.current = null;
+        setUsage((u) => ({ ...u, layers: 0, modelBytes: 0 }));
         setStatus("error");
         setError(
           e instanceof Error
@@ -215,6 +237,7 @@ export function useHabitat(room: string, studio: boolean) {
     dataSaver,
     coffee,
     duty,
+    usage,
     coffeeSeconds: Math.max(0, Math.ceil((coffeeUntil - now) / 1000)),
     pause,
     resume,

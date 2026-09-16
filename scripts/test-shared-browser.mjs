@@ -35,7 +35,7 @@ async function support(enabled) {
   });
   assert.equal(r.status, 200);
 }
-await mkdir(".local/qa/edition04", { recursive: true });
+await mkdir(".local/qa/edition05", { recursive: true });
 const state = async () =>
   fetch(base + "/api/state?room=browser").then((r) => r.json());
 try {
@@ -95,7 +95,7 @@ try {
       "Use sixteen automatic visits or eight coffees",
     );
     await page
-      .getByText("Your tab is lending a little life", { exact: true })
+      .locator('.your-contribution[data-compute-status="ready"]')
       .waitFor({ timeout: 120000 });
     console.log("READY", i, (await state()).pipelines);
   }
@@ -141,6 +141,21 @@ try {
   }
   assert.ok(worked, "The shared model must complete real assigned work");
   assert.ok(worked.pipelines.some((p) => p.ready));
+  const usage = await Promise.all(
+    pages.map((p) =>
+      p.locator("[data-work-ms]").evaluate((el) => ({
+        ms: Number(el.dataset.workMs),
+        passes: Number(el.dataset.workPasses),
+        modelBytes: Number(
+          document.querySelector("[data-model-bytes]").dataset.modelBytes,
+        ),
+      })),
+    ),
+  );
+  assert.ok(
+    usage.every((u) => u.ms > 0 && u.passes > 0 && u.modelBytes > 0),
+    "Every contributing tab displays measured real work and held weight bytes",
+  );
   await support(false);
   await pages
     .at(-1)
@@ -172,7 +187,7 @@ try {
       .click();
   await pages
     .at(-1)
-    .getByText("Your tab is lending a little life", { exact: true })
+    .locator('.your-contribution[data-compute-status="ready"]')
     .waitFor({ timeout: 120000 });
   let recovered = await state();
   assert.ok(recovered.modelAvailable, "Replacement restores full coverage");
@@ -201,16 +216,17 @@ try {
     "Hidden holder withdraws its physical piece",
   );
   await pages[0].screenshot({
-    path: ".local/qa/edition04/shared-working.png",
+    path: ".local/qa/edition05/shared-working.png",
     fullPage: true,
   });
   await writeFile(
-    ".local/qa/edition04/shared-result.json",
+    ".local/qa/edition05/shared-result.json",
     JSON.stringify(
       {
         contexts: count,
         browserDone,
         automatic: count === 16,
+        usage,
         assignments,
         downloads,
         elapsedMs: Date.now() - started,

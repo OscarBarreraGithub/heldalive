@@ -130,6 +130,8 @@ export type Snapshot = {
     title?: string;
     draft?: string;
     characters?: number;
+    inputWords?: number;
+    maxOutputTokens?: number;
   }[];
   project: Project | null;
   projects: Project[];

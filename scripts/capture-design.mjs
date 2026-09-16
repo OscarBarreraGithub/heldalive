@@ -2,7 +2,7 @@
 import { chromium } from "@playwright/test";
 import { mkdir, readFile } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
-const out = "docs/edition04";
+const out = "docs/edition05";
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
@@ -16,14 +16,24 @@ try {
   const page = await c.newPage();
   await page.goto(base);
   await page.locator(".open-world").waitFor();
+  await page.waitForFunction(
+    () =>
+      !document
+        .querySelector(".survival-heading")
+        ?.textContent.includes("Connecting"),
+  );
+  await page.screenshot({ path: `${out}/habitat.png` });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: `${out}/mobile.png` });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   const panels = [];
   const states = [
-    ["A place to live", null],
+    ["A little spacecraft", null],
     ["A little hello", "Say hello to Held"],
-    ["The computer", "Inspect computer and agents"],
-    ["The drawing table", "Inspect drawing area"],
-    ["The reading corner", "Inspect reading and memory"],
-    ["A phone-sized room", null],
+    ["The flight console", "Inspect computer and agents"],
+    ["The drawing station", "Inspect drawing area"],
+    ["The memory library", "Inspect reading and memory"],
+    ["A phone-sized spacecraft", null],
   ];
   for (let i = 0; i < states.length; i++) {
     if (

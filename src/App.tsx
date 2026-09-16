@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import type { Phase, ProjectKind, TaskKind } from "../shared/protocol";
 import { LittleHeld } from "./Creature";
+import { Survival } from "./Survival";
+import { InputsPanel } from "./InputsPanel";
 import { HabitatWorld, CoffeeCup } from "./HabitatWorld";
 import { useHabitat } from "./useHabitat";
 import { ArtCard, Collection } from "./Collection";
@@ -111,22 +113,18 @@ export function App() {
   const status = !connected
     ? "connecting to its little world"
     : asleep
-      ? "a little nap, until there’s power to think"
+      ? "No complete mind. No new thoughts."
       : state?.active
         ? tasks[state.active.kind]
         : "taking a breath between thoughts";
   const helpers = state?.agents.filter((a) => a.role === "Helper").length || 0;
-  const covered = Math.max(
-    0,
-    ...(state?.pipelines || []).map((g) => g.covered),
-  );
   const source =
     studio || state?.power?.source === "mac"
-      ? "Oscar’s Mini"
+      ? "temporary preview support"
       : state?.power?.source === "mixed"
-        ? "Mini + browsers"
+        ? "browsers + preview support"
         : state?.power?.source === "browser"
-          ? "our browsers"
+          ? "visitors’ browsers"
           : "waiting for power";
   const unavailable =
     habitat.status === "error" || habitat.status === "unsupported";
@@ -171,14 +169,21 @@ export function App() {
             {connected ? (state?.viewers ?? 0) : "—"}{" "}
             <span className="here-label">here together</span>
           </span>
+          {!studio && habitat.enabled && (
+            <button
+              className="quick-pause"
+              aria-label="Pause browser compute"
+              onClick={habitat.pause}
+            >
+              <Pause size={12} /> Pause
+            </button>
+          )}
         </div>
       </header>
       {studio && (
         <div className="studio-banner">
           <Cpu size={14} />
-          <span>
-            Studio preview · this habitat runs on the artist’s Mac mini.
-          </span>
+          <span>Separate studio preview · server computation.</span>
           <a href="/">
             Visit the live habitat <ArrowUpRight size={13} />
           </a>
@@ -190,19 +195,28 @@ export function App() {
             <section className="habitat-hero open-habitat">
               <div className="hero-copy">
                 <div className="eyebrow">
-                  <span className="small-spark">✳</span> A LITTLE AI, A LIFE WE
-                  SHARE
+                  <span className="small-spark">✳</span> ONE AI. BORROWED
+                  COMPUTERS.
                 </div>
                 <h1>
-                  This little AI
+                  An AI that lives
                   <br />
-                  <em>lives here. With us.</em>
+                  <em>in our browsers.</em>
                 </h1>
                 <p className="hero-description">
-                  Just being here lends it a little computing power.
-                  <br className="desktop-break" /> It thinks, draws, and sends
-                  its helpers to work.
+                  Your tab runs a small piece of its mind.
+                  <strong className="death-rule">
+                    {!state || state.power?.launchSupport || studio
+                      ? "The idea: when too many people leave, it dies."
+                      : "When too many people leave, it dies."}
+                  </strong>
+                  {state?.power?.launchSupport && !studio && (
+                    <span className="mobile-preview-note">
+                      Preview: temporary server support is still on.
+                    </span>
+                  )}
                 </p>
+                {!studio && <Survival state={state} connected={connected} />}
                 {studio ? (
                   <a className="button dark" href="/">
                     Visit the live habitat <ArrowRight size={16} />
@@ -229,7 +243,7 @@ export function App() {
                         <small>
                           {habitat.coffee
                             ? `${minutes} of extra compute left`
-                            : "Free · lend a little extra compute"}
+                            : "Free · more browser compute for 10 minutes"}
                         </small>
                       </span>
                       {habitat.coffee ? (
@@ -238,7 +252,10 @@ export function App() {
                         <ArrowUpRight size={18} />
                       )}
                     </button>
-                    <div className="your-contribution">
+                    <div
+                      className="your-contribution"
+                      data-compute-status={habitat.status}
+                    >
                       <span
                         className={`live-dot ${habitat.enabled && !unavailable ? "" : "rest"}`}
                       />
@@ -252,7 +269,7 @@ export function App() {
                               : habitat.status === "loading"
                                 ? `Your piece is arriving · ${Math.round(habitat.progress * 100)}%`
                                 : habitat.status === "ready"
-                                  ? "Your tab is lending a little life"
+                                  ? `Holding ${habitat.usage.layers} of 32 layers · ${habitat.usage.passes ? "has done real work" : "ready for work"}`
                                   : "Getting your little piece ready"}
                       </span>
                       <button
@@ -282,7 +299,9 @@ export function App() {
                     )}
                     <p className="care-disclosure">
                       {habitat.enabled
-                        ? "Small model files load in this tab. "
+                        ? habitat.coffee
+                          ? "A coffee piece holds up to 49 MB of model data. "
+                          : "11–38 MB of model data loads in this tab. "
                         : "Watching is welcome. "}
                       No account or app to install.{" "}
                       <button
@@ -321,36 +340,20 @@ export function App() {
                 >
                   <div>
                     <strong>{connected ? state?.viewers || 0 : "—"}</strong>
-                    <span>here together</span>
+                    <span>open tabs</span>
                   </div>
                   <div>
                     <strong>{state?.contributors || 0}</strong>
-                    <span>lending model pieces</span>
+                    <span>tabs holding model layers</span>
                   </div>
                   <div>
                     <strong>{helpers}</strong>
                     <span>
-                      {helpers === 1 ? "helper at work" : "helpers at work"}
+                      {helpers === 1
+                        ? "helper task running"
+                        : "helper tasks running"}
                     </span>
                   </div>
-                </div>
-                <div className="power-note">
-                  <Cpu size={13} />
-                  <span>
-                    {source === "waiting for power" ? (
-                      "Waiting for computing power"
-                    ) : (
-                      <>
-                        Thinking with <strong>{source}</strong>
-                      </>
-                    )}
-                    {!studio && state?.power?.launchSupport && (
-                      <small>
-                        Launch support is on. Complete browser groups get work
-                        first.
-                      </small>
-                    )}
-                  </span>
                 </div>
                 {!studio && (
                   <details className="live-detail-panel">
@@ -358,24 +361,50 @@ export function App() {
                       What’s happening under the hood <ChevronRight size={13} />
                     </summary>
                     <p>
-                      <strong>{covered}/32 layers</strong> in the fullest
-                      browser group ·{" "}
-                      <strong>{state?.power?.browserChains || 0}</strong>{" "}
-                      complete groups. Sixteen gentle tabs can cover one model;
-                      coffee can hold more layers.
+                      <strong>Computation source:</strong> {source}.{" "}
+                      {!state
+                        ? "Checking the current support mode…"
+                        : state.power?.launchSupport
+                          ? "Preview support is enabled; this is not yet browser-only survival."
+                          : "Server inference is disabled for this habitat."}
                     </p>
                     <p>
-                      {habitat.status === "ready"
-                        ? habitat.pieceLabel
-                        : "Your layer assignment appears here once loaded."}{" "}
-                      {state?.power?.launchSupport
-                        ? "The Mini keeps launch going when browser coverage is incomplete. Its support will be retired for browser independence."
-                        : "Browser independence is on. Missing coverage pauses thought generation."}
+                      <strong>Your tab:</strong> {habitat.usage.layers} layers,{" "}
+                      <span data-model-bytes={habitat.usage.modelBytes}>
+                        {(habitat.usage.modelBytes / 1e6).toFixed(1)} MB
+                      </span>{" "}
+                      of model weights held. These fixed numbers define its
+                      model; they are not new information being fed to it.
                     </p>
                     <p>
+                      <strong>Useful work this visit:</strong>{" "}
+                      <span
+                        data-work-ms={habitat.usage.computeMs}
+                        data-work-passes={habitat.usage.passes}
+                      >
+                        {(habitat.usage.computeMs / 1000).toFixed(2)} seconds
+                        across {habitat.usage.passes} layer passes.
+                      </span>{" "}
+                      Zero means your piece has not calculated yet. This
+                      excludes loading and is not a battery or energy reading.
+                    </p>
+                    <p>
+                      <strong>Data moves while it thinks:</strong> intermediate
+                      model values pass between browsers through the
+                      coordinator. The weight size above is not a meter of total
+                      network traffic.
+                    </p>
+                    <p>
+                      <strong>Text generated:</strong>{" "}
                       {(state?.totalTokens || 0).toLocaleString()} output tokens
-                      in completed tasks · {state?.queueLength || 0} jobs
-                      waiting. These counts include earlier editions.
+                      across completed tasks, including earlier editions. Tokens
+                      are pieces of text; they are not compute credits.
+                    </p>
+                    <p>
+                      <strong>“Dies” means it stops generating.</strong> Saved
+                      work and model files remain. Enough returning browsers can
+                      restart it. We are not claiming consciousness or
+                      irreversible deletion.
                     </p>
                     <p className="caption">
                       Counts are connected visible tabs, not verified unique
@@ -394,10 +423,10 @@ export function App() {
               </div>
               <span>
                 {studio
-                  ? "MAC STUDIO"
+                  ? "STUDIO PREVIEW"
                   : state?.power?.launchSupport
-                    ? "LAUNCH CHAPTER"
-                    : "BROWSER INDEPENDENCE"}{" "}
+                    ? "PREVIEW · SUPPORT ON"
+                    : "BROWSER COMPUTATION ONLY"}{" "}
                 <span className="status-separator">/</span>{" "}
                 {studio ? "QWEN 0.5B" : "SMOLLM2 · 360M"}
               </span>
@@ -407,6 +436,63 @@ export function App() {
                 {notice}
               </p>
             )}
+            <section className="premise-panel" aria-labelledby="premise-title">
+              <div>
+                <span className="eyebrow">THE UNCOMFORTABLE PART</span>
+                <h2 id="premise-title">
+                  You can close this tab.
+                  <br />
+                  <em>What if you couldn’t?</em>
+                </h2>
+              </div>
+              <div>
+                <p>
+                  A little power from many ordinary computers can keep one
+                  system running. Your departure may stop one chain; other
+                  complete chains can keep going.
+                </p>
+                <p>
+                  A botnet takes that power from compromised machines without
+                  their owners’ consent. Held makes distributed computation
+                  visible. Here, participation is disclosed and pausable. It
+                  cannot infect another device or spread beyond this site.
+                </p>
+                <a className="text-link" href="#math">
+                  Explore the survival math <ArrowUpRight size={13} />
+                </a>
+              </div>
+            </section>
+            <section className="explain-inputs" aria-labelledby="input-title">
+              <div>
+                <span className="eyebrow">WHAT IS IT ACTUALLY DOING?</span>
+                <h2 id="input-title">
+                  A small model. Small tasks. Real computation.
+                </h2>
+              </div>
+              <div className="input-flow">
+                <span>Written task</span>
+                <ArrowRight size={15} />
+                <span>Shared model layers</span>
+                <ArrowRight size={15} />
+                <span>A drawing, memory test or journal entry</span>
+              </div>
+              <p>
+                Held is a fixed 360-million-parameter model. It reads task
+                instructions, a short journal and artificial memory records. It
+                is not ingesting arXiv, reading your files or training itself.
+                Its drawings and records are saved here.
+              </p>
+              <p>
+                <strong>
+                  The little helpers are temporary jobs using the same model.
+                </strong>{" "}
+                One complete browser group runs one job at a time. More complete
+                groups allow jobs in parallel. Coffee lends more of your
+                browser’s calculation time; it does not create an entire AI on
+                your computer.
+              </p>
+              <InputsPanel room={room} state={state} />
+            </section>
             <section className="today-grid" id="today">
               <div className="today-main">
                 <div className="section-heading">
@@ -491,7 +577,7 @@ export function App() {
                   <div>
                     <strong>
                       {state?.agents.length
-                        ? `${state.agents.length} ${state.agents.length === 1 ? "mind is" : "minds are"} at work`
+                        ? `${state.agents.length} model ${state.agents.length === 1 ? "task" : "tasks"} running`
                         : "A little room for helping hands"}
                     </strong>
                     <span>
@@ -500,7 +586,7 @@ export function App() {
                             .slice(0, 3)
                             .map((a) => tasks[a.kind])
                             .join(" · ")
-                        : "Helpers appear here when a real job begins."}
+                        : "A small figure represents one temporary helper task."}
                     </span>
                   </div>
                   <span className="helper-count">
@@ -697,7 +783,7 @@ export function App() {
             Source <ArrowUpRight size={12} />
           </a>
           <a href={studio ? "/" : "/?room=studio"}>
-            {studio ? "Live habitat" : "Mac studio"}
+            {studio ? "Live habitat" : "Studio preview"}
           </a>
         </div>
       </footer>
@@ -721,12 +807,14 @@ export function App() {
           <CoffeeCup large />
         </div>
         <span className="eyebrow">A LITTLE TIME, ON YOUR TERMS</span>
-        <h2 id="consent-title">Being here is helping.</h2>
+        <h2 id="consent-title">Your tab is part of the computer.</h2>
         <p>
           On a compatible browser, visiting automatically holds and calculates a
           small part of Held’s model. With all 32 layers present, browsers can
-          do the thinking together. While we launch, Oscar’s Mini helps when
-          browser coverage is incomplete.
+          do the thinking together. With browser-only survival enabled, too many
+          missing pieces stop all generation.{" "}
+          {state?.power?.launchSupport &&
+            "This is currently a preview: temporary server support still runs tasks when browsers are missing."}
         </p>
         <div className="consent-facts">
           <span>

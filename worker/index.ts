@@ -250,6 +250,7 @@ export default {
           "/api/artworks",
           "/api/trials",
           "/api/workspace",
+          "/api/inputs",
           "/api/identity",
           "/api/launch-support",
         ].includes(url.pathname)
@@ -817,6 +818,12 @@ export class LivingRoom extends DurableObject<Env> {
         title: a.task.title,
         draft: cleanThought(a.text).slice(-240),
         characters: a.text.length,
+        inputWords: a.task.messages
+          .map((m) => m.content)
+          .join(" ")
+          .trim()
+          .split(/\s+/u).length,
+        maxOutputTokens: a.task.maxTokens,
       })),
       project: this.state.project,
       projects: this.state.projects.slice(-8),
@@ -913,6 +920,37 @@ export class LivingRoom extends DurableObject<Env> {
       return Response.json(this.snapshot(), {
         headers: { "Cache-Control": "no-store" },
       });
+    if (url.pathname === "/api/inputs") {
+      const tasks = this.state.active.length
+        ? this.state.active.map((a) => ({
+            task: a.task,
+            status: "running",
+            source: a.source,
+          }))
+        : this.state.queue
+            .slice(0, 1)
+            .map((task) => ({ task, status: "waiting", source: null }));
+      return Response.json(
+        {
+          at: Date.now(),
+          tasks: tasks.map(({ task, status, source }) => ({
+            id: task.id,
+            kind: task.kind,
+            title: task.title,
+            status,
+            source,
+            messages: task.messages,
+            maxOutputTokens: task.maxTokens,
+            inputWords: task.messages
+              .map((m) => m.content)
+              .join(" ")
+              .trim()
+              .split(/\s+/u).length,
+          })),
+        },
+        { headers: { "Cache-Control": "no-store" } },
+      );
+    }
     if (url.pathname === "/api/artworks") {
       const n = Number(url.searchParams.get("offset") || 0);
       return Response.json(

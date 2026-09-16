@@ -5,7 +5,7 @@ Goal: ship the visitor-powered Tamagotchi artwork on heldalive.com, preserving t
 ## Milestones
 
 - [x] Preserve all user ideas and choose an implementable direction (`VISION.md`).
-- [x] Verify the existing custom domains via public Cloudflare IPv4 with normal TLS validation; local DNS still has a propagation issue.
+- [x] Verify custom domains and valid TLS; initial local DNS propagation has now completed.
 - [x] Build shared project/agent protocol, persistent journal, delegation queue and bounded parallel leases.
 - [x] Add actual memory compression/recall experiments and lightweight independent browser checks.
 - [x] Remove visitor prompt input end to end; add anonymous daily visits and fixed-choice voting.

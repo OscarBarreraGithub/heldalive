@@ -59,3 +59,5 @@ Deployed application commit `e96148d3106af19f0a05b74334d145fe765f972e` as Cloudf
 - Reinstalled the native bridge and tested real production studio inference: **eight jobs / 385 generated tokens**, 3.406 seconds of completed-job wall time, with persisted memory trials.
 
 Detailed local evidence: `.local/qa/edition02/{browser-evidence,mac-evidence,domains,live-interface}.json`, with screenshots in the same ignored directory. These are intentionally separate from the local fixture-test state. The six design passes are committed under `docs/design/`.
+
+Final DNS follow-up: ordinary curl requests to both custom domains and a fresh Chromium visit to `https://heldalive.com` now pass using normal system resolution, with no host overrides. The Mac’s earlier resolver issue has cleared. The documentation release commit also passed [GitHub CI](https://github.com/OscarBarreraGithub/heldalive/actions/runs/35065352533).

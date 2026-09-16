@@ -28,7 +28,7 @@ async function start() {
       "--port",
       "8793",
       "--persist-to",
-      ".local/persistence-test",
+      ".local/art-persistence-test",
       "--log-level",
       "error",
     ],
@@ -101,30 +101,9 @@ function complete(c, job, text) {
 try {
   await start();
   let c = await connect();
-  // Drain an interrupted run until a fresh planner appears.
-  let plan;
-  await until(
-    () => {
-      for (const j of c.jobs.splice(0)) {
-        if (j.kind === "plan") {
-          plan = j;
-          return true;
-        }
-        complete(c, j, "fixture persistence cleanup");
-      }
-      return false;
-    },
-    "planner",
-    65000,
-  );
-  complete(
-    c,
-    plan,
-    '{"project":"art","focus":"persistence test fixture","helpers":2}',
-  );
   const art = await until(() => c.jobs.shift(), "first drawing");
   assert.equal(art.kind, "art");
-  complete(c, art, " /\\\n(oo)\n --");
+  complete(c, art, "    /\\\n   /  \\\n  /____\\\n  | [] |\n  |____|");
   const active = await until(() => c.jobs.shift(), "second drawing");
   assert.equal(active.kind, "art");
   const before = await fetch(base + "/api/state?room=browser").then((r) =>
@@ -158,7 +137,7 @@ try {
   const resumed = await until(() => c.jobs.shift(), "reassigned durable lease");
   assert.equal(resumed.kind, "art");
   assert.notEqual(resumed.id, active.id);
-  complete(c, resumed, "  *\n /|\\\n ---");
+  complete(c, resumed, "    /\\\n   /  \\\n  /____\\\n  | [] |\n  |____|");
   await until(
     () => c.state?.artworkCount === before.artworkCount + 1,
     "resumed drawing persisted",

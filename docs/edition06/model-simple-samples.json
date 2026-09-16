@@ -1,0 +1,74 @@
+[
+  {
+    "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+    "subject": "cat",
+    "text": "This is a very small picture of a very small cat with a very small whiskers.",
+    "seconds": 0.11637966701528057
+  },
+  {
+    "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+    "subject": "flower",
+    "text": "```\nThis is a flower in 4 to 10 lines of text in plain ASCII.\n```",
+    "seconds": 0.1066812920034863
+  },
+  {
+    "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+    "subject": "rocket",
+    "text": "```\n<---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---\n---",
+    "seconds": 0.8156974580488168
+  },
+  {
+    "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+    "subject": "smiling alien",
+    "text": "```\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n\n---\n",
+    "seconds": 0.81844529195223
+  },
+  {
+    "model": "mlx-community/Qwen3-0.6B-4bit",
+    "subject": "cat",
+    "text": "```\n  \ud83d\udc31\n```",
+    "seconds": 0.284153749991674
+  },
+  {
+    "model": "mlx-community/Qwen3-0.6B-4bit",
+    "subject": "flower",
+    "text": "```\n   \ud83e\uddc0\n  \ud83e\uddc0\n \ud83e\uddc0\n```\n\n(Word count: 12)",
+    "seconds": 0.1881543750059791
+  },
+  {
+    "model": "mlx-community/Qwen3-0.6B-4bit",
+    "subject": "rocket",
+    "text": "```\n   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    "seconds": 1.1763313330011442
+  },
+  {
+    "model": "mlx-community/Qwen3-0.6B-4bit",
+    "subject": "smiling alien",
+    "text": "```\n   \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e\n  \ud83d\udc1e",
+    "seconds": 1.183101375005208
+  },
+  {
+    "model": "mlx-community/SmolLM2-1.7B-Instruct",
+    "subject": "cat",
+    "text": "```\n/\\_/\\\n(o o)\n(  )\n(  )\n```",
+    "seconds": 1.2021787919802591
+  },
+  {
+    "model": "mlx-community/SmolLM2-1.7B-Instruct",
+    "subject": "flower",
+    "text": "```\n.---.\n|   |\n.---.\n|   |\n.---.\n|   |\n.---.\n|   |\n.---.\n|   |\n.---.\n```",
+    "seconds": 1.820926500018686
+  },
+  {
+    "model": "mlx-community/SmolLM2-1.7B-Instruct",
+    "subject": "rocket",
+    "text": "```\n| /\n| /\n| /\n| /\n| /\n| /\n| /\n| /\n| /\n| /\n| /\n```",
+    "seconds": 1.4285224169725552
+  },
+  {
+    "model": "mlx-community/SmolLM2-1.7B-Instruct",
+    "subject": "smiling alien",
+    "text": "```\n+---+\n|  |\n|  |\n|  |\n|  |\n+---+\n```",
+    "seconds": 1.190716125012841
+  }
+]

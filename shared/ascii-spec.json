@@ -1,0 +1,8 @@
+{
+  "columns": 40,
+  "rows": 20,
+  "maxTokens": 512,
+  "glyphs": " \n.,:;'\"~!@#$%^&*()_+=-/\\|<>?oOxXvVuU[]{}",
+  "vocabularySize": 49152,
+  "maxCandidates": 2048
+}

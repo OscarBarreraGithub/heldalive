@@ -1,0 +1,150 @@
+{
+  "scope": "Actual inference; isolated contexts on one Mac, not heterogeneous physical hosts. No synthetic model outputs.",
+  "localShared": {
+    "contexts": 16,
+    "browserCompletions": 2,
+    "elapsedMsIncludingLossRecovery": 41270,
+    "usageAtFirstCompletion": [
+      {
+        "ms": 305.39999955892563,
+        "passes": 114,
+        "modelBytes": 37608960
+      },
+      {
+        "ms": 284.30000019073486,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 286.2000000476837,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 288.80000054836273,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 272.19999980926514,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 274.5999998450279,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 280.7999997138977,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 274.79999989271164,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 272.8000000715256,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 273.1000002026558,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 274.8000003695488,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 273.69999998807907,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 277.099999666214,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 266.5999997854233,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 270.6999995112419,
+        "passes": 114,
+        "modelBytes": 11066880
+      },
+      {
+        "ms": 389.9000000357628,
+        "passes": 114,
+        "modelBytes": 37610880
+      }
+    ],
+    "drawing": {
+      "id": "1dfcbb24-07a3-442e-a535-f9c4cc0a1d33",
+      "title": "Sketch 13 \u00b7 a geometric pattern",
+      "text": "| | | | | | | | \\| | | |____|____|____|\n| | | | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | | | |",
+      "at": 1789600918230,
+      "source": "browser",
+      "projectId": "7ed7adba-efc2-4a0a-8e18-d8e0b9a0ab5b",
+      "model": "SmolLM2 \u00b7 360M \u00b7 q4"
+    },
+    "unavailableAfterLoss": true,
+    "availableAfterReturn": true
+  },
+  "publicShared": {
+    "contexts": 4,
+    "level": "Most",
+    "afterLoadMs": 35960,
+    "drawing": {
+      "id": "c80b7e30-972e-4f6d-87cc-6fefb3f188f7",
+      "title": "Sketch 5 \u00b7 a mountain",
+      "text": "   |    |       |    |\n|-----|-----|-----|\n|   |    |____|____|\n|   |    |____|____|\n|   |   |____|____|\n|   |    |____|____|\n\n\n~~~",
+      "at": 1789601384118,
+      "source": "browser",
+      "projectId": "394f616d-36f9-43be-9254-17ae0133abef",
+      "model": "SmolLM2 \u00b7 360M \u00b7 q4"
+    },
+    "powerAtCompletion": {
+      "launchSupport": true,
+      "macAvailable": true,
+      "browserChains": 1,
+      "source": "browser"
+    }
+  },
+  "publicPreview": {
+    "drawing": {
+      "id": "a9ba5e51-dda8-4f02-970c-e4c0f899667d",
+      "title": "Sketch 2 \u00b7 a sailing boat",
+      "text": "|   |     |   |\n|--------|--------|\n|   |     |   |\n|--------|--------|",
+      "at": 1789601289649,
+      "source": "mac",
+      "projectId": "b10f2c09-1e7a-417e-a473-02770d31f231",
+      "model": "SmolLM2 \u00b7 360M \u00b7 q4"
+    },
+    "observedTask": {
+      "id": "a9ba5e51-dda8-4f02-970c-e4c0f899667d",
+      "role": "Artist",
+      "kind": "art",
+      "startedAt": 1789601289304,
+      "source": "mac",
+      "title": "Sketch 2 \u00b7 a sailing boat",
+      "draft": "",
+      "characters": 0,
+      "inputWords": 82,
+      "maxOutputTokens": 512
+    },
+    "power": {
+      "launchSupport": true,
+      "macAvailable": true,
+      "browserChains": 0,
+      "source": "mac"
+    }
+  }
+}

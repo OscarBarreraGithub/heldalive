@@ -69,7 +69,7 @@ export function validStageCall(v: StageCall): boolean {
     v.allowed !== undefined &&
     (!Array.isArray(v.allowed) ||
       v.allowed.length < 1 ||
-      v.allowed.length > 64 ||
+      v.allowed.length > 2048 ||
       !v.allowed.every((n) => Number.isInteger(n) && n >= 0 && n < 49152))
   )
     return false;

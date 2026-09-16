@@ -57,8 +57,8 @@ export function MathPage() {
               onChange={(e) => setLayers(Number(e.target.value))}
             >
               <option value="2">Gentle · 2 layers</option>
-              <option value="4">A little more · 4 layers</option>
-              <option value="8">Room to roam · 8 layers</option>
+              <option value="4">More · 4 layers</option>
+              <option value="8">Most · 8 layers</option>
             </select>
           </label>
           <label>
@@ -84,7 +84,7 @@ export function MathPage() {
             </b>{" "}
             with these identical contributions.{" "}
             {groups
-              ? "One can be Held; the others can help."
+              ? "Each complete group can make a drawing."
               : "The model cannot run yet."}
           </p>
           <span>
@@ -139,7 +139,7 @@ export function MathPage() {
             holder leaves, its unfinished task is queued. During launch, the
             preview server supports the public habitat when no browser chain is
             complete. After that support is retired, only replacement browser
-            coverage can restart thinking. Saved drawings and memory files
+            coverage can restart thinking. Saved drawings and earlier records
             remain.
           </p>
           <code className="equation">P(whole chain available) = pˢ</code>
@@ -153,8 +153,8 @@ export function MathPage() {
           <p>
             The minimum is a resource choice, not a law that a tiny model
             inherently needs sixteen machines. A compatible computer can run
-            this model alone. Held deliberately divides the work into small
-            contributions so its public activity depends on a collective.
+            this model alone. This artwork deliberately divides the work into
+            small contributions so its public activity depends on a collective.
           </p>
           <p className="caption">
             Sixteen separate browser contexts have run one reference prompt on

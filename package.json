@@ -18,10 +18,11 @@
     "test:a11y": "node scripts/test-accessibility.mjs",
     "setup": "node scripts/setup-local.mjs",
     "install:bridge": "node scripts/install-bridge.mjs",
-    "test:workshop": "node scripts/test-memory-workshop.mjs",
     "test:persistence": "node scripts/test-persistence.mjs",
     "model:download": "node scripts/model-assets.mjs --download",
-    "test:numerics": "node scripts/test-numerics.mjs"
+    "test:numerics": "node scripts/test-numerics.mjs",
+    "test:contribution": "node scripts/test-contribution.mjs",
+    "test:migration": "node scripts/test-art-migration.mjs"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.85",

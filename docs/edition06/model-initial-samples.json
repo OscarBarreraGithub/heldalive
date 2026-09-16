@@ -1,0 +1,56 @@
+[
+  {
+    "model": "SmolLM2-360M q4",
+    "subject": "a little alien in a flying saucer",
+    "text": "```\n<p>Astronomer's sketch of a flying saucer drawing:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>\n<p>Astronomer's drawing of a flying saucer:</p>",
+    "seconds": 2.154,
+    "width": 54,
+    "height": 31,
+    "ascii": true
+  },
+  {
+    "model": "SmolLM2-360M q4",
+    "subject": "a house with a tree beside it",
+    "text": "The drawing is a house with a tree beside it. The canvas is at most 40 characters wide and 20 lines high.",
+    "seconds": 0.141,
+    "width": 105,
+    "height": 1,
+    "ascii": true
+  },
+  {
+    "model": "SmolLM2-360M q4",
+    "subject": "a curious flower growing from a teacup",
+    "text": "Sure, I can help you with that! Here is my drawing:\n\n```\n--------------------------------------------------------\n|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |",
+    "seconds": 1.729,
+    "width": 981,
+    "height": 5,
+    "ascii": true
+  },
+  {
+    "model": "Qwen3-0.6B q4",
+    "subject": "a little alien in a flying saucer",
+    "text": "(Blank canvas)  \n(Blank drawing)",
+    "seconds": 0.827,
+    "width": 16,
+    "height": 2,
+    "ascii": true
+  },
+  {
+    "model": "Qwen3-0.6B q4",
+    "subject": "a house with a tree beside it",
+    "text": "(assuming a 40-character wide and 20-line high canvas)  \n\n**House**  \n**Tree**  \n\nEach character is 8 times as tall as they are wide. The house is centered horizontally, and the tree is beside it. The drawing includes a few charming details.  \n\n**Example drawing:**  \n```\n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n  ( )  \n ",
+    "seconds": 2.613,
+    "width": 161,
+    "height": 121,
+    "ascii": true
+  },
+  {
+    "model": "Qwen3-0.6B q4",
+    "subject": "a curious flower growing from a teacup",
+    "text": "(Blank canvas)  \n(Blank drawing)",
+    "seconds": 0.144,
+    "width": 16,
+    "height": 2,
+    "ascii": true
+  }
+]

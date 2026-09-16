@@ -4,10 +4,7 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "https://heldalive.com";
 const count = Number(process.env.HELD_TEST_PEERS || 8);
-assert.ok(
-  count === 8 || count === 16,
-  "Eight coffees or sixteen untouched visits",
-);
+assert.ok([4, 8, 16].includes(count), "4 Most, 8 More, or 16 Gentle visits");
 const state = () =>
   fetch(base + "/api/state?room=browser").then((r) => r.json());
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
@@ -33,8 +30,12 @@ try {
       }),
     );
     await page.goto(base);
-    if (count === 8)
-      await page.getByRole("button", { name: "Give Held a coffee" }).click();
+    if (count !== 16)
+      await page
+        .getByRole("button", {
+          name: count === 4 ? "Most compute" : "More compute",
+        })
+        .click();
     await page
       .locator('.your-contribution[data-compute-status="ready"]')
       .waitFor({ timeout: 120000 });
@@ -46,7 +47,11 @@ try {
   let after;
   while (Date.now() - loadedAt < 600000) {
     const s = await state();
-    if (completed && s.totalThoughts > ready.totalThoughts) {
+    if (
+      completed &&
+      s.artworkCount > ready.artworkCount &&
+      s.artworks.some((a) => a.source === "browser" && a.at >= loadedAt)
+    ) {
       after = s;
       break;
     }
@@ -57,19 +62,17 @@ try {
     after.activity.some((e) => e.source === "browser" && e.at >= loadedAt),
   );
   assert.deepEqual(errors, []);
-  await mkdir(".local/qa/edition05", { recursive: true });
+  await mkdir(".local/qa/edition06", { recursive: true });
   await pages[0].screenshot({
-    path: ".local/qa/edition05/live-working.png",
+    path: ".local/qa/edition06/live-working.png",
     fullPage: true,
   });
-  await pages[0]
-    .getByRole("button", { name: "Inspect computer and agents" })
-    .click();
+  await pages[0].getByRole("button", { name: "Inspect live drawing" }).click();
   await pages[0]
     .locator(".open-world")
-    .screenshot({ path: ".local/qa/edition05/live-inspector.png" });
+    .screenshot({ path: ".local/qa/edition06/live-inspector.png" });
   await writeFile(
-    ".local/qa/edition05/live-result.json",
+    ".local/qa/edition06/live-result.json",
     JSON.stringify(
       {
         base,

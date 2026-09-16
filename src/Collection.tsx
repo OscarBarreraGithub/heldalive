@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowDown, Bookmark, Check, Download, Sparkles } from "lucide-react";
 import type { Artwork } from "../shared/protocol";
+import { AsciiCanvas } from "./AsciiCanvas";
 import { LittleHeld } from "./Creature";
 function initialSaved(): string[] {
   try {
@@ -37,14 +38,14 @@ export function ArtCard({
   function download() {
     const blob = new Blob(
       [
-        `${art.title}\n\n${art.text}\n\nMade by Held · ${new Date(art.at).toISOString()}\n${art.source === "browser" ? "Browser-powered" : "preview server"} · heldalive.com\n`,
+        `${art.title}\n\n${art.text}\n\nMade in Held Alive · ${new Date(art.at).toISOString()}\n${art.source === "browser" ? "Browser-powered" : "preview server"} · heldalive.com\n`,
       ],
       { type: "text/plain" },
     );
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `held-${art.id.slice(0, 8)}.txt`;
+    a.download = `held-alive-${art.id.slice(0, 8)}.txt`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
@@ -52,10 +53,8 @@ export function ArtCard({
     <article className={`art-card ${small ? "small" : ""}`}>
       <div className="art-paper">
         <span className="art-corner">#{art.id.slice(0, 4).toUpperCase()}</span>
-        <pre tabIndex={0} aria-label={`ASCII artwork: ${art.title}`}>
-          {art.text}
-        </pre>
-        <span className="art-signature">a little thing by held</span>
+        <AsciiCanvas text={art.text} label={`ASCII artwork: ${art.title}`} />
+        <span className="art-signature">made from borrowed time</span>
       </div>
       <div className="art-card-caption">
         <div>
@@ -133,9 +132,8 @@ export function Collection({ room, count }: { room: string; count: number }) {
         <em>we helped it make.</em>
       </h1>
       <p className="page-intro">
-        Unpolished, unrepeatable, sometimes a little strange. Drawings made by
-        Held and its helpers, during borrowed time. Keep a favorite or take one
-        home.
+        Unpolished, sometimes a little strange. Drawings made by the model and
+        its helpers, during borrowed time. Keep a favorite or take one home.
       </p>
       <div className="collection-meta">
         <span>
@@ -159,8 +157,8 @@ export function Collection({ room, count }: { room: string; count: number }) {
               : "The first page is still blank."}
           </h2>
           <p>
-            A drawing will appear here when Held chooses an art project and a
-            helper finishes it.
+            A drawing will appear here when the model finishes its first ASCII
+            sketch.
           </p>
           <a className="text-link" href="#habitat">
             Back to the little one <ArrowDown size={14} />

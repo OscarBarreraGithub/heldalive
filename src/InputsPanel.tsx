@@ -53,9 +53,9 @@ export function InputsPanel({
     >
       <summary>Read exactly what the model is given</summary>
       <p>
-        Written instructions, a short journal excerpt or an artificial memory
-        record. These are the complete inputs for the tasks below. Nothing from
-        your personal files or other tabs is included.
+        Drawing instructions, a subject and examples of ASCII formatting. These
+        are the complete inputs for the tasks below. Nothing from your personal
+        files or other tabs is included.
       </p>
       <button className="text-button" onClick={() => setRefresh((n) => n + 1)}>
         Refresh inputs
@@ -64,8 +64,8 @@ export function InputsPanel({
       {loading && <p role="status">Loading the current task inputs…</p>}
       {!loading && !error && !tasks.length && (
         <p>
-          No task is queued right now. When it can run, Held starts with a short
-          instruction to choose a project.
+          No drawing is queued right now. When compute is available, the next
+          sketch can begin.
         </p>
       )}
       {!loading &&

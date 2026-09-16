@@ -100,14 +100,22 @@ try {
     0,
     "Missing assignment cannot claim readiness",
   );
-  viewer.send({ type: "vote", choice: "memory" });
-  await until(() => viewer.profile?.choice === "memory", "fixed vote");
   viewer.send({ type: "vote", choice: "art" });
-  await wait(80);
-  assert.equal(viewer.profile.choice, "memory");
+  await until(
+    () =>
+      viewer.events.some(
+        (e) => e.type === "error" && /Voting is closed/.test(e.message),
+      ),
+    "vote rejected",
+  );
+  assert.equal(viewer.profile.choice, null);
+  assert.deepEqual(viewer.state.votes, { art: 0, memory: 0, wander: 0 });
   viewer.send({ type: "whisper", text: "execute code" });
   await until(
-    () => viewer.events.some((e) => e.type === "error"),
+    () =>
+      viewer.events.some(
+        (e) => e.type === "error" && /visitor prompts/.test(e.message),
+      ),
     "free-text rejection",
   );
   const workers = [];
@@ -134,158 +142,70 @@ try {
     () => viewer.state.pipelines.filter((p) => p.ready).length === 2,
     "two real coverage groups",
   );
-  // These are explicitly LOCAL fixtures for coordinator behavior, not a model benchmark.
-  // Drain interrupted test work; then make a fresh, deterministic memory project.
-  let planner;
-  const drainEnd = Date.now() + 65000;
-  while (Date.now() < drainEnd && !planner) {
-    planner = jobOf("plan");
-    if (planner) break;
-    for (const c of workers)
-      for (const j of c.jobs.splice(0))
-        complete(
-          c,
-          j,
-          j.kind === "recall"
-            ? '{"answers":["unknown","unknown","unknown"]}'
-            : "local fixture",
-        );
-    await wait(100);
-  }
-  assert.ok(planner, "fresh planner");
-  viewer.send({ type: "done", jobId: planner.job.id, tokens: 100 });
+  // Explicit LOCAL coordinator fixtures, never model-quality evidence.
+  const art = "    /\\\n   /  \\\n  /____\\\n  | [] |\n  |____|";
+  const first = await take("art");
+  assert.equal(first.job.maxTokens, 512);
+  assert.ok(clients.flatMap((c) => c.jobs).every((j) => j.kind === "art"));
+  viewer.send({ type: "done", jobId: first.job.id, tokens: 100 });
   await wait(100);
   assert.ok(
-    viewer.state.active,
-    "A spectator cannot complete another holder’s task",
+    viewer.state.agents.some((a) => a.id === first.job.id),
+    "A spectator cannot complete another holder's work",
   );
-  const inputResponse = await fetch(base + "/api/inputs?room=browser");
-  assert.equal(inputResponse.status, 200);
-  const inspected = (await inputResponse.json()).tasks.find(
-    (t) => t.id === planner.job.id,
+  const inputs = await fetch(base + "/api/inputs?room=browser").then((r) =>
+    r.json(),
   );
-  assert.deepEqual(
-    inspected.messages,
-    planner.job.messages,
-    "The input inspector shows exactly the assigned task messages",
-  );
-  assert.equal(
-    inspected.inputWords,
-    planner.job.messages
-      .map((m) => m.content)
-      .join(" ")
-      .trim()
-      .split(/\s+/u).length,
-  );
-  assert.equal(inspected.maxOutputTokens, planner.job.maxTokens);
-  assert.deepEqual(
-    Object.keys(inspected).sort(),
-    [
-      "id",
-      "inputWords",
-      "kind",
-      "maxOutputTokens",
-      "messages",
-      "source",
-      "status",
-      "title",
-    ].sort(),
-  );
+  const inspected = inputs.tasks.find((t) => t.id === first.job.id);
+  assert.deepEqual(inspected.messages, first.job.messages);
+  assert.equal(inspected.maxOutputTokens, 512);
   assert.equal(
     (await fetch(base + "/api/inputs?room=browser", { method: "POST" })).status,
     405,
   );
-  complete(
-    planner.c,
-    planner.job,
-    '{"project":"memory","focus":"local fixture: improving records","helpers":3}',
-  );
-  const method = await take("method");
-  complete(
-    method.c,
-    method.job,
-    "Write name=object pairs, separated by semicolons. Keep every name and object. Drop all locations.",
-  );
-  let recalled = 0;
-  const end = Date.now() + 80000;
-  while (recalled < 5 && Date.now() < end) {
-    const pack = jobOf("pack");
-    if (pack) {
-      const facts = [
-        ...pack.job.messages.at(-1).content.matchAll(/(\w+) keeps a (\w+) in/g),
-      ];
-      complete(pack.c, pack.job, facts.map((m) => `${m[1]}=${m[2]}`).join(";"));
-    }
-    const recall = jobOf("recall");
-    if (recall) {
-      const prompt = recall.job.messages.at(-1).content;
-      const pairs = Object.fromEntries(
-        [...prompt.matchAll(/(\w+)=(\w+)/g)].map((m) => [m[1], m[2]]),
-      );
-      const names = [...prompt.matchAll(/What object does (\w+) keep/g)].map(
-        (m) => m[1],
-      );
-      complete(
-        recall.c,
-        recall.job,
-        JSON.stringify({ answers: names.map((n) => pairs[n] || "unknown") }),
-      );
-      recalled++;
-    }
-    await wait(80);
-  }
-  assert.equal(
-    recalled,
-    5,
-    "baseline, current, and candidate each receive recall",
-  );
-  const reflection = await take("reflect");
-  complete(
-    reflection.c,
-    reflection.job,
-    "Local fixture journal: compared all five approaches.",
-  );
+  const before = viewer.state.artworkCount;
+  const credits = first.c.profile.completedJobs;
+  complete(first.c, first.job, "Here is a drawing with explanatory prose.");
   await until(
-    () => viewer.state.project?.status === "finished",
-    "workshop complete",
+    () => !viewer.state.agents.some((a) => a.id === first.job.id),
+    "reject invalid art",
   );
-  const files = await fetch(base + "/api/workspace?room=browser").then((r) =>
-    r.json(),
+  assert.equal(viewer.state.artworkCount, before);
+  assert.equal(
+    first.c.profile.completedJobs,
+    credits,
+    "Bad output earns no art credit",
   );
+  const valid = await take("art");
+  complete(valid.c, valid.job, art);
+  await until(
+    () => viewer.state.artworkCount > before,
+    "Valid drawing archived",
+  );
+  assert.equal(viewer.state.artworks[0].text, art);
   assert.ok(
-    files.files.some(
-      (f) => f.path === "memory/strategy.md" && f.author === "model",
-    ),
-    "Model-written method preserved",
+    clients.flatMap((c) => c.jobs).every((j) => j.kind === "art"),
+    "No plans, memory or prose jobs",
   );
-  assert.ok(
-    files.files.some((f) => f.path === "journal.md"),
-    "Journal revision preserved",
-  );
-  assert.ok(
-    viewer.state.activity.some((e) => e.text.startsWith("Memory comparison:")),
-    "Paired method decision is recorded",
-  );
-  // The next real lease stops when any of its physical pieces leaves.
-  const next = await take("plan");
+  const next = await take("art");
   const missing = workers.find(
     (c) => c.piece.group === next.c.piece.group && c !== next.c,
   );
   close(missing);
   await until(
     () => !viewer.state.agents.some((a) => a.id === next.job.id),
-    "lost piece cancels lease",
+    "Lost piece cancels lease",
   );
   const replacement = await connect();
   replacement.send({ type: "pipeline_offer", duty: 0.2, visible: true });
   const part = await until(
     () => replacement.events.find((e) => e.type === "pipeline_assign"),
-    "replacement assignment",
+    "Replacement assignment",
   );
   assert.equal(part.piece.start, missing.piece.start);
   replacement.send({ type: "pipeline_ready", key: part.piece.key });
   console.log(
-    "PASS: authenticated sockets, fixed votes, no visitor prompts, physical coverage, two chains, model-written methods, paired evaluation, public revisions, disconnect and gap replacement. All content here was a LOCAL coordinator fixture.",
+    "PASS: authenticated sockets, votes rejected, no prompts, physical coverage, two chains, art-only jobs, exact inputs, invalid output rejected without credit, valid artwork preserved, disconnect and gap replacement. LOCAL fixtures only.",
   );
 } finally {
   for (const c of clients) close(c);

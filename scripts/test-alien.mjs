@@ -7,7 +7,7 @@ const initial = await fetch(base + "/api/state?room=browser").then((r) =>
   r.json(),
 );
 const browser = await chromium.launch({ headless: true });
-const folder = ".local/qa/edition05";
+const folder = ".local/qa/edition06";
 await mkdir(folder, { recursive: true });
 try {
   const context = await browser.newContext({
@@ -26,8 +26,8 @@ try {
     sendState(initial);
   });
   await page.goto(base);
-  await page.locator(".saucer-home").waitFor();
-  const task = (kind, role = "Held") => ({
+  await page.locator(".art-world").waitFor();
+  const task = (kind, role = "Artist") => ({
     id: "design-fixture",
     role,
     kind,
@@ -37,32 +37,31 @@ try {
     maxOutputTokens: 96,
     characters: 0,
   });
-  for (const [name, kind, role, place] of [
-    ["console", "plan", "Held", "desk"],
-    ["drawing", "art", "Held", "drawing"],
-    ["memory", "pack", "Held", "reading"],
-    ["stargazing", "wander", "Held", "window"],
-    ["helper", "art", "Helper", "desk"],
+  for (const [name, extra] of [
+    ["drawing", 0],
+    ["helpers", 2],
   ]) {
+    const agents = Array.from({ length: extra + 1 }, (_, i) => ({
+      ...task("art", i ? "Helper" : "Artist"),
+      id: `fixture-${i}`,
+      draft: "    /\\\n   /  \\\n  /____\\\n  | [] |\n  |____|",
+    }));
     sendState({
       ...initial,
       modelAvailable: true,
-      agents: [task(kind, role)],
+      agents,
       power: {
         ...initial.power,
         launchSupport: false,
-        browserChains: 1,
+        browserChains: extra + 1,
         source: "browser",
       },
     });
-    await page.locator(`.open-world.at-${place}`).waitFor();
+    await page.locator(".open-world.at-drawing").waitFor();
+    assert.equal(await page.locator(".world-helper").count(), extra);
     await page
       .locator(".open-world")
       .screenshot({ path: `${folder}/alien-${name}.png` });
-    assert.equal(
-      await page.locator(".world-helper").count(),
-      role === "Helper" ? 1 : 0,
-    );
   }
   sendState({
     ...initial,
@@ -109,20 +108,19 @@ try {
   );
   // Also check normal motion can greet and each inspector remains usable.
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.getByRole("button", { name: "Say hello to Held" }).click();
+  await page.getByRole("button", { name: "Wave to the alien" }).click();
   await page.locator(".held-hello").waitFor();
   for (const name of [
-    "Inspect computer and agents",
-    "Inspect drawing area",
-    "Inspect reading and memory",
-    "Inspect free time",
+    "Inspect live drawing",
+    "Inspect saved sketches",
+    "Inspect the orbit",
   ]) {
     await page.getByRole("button", { name }).click();
     assert.equal(await page.locator(".station-inspector").isVisible(), true);
     await page.getByRole("button", { name: "Close station details" }).click();
   }
   console.log(
-    "PASS: six alien states, job-based helpers, stopped motion, honest preview/death states, first-screen mobile alien, greeting and all spacecraft stations.",
+    "PASS: drawing, real-count helpers and stopped states, job-based helpers, stopped motion, honest preview/death states, first-screen mobile alien, greeting and all spacecraft stations.",
   );
 } finally {
   await browser.close();

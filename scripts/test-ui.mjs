@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true });
-await mkdir(".local/qa/edition05", { recursive: true });
+await mkdir(".local/qa/edition06", { recursive: true });
 const errors = [];
 try {
   const context = await browser.newContext({
@@ -54,30 +54,24 @@ try {
     await page.evaluate(() => localStorage.getItem("held-participation")),
     "watch",
   );
-  await page
-    .getByRole("button", { name: "Inspect reading and memory" })
-    .click();
-  await page.getByRole("region", { name: "The memory library" }).waitFor();
+  await page.getByRole("button", { name: "Inspect saved sketches" }).click();
+  await page.getByRole("region", { name: "The sketch collection" }).waitFor();
   await page.getByRole("button", { name: "Close station details" }).click();
-  await page.getByRole("button", { name: "Say hello to Held" }).click();
-  await page.getByText("oh, hello you!", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Wave to the alien" }).click();
+  await page.getByText("hello, visitor.", { exact: true }).waitFor();
   assert.equal(
     outgoing.some((e) => e.type === "whisper"),
     false,
     "Creature interaction sends no model prompt",
   );
-  await page.getByRole("button", { name: /Make something/ }).click();
-  await page
-    .getByText("Your nudge is in. A new choice opens tomorrow (UTC).")
-    .waitFor();
-  await page.reload();
-  await page
-    .getByText("Your nudge is in. A new choice opens tomorrow (UTC).")
-    .waitFor();
   assert.equal(
-    await page.getByRole("button", { name: /Make something/ }).isDisabled(),
-    true,
-    "Daily choice persists",
+    await page.getByRole("button", { name: /Make something|vote/i }).count(),
+    0,
+    "No voting controls",
+  );
+  assert.equal(
+    outgoing.some((e) => e.type === "vote"),
+    false,
   );
   assert.equal(
     await page.locator("textarea,input[type=text]").count(),
@@ -93,7 +87,7 @@ try {
     200,
   );
   await page.screenshot({
-    path: ".local/qa/edition05/desktop.png",
+    path: ".local/qa/edition06/desktop.png",
     fullPage: true,
   });
   for (const section of ["collection", "experiment", "math"]) {
@@ -140,7 +134,7 @@ try {
       }
     }
     await page.screenshot({
-      path: `.local/qa/edition05/${section}.png`,
+      path: `.local/qa/edition06/${section}.png`,
       fullPage: true,
     });
   }
@@ -158,7 +152,7 @@ try {
       );
       if (width === 390)
         await page.screenshot({
-          path: `.local/qa/edition05/mobile-${section}.png`,
+          path: `.local/qa/edition06/mobile-${section}.png`,
           fullPage: true,
         });
     }
@@ -177,7 +171,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: four pages at 320/390/768/1440px, no overflow, compute explanation, station inspector, keyboard/focus, persistent choices and opt out, local greeting, no prompt input, archive download, math slider, research assets, no spectator model downloads, no page errors",
+    "PASS: four pages at 320/390/768/1440px, no overflow, compute explanation, station inspector, keyboard/focus, art-only UI and persistent opt out, local greeting, no prompt input, archive download, math slider, research assets, no spectator model downloads, no page errors",
   );
 } finally {
   await browser.close();

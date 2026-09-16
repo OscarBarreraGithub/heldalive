@@ -42,7 +42,7 @@ try {
     await check(page, `Contribution dialog at ${width}px`);
     await page.keyboard.press("Escape");
     await page
-      .getByRole("button", { name: "Inspect computer and agents" })
+      .getByRole("button", { name: "Inspect live drawing" })
       .click();
     await check(page, `Station inspector at ${width}px`);
   }

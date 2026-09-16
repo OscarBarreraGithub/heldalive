@@ -4890,3 +4890,660 @@ button:disabled {
     order: 8;
   }
 }
+/* Edition 06: a saucer visitor and a single-purpose sketchbook. */
+.compute-care {
+  max-width: 430px;
+  margin-top: 22px;
+}
+.compute-care-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #435946;
+  font-size: 14px;
+}
+.compute-care-heading > span {
+  margin-left: auto;
+  font: 8px var(--mono);
+  letter-spacing: 1px;
+  color: #586955;
+  background: #e5eadb;
+  padding: 4px 7px;
+  border-radius: 4px;
+}
+.compute-care > p:first-of-type {
+  font-size: 11px;
+  color: #676b5b;
+  margin: 8px 0 13px;
+}
+.compute-levels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid #b9c3af;
+  padding: 4px;
+  gap: 3px;
+  border-radius: 12px;
+  background: #f1f1e6;
+}
+.compute-levels button {
+  min-height: 62px;
+  position: relative;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #53614e;
+  cursor: pointer;
+  padding: 9px 4px;
+}
+.compute-levels button > svg {
+  display: none;
+}
+.compute-levels strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.compute-levels small {
+  display: block;
+  font-size: 9px;
+  margin-top: 5px;
+}
+.compute-levels button[aria-pressed="true"] {
+  background: #4c654d;
+  color: #fffef4;
+  border-color: #4c654d;
+  box-shadow: 0 2px 4px #263c2317;
+}
+.compute-levels button:hover:not(:disabled):not([aria-pressed="true"]) {
+  background: #e2e8d7;
+}
+.compute-levels button:disabled {
+  cursor: default;
+}
+.compute-care .your-contribution {
+  margin: 13px 0 7px;
+  justify-content: flex-start;
+}
+.compute-care .boost-status {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #59624f;
+  margin: 7px 0;
+}
+.compute-care .care-disclosure {
+  line-height: 1.8;
+  margin: 7px 0 0;
+}
+.art-world {
+  height: 490px;
+}
+.art-world .world-heading {
+  left: 20px;
+  right: 10px;
+}
+.art-world .world-heading .handwritten {
+  font-size: 22px;
+}
+.art-world .orbit-trail {
+  position: absolute;
+  inset: 90px 22px 64px;
+  border: 1px dashed #c8d0bd;
+  border-radius: 50%;
+  transform: rotate(-13deg);
+  z-index: -1;
+  opacity: 0.7;
+}
+.art-world .orbit-star {
+  position: absolute;
+  color: #a0b194;
+  pointer-events: none;
+}
+.art-world .star-a {
+  left: 43%;
+  top: 78px;
+  font-size: 27px;
+}
+.art-world .star-b {
+  right: 13%;
+  top: 52px;
+  font-size: 16px;
+}
+.art-world .star-c {
+  left: 17%;
+  top: 265px;
+  font-size: 28px;
+}
+.art-world .station-window {
+  left: 5%;
+  top: 72px;
+  width: 130px;
+}
+.art-world .station-window > svg {
+  width: 115px;
+  margin: auto;
+}
+.art-world .station-drawing {
+  width: 43%;
+  max-width: 260px;
+  right: 3%;
+  top: 120px;
+  transform: rotate(3deg);
+}
+.art-world .station-drawing > .station-label {
+  top: -29px;
+}
+.art-world .drawing-board {
+  position: relative;
+  padding: 8px;
+  border: 1px solid #acbba5;
+  background: #dce5cd;
+  border-radius: 5px;
+  box-shadow: 4px 6px 0 #c6d1bb;
+}
+.art-world .board-clip {
+  position: absolute;
+  top: -7px;
+  width: 26px;
+  height: 15px;
+  left: calc(50% - 13px);
+  background: #a0b397;
+  border: 1px solid #829477;
+  border-radius: 3px;
+  z-index: 1;
+}
+.art-world .drawing-legs {
+  width: 65%;
+  height: 36px;
+  border-left: 6px solid #adbda2;
+  border-right: 6px solid #adbda2;
+  margin: auto;
+  transform: skew(-3deg);
+}
+.art-world .station-gallery {
+  left: 8%;
+  top: 327px;
+  width: 29%;
+  max-width: 174px;
+}
+.sketch-stack {
+  position: relative;
+  height: 79px;
+}
+.sketch-stack > span {
+  position: absolute;
+  width: 76px;
+  height: 68px;
+  left: calc(50% - 38px);
+  top: 0;
+  border: 1px solid #c2c8b5;
+  border-radius: 2px;
+  background: #f2f0df;
+  transform: rotate(-15deg);
+}
+.sketch-stack > span:nth-child(2) {
+  transform: rotate(12deg);
+  background: #e9e8d3;
+}
+.sketch-stack > span:last-child {
+  transform: rotate(-3deg);
+  background: #fffdf1;
+  display: grid;
+  place-items: center;
+}
+.sketch-stack i {
+  color: #a3b393;
+  font-size: 26px;
+  font-style: normal;
+}
+.art-world .wandering-held {
+  width: 152px;
+  height: 140px;
+  transition:
+    left 2s cubic-bezier(0.4, 0, 0.2, 1),
+    top 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.art-world .wandering-held button,
+.art-world .wandering-held .little-held {
+  width: 152px;
+  height: 133px;
+}
+.art-world.at-drawing .wandering-held {
+  left: 31%;
+  top: 236px;
+}
+.art-world.at-gallery .wandering-held {
+  left: 18%;
+  top: 227px;
+}
+.art-world.at-window .wandering-held {
+  left: 27%;
+  top: 147px;
+}
+.art-world .held-ground {
+  width: 94px;
+  height: 8px;
+  left: 29px;
+  top: 135px;
+  opacity: 0.7;
+}
+.art-world .held-speech {
+  bottom: 151px;
+  max-width: 171px;
+  font-size: 10px;
+}
+.art-world .wandering-held .little-held {
+  transform-origin: center;
+  animation: saucer-hover 5s ease-in-out infinite;
+}
+.art-world .ship-turning .little-held {
+  animation: saucer-spin 1.5s ease-in-out;
+}
+.art-world .held-hello .little-held {
+  animation: saucer-spin 1.5s ease-in-out;
+}
+.art-world .held-hello .antenna-left {
+  animation: none;
+}
+.art-world.world-unpowered .wandering-held:not(.held-hello) .little-held {
+  animation: none;
+  filter: saturate(0.35);
+}
+.art-world .helper-fleet {
+  position: absolute;
+  right: 6%;
+  bottom: 37px;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  max-width: 230px;
+  gap: 3px;
+}
+.art-world .world-helper {
+  position: static;
+  transform: none;
+  width: 33px;
+  height: 31px;
+}
+.art-world .world-helper .mini-held {
+  width: 33px;
+  height: 31px;
+  animation: saucer-hover 4s ease-in-out infinite;
+}
+.art-world .world-caption {
+  bottom: 0;
+  font-size: 10px;
+}
+.art-world .station-inspector {
+  bottom: 0;
+  left: 1%;
+  right: 1%;
+}
+.ascii-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  container-type: inline-size;
+  display: grid;
+  place-items: center;
+  background: #fffdf3;
+  border-radius: 3px;
+  overflow: auto;
+  color: #344d3d;
+}
+.ascii-canvas pre,
+.art-paper .ascii-canvas pre {
+  margin: 0;
+  padding: 0;
+  width: max-content;
+  max-width: none;
+  min-height: 0;
+  white-space: pre;
+  overflow: visible;
+  text-align: left;
+  letter-spacing: 0;
+  font-family: var(--mono);
+  font-variant-ligatures: none;
+  font-weight: 400;
+  font-size: min(
+    15px,
+    calc(147cqi / var(--art-columns)),
+    calc(74cqi / var(--art-rows))
+  );
+  line-height: 1.2;
+  transform: none;
+}
+.ascii-canvas .canvas-size {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  font: 8px var(--mono);
+  color: #787b66;
+  letter-spacing: 0.5px;
+}
+.ascii-canvas .blank-canvas {
+  font:
+    italic 14px Georgia,
+    serif;
+  color: #626c56;
+}
+.ascii-canvas.compact pre {
+  font-size: calc(150cqi / var(--art-columns));
+}
+.ascii-canvas.compact .blank-canvas {
+  font-size: 10px;
+}
+.art-paper {
+  padding: 28px 18px 25px;
+  min-height: 0;
+}
+.art-paper .ascii-canvas {
+  background: transparent;
+}
+.art-paper .art-signature {
+  position: static;
+  display: block;
+  text-align: right;
+  font-size: 9px;
+  margin-top: 12px;
+}
+.art-paper .art-corner {
+  z-index: 1;
+}
+.live-sketch-section {
+  max-width: 1080px;
+  margin: 60px auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 95px;
+  align-items: center;
+  padding: 0 20px;
+}
+.sketch-context h2 {
+  font:
+    42px/1.17 Georgia,
+    serif;
+  letter-spacing: -1.5px;
+  color: #3d4637;
+  margin: 20px 0;
+}
+.sketch-context h2 em {
+  color: #718365;
+}
+.sketch-context p {
+  font-size: 13px;
+  line-height: 1.9;
+  color: #656954;
+  max-width: 365px;
+}
+.sketch-context .text-link {
+  margin-top: 15px;
+}
+.visit-note {
+  margin-top: 32px;
+  padding-top: 18px;
+  border-top: 1px solid #dadfcd;
+  font-size: 10px;
+  color: #69765e;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.live-sketch-paper {
+  padding: 22px;
+  border: 1px solid #d3d7c4;
+  border-radius: 8px;
+  background: #f4f3e7;
+  box-shadow: 6px 7px 0 #e9eadd;
+}
+.live-sketch-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+.live-sketch-top > span:last-child {
+  font: 9px var(--mono);
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  color: #637054;
+}
+.live-sketch-paper > p {
+  font-size: 12px;
+  color: #47563e;
+  margin: 15px 0 7px;
+}
+.live-sketch-paper > small {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #6e715e;
+}
+.art-only-hero .hero-description {
+  max-width: 470px;
+}
+@keyframes saucer-hover {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(3deg);
+  }
+}
+@keyframes saucer-spin {
+  0% {
+    transform: perspective(450px) rotateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: perspective(450px) rotateY(180deg) rotate(8deg) translateY(-12px);
+  }
+  100% {
+    transform: perspective(450px) rotateY(360deg) rotate(-3deg);
+  }
+}
+@media (max-width: 1000px) and (min-width: 761px) {
+  .art-world .station-window {
+    left: 0;
+    width: 100px;
+  }
+  .art-world .station-window > svg {
+    width: 90px;
+  }
+  .art-world .world-heading .handwritten {
+    font-size: 17px;
+  }
+  .art-world .world-live {
+    font-size: 6px;
+  }
+  .art-world .station-drawing {
+    top: 148px;
+  }
+  .art-world .held-speech {
+    font-size: 9px;
+    max-width: 130px;
+  }
+}
+@media (max-width: 760px) {
+  .art-world {
+    height: 355px;
+    margin: 15px -6px 20px;
+  }
+  .art-world .world-heading {
+    left: 0;
+    right: 0;
+  }
+  .art-world .world-heading .handwritten {
+    font-size: 16px;
+  }
+  .art-world .world-live {
+    font-size: 7px;
+  }
+  .art-world .station-window {
+    left: 2%;
+    top: 50px;
+    width: 94px;
+  }
+  .art-world .station-window > svg {
+    width: 83px;
+  }
+  .art-world .station-drawing {
+    top: 117px;
+    right: 1%;
+    width: 45%;
+  }
+  .art-world .station-drawing .station-label {
+    top: -26px;
+  }
+  .art-world .station-gallery {
+    left: 5%;
+    top: 259px;
+    width: 32%;
+  }
+  .art-world .sketch-stack {
+    height: 48px;
+  }
+  .art-world .sketch-stack > span {
+    width: 52px;
+    height: 44px;
+    left: calc(50% - 26px);
+  }
+  .art-world .sketch-stack i {
+    font-size: 19px;
+  }
+  .art-world .wandering-held {
+    width: 112px;
+    height: 110px;
+  }
+  .art-world .wandering-held button,
+  .art-world .wandering-held .little-held {
+    width: 112px;
+    height: 98px;
+  }
+  .art-world.at-drawing .wandering-held {
+    left: 25%;
+    top: 196px;
+  }
+  .art-world.at-gallery .wandering-held {
+    left: 16%;
+    top: 157px;
+  }
+  .art-world.at-window .wandering-held {
+    left: 26%;
+    top: 131px;
+  }
+  .art-world .held-speech {
+    bottom: 121px;
+    font-size: 8px;
+    max-width: 123px;
+  }
+  .art-world .held-ground {
+    top: 98px;
+    width: 69px;
+    left: 22px;
+  }
+  .art-world .world-caption {
+    font-size: 9px;
+  }
+  .art-world .helper-fleet {
+    bottom: 27px;
+    right: 0;
+    max-width: 160px;
+    gap: 0;
+  }
+  .art-world .world-helper,
+  .art-world .world-helper .mini-held {
+    width: 25px;
+    height: 24px;
+  }
+  .art-world .orbit-trail {
+    inset: 72px 8px 49px;
+  }
+  .art-world .star-a {
+    top: 58px;
+    font-size: 19px;
+  }
+  .art-world .star-b {
+    top: 39px;
+  }
+  .art-world .star-c {
+    top: 218px;
+  }
+  .art-world .drawing-legs {
+    height: 24px;
+    border-width: 4px;
+  }
+  .open-habitat .compute-care {
+    order: 6;
+    max-width: none;
+    width: 100%;
+    margin-top: 20px;
+  }
+  .compute-levels button {
+    min-height: 58px;
+  }
+  .compute-care .care-disclosure {
+    font-size: 10px;
+  }
+  .compute-care .your-contribution {
+    font-size: 10px;
+  }
+  .live-sketch-section {
+    grid-template-columns: 1fr;
+    gap: 25px;
+    margin: 35px 0;
+    padding: 0 23px;
+  }
+  .sketch-context h2 {
+    font-size: 34px;
+  }
+  .sketch-context p {
+    max-width: none;
+  }
+  .live-sketch-paper {
+    padding: 16px;
+  }
+  .visit-note {
+    margin-top: 17px;
+  }
+  .ascii-canvas .canvas-size {
+    font-size: 8px;
+    bottom: 10px;
+  }
+  .art-paper {
+    padding: 23px 16px 18px;
+  }
+}
+@media (max-width: 360px) {
+  .art-world {
+    height: 336px;
+  }
+  .art-world .world-heading .handwritten {
+    font-size: 14px;
+  }
+  .art-world .world-live {
+    font-size: 6px;
+  }
+  .art-world .station-gallery {
+    top: 246px;
+  }
+  .art-world .station-label {
+    font-size: 7px;
+  }
+}
+
+/* Text contrast on the paper palette. */
+.art-world .world-heading .handwritten {
+  color: #556d5b;
+}
+.ascii-canvas .canvas-size,
+.live-sketch-paper > small {
+  color: #656853;
+}
+.ascii-canvas .canvas-size {
+  font-size: 10px;
+}
+
+.art-world .station-inspector > small {
+  color: #626c56;
+}

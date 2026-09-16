@@ -3,7 +3,7 @@ import { sampleToken } from "../shared/pipeline";
 import type { AuditJob, Job } from "../shared/protocol";
 import type { BrowserCompute } from "./browserCompute";
 import { useRoom } from "./useRoom";
-export const COFFEE_MS = 10 * 60 * 1000;
+export const BOOST_MS = 10 * 60 * 1000;
 function get(key: string) {
   try {
     return localStorage.getItem(key);
@@ -16,9 +16,9 @@ function put(key: string, value: string) {
     localStorage.setItem(key, value);
   } catch {}
 }
-export function coffeeDeadline(value: string | null, now: number) {
+export function boostDeadline(value: string | null, now: number) {
   const n = Number(value);
-  return Number.isFinite(n) && n > now && n <= now + COFFEE_MS ? n : 0;
+  return Number.isFinite(n) && n > now && n <= now + BOOST_MS ? n : 0;
 }
 export function useHabitat(room: string, studio: boolean) {
   const dataSaver = Boolean(
@@ -30,8 +30,14 @@ export function useHabitat(room: string, studio: boolean) {
       ? get("held-participation") === "auto"
       : get("held-checks") !== "off" && !dataSaver,
   );
-  const [coffeeUntil, setCoffeeUntil] = useState(() =>
-    coffeeDeadline(get("held-coffee-until"), Date.now()),
+  const [boostUntil, setBoostUntil] = useState(() =>
+    boostDeadline(
+      get("held-boost-until") || get("held-coffee-until"),
+      Date.now(),
+    ),
+  );
+  const [boostDuty, setBoostDuty] = useState<0.1 | 0.2>(() =>
+    get("held-boost-duty") === "0.2" ? 0.2 : 0.1,
   );
   const [now, setNow] = useState(Date.now);
   const [visible, setVisible] = useState(!document.hidden);
@@ -53,8 +59,8 @@ export function useHabitat(room: string, studio: boolean) {
   const sendRef = useRef<(event: unknown) => void>(() => {});
   const enabledRef = useRef(enabled && !studio);
   enabledRef.current = enabled && !studio;
-  const coffee = enabled && coffeeUntil > now;
-  const duty = coffee ? 0.1 : 0.05;
+  const boosted = enabled && boostUntil > now;
+  const duty = boosted ? boostDuty : 0.05;
   const onJob = useCallback((job: Job) => {
     if (!compute.current || document.hidden) {
       sendRef.current({ type: "failed", jobId: job.id });
@@ -189,11 +195,12 @@ export function useHabitat(room: string, studio: boolean) {
     };
   }, [studio, enabled, visible, habitat.connected, habitat.send, duty, retry]);
   useEffect(() => {
-    if (coffeeUntil && coffeeUntil <= now) {
-      setCoffeeUntil(0);
+    if (boostUntil && boostUntil <= now) {
+      setBoostUntil(0);
+      put("held-boost-until", "0");
       put("held-coffee-until", "0");
     }
-  }, [coffeeUntil, now]);
+  }, [boostUntil, now]);
   const pause = () => {
     // Stop immediately, before React runs effect cleanup.
     enabledRef.current = false;
@@ -202,9 +209,10 @@ export function useHabitat(room: string, studio: boolean) {
     checkWorker.current = null;
     habitat.send({ type: "checks", enabled: false });
     setEnabled(false);
-    setCoffeeUntil(0);
+    setBoostUntil(0);
     setStatus("off");
     put("held-participation", "watch");
+    put("held-boost-until", "0");
     put("held-coffee-until", "0");
   };
   const resume = () => {
@@ -212,18 +220,25 @@ export function useHabitat(room: string, studio: boolean) {
     setRetry((n) => n + 1);
     put("held-participation", "auto");
   };
-  const giveCoffee = () => {
-    const until = Date.now() + COFFEE_MS;
+  const boost = (level: 0.1 | 0.2) => {
+    if (boosted && duty === level) return;
+    setBoostDuty(level);
+    put("held-boost-duty", String(level));
+    const until = Date.now() + BOOST_MS;
     setStatus("loading");
     setNow(Date.now());
-    setCoffeeUntil(until);
+    setBoostUntil(until);
     setEnabled(true);
-    put("held-coffee-until", String(until));
+    put("held-boost-until", String(until));
     put("held-participation", "auto");
   };
-  const endCoffee = () => {
+  const gentle = () => {
+    if (enabled && duty === 0.05 && status === "ready") return;
+    setEnabled(true);
+    put("held-participation", "auto");
     setStatus("loading");
-    setCoffeeUntil(0);
+    setBoostUntil(0);
+    put("held-boost-until", "0");
     put("held-coffee-until", "0");
   };
   return {
@@ -235,13 +250,13 @@ export function useHabitat(room: string, studio: boolean) {
     pieceLabel,
     error,
     dataSaver,
-    coffee,
+    boosted,
     duty,
     usage,
-    coffeeSeconds: Math.max(0, Math.ceil((coffeeUntil - now) / 1000)),
+    boostSeconds: Math.max(0, Math.ceil((boostUntil - now) / 1000)),
     pause,
     resume,
-    giveCoffee,
-    endCoffee,
+    boost,
+    gentle,
   };
 }

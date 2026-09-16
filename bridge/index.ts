@@ -61,11 +61,11 @@ async function generate(ws: WebSocket, job: Job) {
         stream: true,
         keep_alive: "10m",
         options: {
-          num_predict: Math.min(job.maxTokens, 180),
+          num_predict: Math.min(job.maxTokens, 512),
           num_ctx: 2048,
           temperature: job.temperature ?? 0.8,
           top_p: 0.9,
-          repeat_penalty: 1.12,
+          repeat_penalty: job.kind === "art" ? 1 : 1.12,
         },
       }),
     });

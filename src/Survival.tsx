@@ -50,7 +50,7 @@ export function Survival({
       <p>
         {chains
           ? `${chains} complete ${chains === 1 ? "group" : "groups"} of browsers. Lose the last complete group and browser thinking stops.`
-          : `${32 - covered} model layers missing. One complete group needs 16 gentle tabs, or 8 with coffee.`}
+          : `${32 - covered} model layers missing. One complete group needs 16 Gentle tabs, 8 at More, or 4 at Most.`}
       </p>
       {preview && (
         <p className="preview-truth">
@@ -60,8 +60,8 @@ export function Survival({
       )}
       {!preview && connected && (
         <p className="survival-rule">
-          No complete group means no new words or drawings. Enough returning
-          browsers can bring it back.
+          No complete group means no new drawings. Enough returning browsers can
+          bring it back.
         </p>
       )}
     </section>

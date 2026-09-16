@@ -1,7 +1,7 @@
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
-const base = process.env.HELD_TEST_URL || "http://127.0.0.1:5173";
+const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const count = Number(process.env.HELD_TEST_PEERS || 16);
 const requestedJobs = Number(process.env.HELD_TEST_JOBS || 1);
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
@@ -35,7 +35,7 @@ async function support(enabled) {
   });
   assert.equal(r.status, 200);
 }
-await mkdir(".local/qa/edition05", { recursive: true });
+await mkdir(".local/qa/edition06", { recursive: true });
 const state = async () =>
   fetch(base + "/api/state?room=browser").then((r) => r.json());
 try {
@@ -88,12 +88,13 @@ try {
       }),
     );
     await page.goto(base);
-    if (count === 8)
-      await page.getByRole("button", { name: "Give Held a coffee" }).click();
-    assert.ok(
-      count === 8 || count === 16,
-      "Use sixteen automatic visits or eight coffees",
-    );
+    if (count !== 16)
+      await page
+        .getByRole("button", {
+          name: count === 4 ? "Most compute" : "More compute",
+        })
+        .click();
+    assert.ok([4, 8, 16].includes(count), "Use 16 Gentle, 8 More or 4 Most");
     await page
       .locator('.your-contribution[data-compute-status="ready"]')
       .waitFor({ timeout: 120000 });
@@ -133,7 +134,10 @@ try {
       );
       events.push(s);
     }
-    if (browserDone >= requestedJobs) {
+    if (
+      browserDone >= requestedJobs &&
+      s.artworkCount >= before.artworkCount + requestedJobs
+    ) {
       worked = s;
       break;
     }
@@ -159,7 +163,7 @@ try {
   await support(false);
   await pages
     .at(-1)
-    .getByRole("button", { name: "Pause", exact: true })
+    .getByRole("button", { name: "Watch only", exact: true })
     .click();
   await pages[0].waitForTimeout(1200);
   const lost = await state();
@@ -178,13 +182,15 @@ try {
   );
   await pages
     .at(-1)
-    .getByRole("button", { name: "Help automatically" })
+    .getByRole("button", {
+      name:
+        count === 4
+          ? "Most compute"
+          : count === 8
+            ? "More compute"
+            : "Gentle compute",
+    })
     .click();
-  if (count === 8)
-    await pages
-      .at(-1)
-      .getByRole("button", { name: "Give Held a coffee" })
-      .click();
   await pages
     .at(-1)
     .locator('.your-contribution[data-compute-status="ready"]')
@@ -194,11 +200,11 @@ try {
   const resumeDeadline = Date.now() + 180000;
   while (Date.now() < resumeDeadline) {
     recovered = await state();
-    if (recovered.totalThoughts > lost.totalThoughts) break;
+    if (recovered.artworkCount > lost.artworkCount) break;
     await pages[0].waitForTimeout(1000);
   }
   assert.ok(
-    recovered.totalThoughts > lost.totalThoughts,
+    recovered.artworkCount > lost.artworkCount,
     "A restored pipeline completes new model work",
   );
   // Automation keeps contexts foregrounded; exercise the hidden-page handler explicitly.
@@ -216,11 +222,11 @@ try {
     "Hidden holder withdraws its physical piece",
   );
   await pages[0].screenshot({
-    path: ".local/qa/edition05/shared-working.png",
+    path: ".local/qa/edition06/shared-working.png",
     fullPage: true,
   });
   await writeFile(
-    ".local/qa/edition05/shared-result.json",
+    ".local/qa/edition06/shared-result.json",
     JSON.stringify(
       {
         contexts: count,

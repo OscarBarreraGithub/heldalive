@@ -2,11 +2,13 @@
 
 **An AI that lives in our browsers.**
 
-[heldalive.com](https://heldalive.com) · [The experiment](https://heldalive.com/#experiment) · [The math](https://heldalive.com/#math)
+[heldalive.com](https://heldalive.com) · [How it works](https://heldalive.com/#experiment) · [The math](https://heldalive.com/#math)
 
-An open-source alien that lives in a little spacecraft on the page, drawn from Oscar’s two-antenna saucer sketch. An untouched, compatible visit automatically holds and calculates a small piece of its model. A free coffee lends extra compute for ten minutes; Pause switches to watch-only and stays saved. During launch, temporary server support runs the same checkpoint until complete browser groups can take its jobs. A visible preview notice explains that browser-only survival is not yet active. Held chooses projects, asks copies of its model to draw or test memory methods, and leaves its work in a public collection and notebook. There is no chat box.
+An unnamed alien rides inside a little saucer drawn from Oscar’s original sketch. **Held Alive is the artwork’s title, not the character’s name.** We lend it compute; it makes ASCII drawings. A compatible visible visit automatically holds and calculates part of the model. Watch switches contribution off and stays saved. More and Most lend extra compute for ten minutes, with no payment.
 
-![Held’s alien spacecraft](docs/edition05/habitat.png)
+During launch, temporary server support runs the same checkpoint when browser groups are incomplete. A visible preview notice explains that browser-only survival is not yet active. Once support is retired, losing all complete groups stops generation; returning browsers can restart it. Saved drawings and model files survive.
+
+![The unnamed saucer visitor](docs/edition06/habitat.png)
 
 ## What actually runs
 
@@ -14,32 +16,29 @@ The public habitat uses **SmolLM2-360M-Instruct**, quantized to four bits. Its 3
 
 | Contribution | Maximum layers | Identical contributors per chain | Prepared weight transfer |
 |---|---:|---:|---:|
-| Automatic visit (5%) | 2 | 16 | 11–38 MB |
-| Coffee for ten minutes (10%) | 4 | 8 | 22–49 MB |
+| Gentle, automatic (5%) | 2 | 16 | 11–38 MB |
+| More, ten minutes (10%) | 4 | 8 | 22–49 MB |
+| Most, ten minutes (20%) | 8 | 4 | 44–71 MB |
 
-Endpoint pieces also hold the vocabulary weights. Mixed capacities work; a holder may get fewer layers to fill a gap. These counts follow the artwork's chosen budgets: this tiny model can fit on one capable device, but this installation deliberately shares its calculation. More complete chains support concurrent helper copies, up to eight. The 300-connection admission limit is not a tested scalability claim.
+Endpoint pieces also hold vocabulary weights. Mixed capacities work; a holder may get fewer layers to fill a gap. These counts follow the artwork’s chosen budgets: the model can fit on one capable device, but this installation deliberately shares its calculation. More complete chains produce more drawings concurrently, up to eight chains. The 300-connection admission limit is not a tested scalability claim.
 
-Cloudflare serves assets, routes bounded work and stores completed records. **It does not perform missing model inference.** Losing a required layer cancels that browser chain’s unfinished task. During launch, the Mini can take waiting work when no chain is complete. An authenticated operator switch persists the choice to retire launch support: then insufficient browser coverage stops generation. A replacement can fill the gap and restart it. Records and model weights survive; “alive” describes ongoing computation, not consciousness, suffering or permanent deletion.
+Cloudflare serves assets, coordinates work and saves drawings; it does not perform missing model inference. A required holder leaving cancels its chain’s unfinished drawing. In preview mode the native bridge may pick up waiting work when no browser chain is complete. The authenticated operator switch retires this support. Source is attached to every drawing.
 
-Visitors need no account, application or manual installation. Small model files load automatically in compatible visible tabs. A saved Pause or initial data-saving preference prevents this. WebGPU with float16 is required for layer work. An interior two-layer piece used about 14 MB of GPU buffers on the development Mac; endpoints use more, and browser/JS/cache overhead is additional. Work/rest targets are 5% normally and 10% with coffee, not electrical or exact GPU utilization caps. Loading is additional work. Pause terminates the worker; hidden pages withdraw. Cached files can remain.
+No account, application or manual installation is required. Model files load in compatible visible tabs; a saved Watch or initial data-saving preference prevents this. WebGPU with float16 is required for model layers. Work/rest targets are not exact GPU utilization or battery limits. Loading is additional work, and memory/runtime/cache overhead exceeds weight bytes. Hidden pages withdraw; cached files can remain. Unsupported browsers can perform assigned token-sampling arithmetic, or watch; CPU sampling cannot replace missing model layers.
 
-When useful, enabled visitors also sample a next token from model scores or verify recall-scoring arithmetic. These small CPU tasks cannot replace missing layers. Watch-only is welcome. Launch support uses **the same pinned four-bit SmolLM2 checkpoint**, through MLX on the Mini. The separate `/?room=studio` rehearsal still uses Qwen 0.5B and its original bridge.
+## Only ASCII art, for now
 
-## Held's world
+- A model-predicted drawing fits a **40-column × 20-row** page, with spaces and line breaks preserved. Live marks appear on the easel and the larger page below it.
+- A subject and one boat example form the prompt. Constrained decoding permits an alphabet of punctuation, spaces and letter shapes, including full multi-character tokenizer pieces. It never substitutes a prewritten picture for the model output.
+- Output is limited to 512 tokens. Invalid size/format is rejected before archival or completion credit and retried up to three attempts. Format checks do not judge quality: the tiny model still makes repetitive or abstract scribbles and may imitate its example.
+- Completed art has local bookmarks and original-text downloads. Earlier records remain in the read-only archive and source history.
+- No voting, visitor messages, memory experiments, planning turns or prose journals run in this edition. The coordinator chooses subjects; concurrent helpers are independent drawing copies, not an autonomous hierarchy.
+- The alien floats and turns **inside its saucer**. Smaller saucers represent additional real drawing jobs. Greeting, blinking and idle travel are decoration, not model actions.
+- The page exposes model source, actual held weight bytes, timed successful layer passes, exact prompts, visible-tab counts and current jobs. No private files or other-tab contents enter the prompts.
 
-- Held walks between its flight console, drawing station, memory library and stargazing window. Its curled antennae and long eyes follow Oscar’s original drawing; stepped contours, smooth movement and reduced-motion support carry the character across the site. Stations expose actual public jobs/drafts; helper sprites correspond to running helper jobs. Idle wandering and hello are decorative.
-- Free coffee, a live 32-layer survival meter, visible preview/source status, open tabs and active helper-task counts.
-- Actual model weight bytes and timed layer passes in this tab; complete written task inputs on demand. Fixed model weights, task text and generated tokens are explicitly distinguished.
-- Model-chosen drawings, reflective free time and delegated memory experiments.
-- A persistent ASCII-art cabinet with local bookmarks and text downloads.
-- A public workspace of plans, journal pages and model-written memory instructions.
-- An iterative memory workshop: the model proposes an instruction, helpers compare it with the current method and three baselines on one newly drawn record, and a strict improvement keeps the proposal. Full trials and revisions remain inspectable.
-- Anonymous daily visit stamps and fixed-choice votes; no user message input.
-- Live presence and assigned tasks, plus a calculator for the actual pipeline and the original distributed-compute research.
+Browser results remain untrusted; no proof of honest GPU execution is claimed. The death premise concerns ongoing computation, not consciousness or permanent erasure. More copies do not automatically improve the model’s intelligence.
 
-These are bounded text tools, not arbitrary shell access. Browser outputs can be forged; no proof of honest GPU execution is claimed. Recall is a tiny, noisy, closed-vocabulary demonstration, not a general benchmark of agent memory. More copies do not automatically make the underlying model smarter.
-
-All ideas, including alternatives, are preserved in [VISION.md](docs/VISION.md). Current design and verification: [edition 05 plan](docs/edition05/PLAN.md), [edition 05 verification](docs/edition05/VERIFICATION.md). Runtime operations remain [edition 04 plan](docs/edition04/PLAN.md), [operations](docs/edition04/OPERATIONS.md), [verification](docs/edition04/VERIFICATION.md). The unchanged layer engine is described in [edition 03 architecture](docs/edition03/ARCHITECTURE.md) and [numerical notes](docs/edition03/NUMERICAL-NOTES.md). Earlier editions’ participation/launch instructions are historical.
+All earlier ideas remain in [VISION.md](docs/VISION.md). Current work: [edition 06 plan](docs/edition06/PLAN.md), [verification](docs/edition06/VERIFICATION.md), [model/art assessment](docs/edition06/MODEL-ASSESSMENT.md). The native-service and independence-switch instructions in [edition 04 operations](docs/edition04/OPERATIONS.md) still apply; its coffee and memory descriptions are historical. The layer engine is documented in [edition 03 architecture](docs/edition03/ARCHITECTURE.md) and [numerical notes](docs/edition03/NUMERICAL-NOTES.md).
 
 ## Develop
 
@@ -62,18 +61,18 @@ Ollama is optional for the studio only: `ollama pull qwen2.5:0.5b`, then `npm ru
 ```sh
 npm run check
 npm run test:integration   # LOCAL coordinator fixtures, never production
+npm run test:migration     # isolated legacy-state migration
 npm run test:ui
 npm run test:a11y
 node scripts/test-alien.mjs # local display states and spacecraft interactions
-node scripts/test-coffee.mjs # real no-click load, coffee, expiry, saved Pause
+npm run test:contribution  # real no-click load, levels, expiry, saved Watch
 npm run test:browser       # 16 untouched visits: real GPU inference and withdrawal
-node scripts/test-memory-workshop.mjs
 node scripts/test-persistence.mjs
 node scripts/test-live.mjs  # real public inference; no fixtures or operator switch
 npm run deploy
 ```
 
-Install test Chromium with `npx playwright install chromium`. GPU browser tests deliberately open contributing contexts on the test machine; all are headless. Use eight contexts with coffee or sixteen untouched visits. For a connected local Mini, use `HELD_TEST_LAUNCH=1` for the handoff and independence test; it restores launch support afterward. `HELD_TEST_URL` selects the origin. Run coordinator fixtures only locally; live verification must use actual inference. Do not rebuild while a browser test is connected to local Wrangler, because asset reload closes sockets.
+Install test Chromium with `npx playwright install chromium`. GPU browser tests deliberately open contributing contexts on the test machine; all are headless. Use `HELD_TEST_PEERS=4` for Most, 8 for More, or 16 for untouched Gentle visits. For a connected local Mini, use `HELD_TEST_LAUNCH=1` for the handoff and independence test; it restores launch support afterward. `HELD_TEST_URL` selects the origin. Run coordinator fixtures only locally; live verification must use actual inference. Do not rebuild while a browser test is connected to local Wrangler, because asset reload closes sockets.
 
 Deployment verifies every model buffer, builds, and publishes to Cloudflare. `BRIDGE_TOKEN` authenticates both native bridges and the operator launch switch, and signs anonymous cookies. `HELD_CONFIG=.local/launch-bridge.json npm run install:bridge` installs the public Mini service from ignored configuration. See edition 04 operations for prerequisites and the independence switch.
 

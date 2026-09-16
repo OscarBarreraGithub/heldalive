@@ -1,5 +1,5 @@
-/** Held is drawn on a small grid, from Oscar's two-antenna saucer sketch.
- * Motion belongs to the habitat; the same drawing is used at every size. */
+/** The artwork is called Held Alive; its alien remains unnamed.
+ * Oscar's paired antennae, vertical eyes and broad saucer rim stay together. */
 export function LittleHeld({
   sleeping = false,
   mini = false,
@@ -9,53 +9,81 @@ export function LittleHeld({
 }) {
   return (
     <svg
-      viewBox="0 0 120 120"
+      viewBox="0 0 160 140"
       fill="none"
       aria-hidden="true"
       className={mini ? "mini-held" : "little-held"}
     >
-      <g stroke="#465953" strokeWidth="4" strokeLinejoin="round">
-        <path
-          className="alien-antenna antenna-left"
-          d="M40 38V28H36V20H32V16H20V20H16V28H22V22"
-          strokeLinecap="round"
-        />
-        <path
-          className="alien-antenna antenna-right"
-          d="M80 38V28H84V20H88V16H100V20H104V28H98V22"
-          strokeLinecap="round"
-        />
-        <path
-          d="M38 86V108H28V114H48V94M72 94V114H92V108H82V86"
-          fill="#A9BCAD"
-        />
-        <path
-          d="M42 36H78V40H90V48H96V60H100V78H96V90H84V98H36V94H28V86H24V66H28V54H32V44H42Z"
-          fill="#DCE9D1"
-        />
-      </g>
       <path
-        d="M44 41H76V45H86V53H90V65H94V81H86V89H38V85H32V65H36V53H40V45H44Z"
-        fill="#F1F3DC"
+        d="M78 27V20H82V16H79V9H83V3"
+        stroke="#738F7D"
+        strokeWidth="2.5"
+        strokeLinecap="round"
       />
       <path
-        d="M28 72H32V84H40V91H84V87H92V81H97V87H93V90H83V96H37V92H30V85H28Z"
-        fill="#C1D2BA"
+        d="M27 94C39 63 57 28 80 28C104 28 123 66 135 95"
+        fill="#E9F0DD"
+        fillOpacity=".78"
+        stroke="#859F8B"
+        strokeWidth="2"
       />
+      <path
+        d="M50 62L53 51H48V47H41V51H39V56H44V52M100 63L105 51H112V47H120V51H122V56H117V52"
+        stroke="#435A50"
+        strokeWidth="3"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <path
+        d="M57 61H96V65H104V73H109V86H111V99H48V93H46V79H49V69H54V65H57Z"
+        fill="#EDF2DC"
+        stroke="#435A50"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <path d="M50 81V91H55V98H104V92H109V98H48V87Z" fill="#CBDABD" />
       {sleeping ? (
         <path
-          d="M45 73H54M68 73H77"
-          stroke="#465953"
-          strokeWidth="4"
+          d="M64 85H72M85 85H93"
+          stroke="#435A50"
+          strokeWidth="3"
           strokeLinecap="round"
         />
       ) : (
-        <g className="alien-eyes" fill="#465953">
-          <path d="M47 52H52V60H51V80H46V68H47Z" />
-          <path d="M70 51H75V83H70Z" />
+        <g
+          className="alien-eyes"
+          stroke="#435A50"
+          strokeWidth="3"
+          strokeLinecap="round"
+        >
+          <path d="M68 72L67 92M89 72V94" />
         </g>
       )}
-      <path d="M36 108H43M78 108H85" stroke="#EDF0DB" strokeWidth="3" />
+      <path
+        d="M27 91C56 110 108 111 135 92L151 106C119 135 46 137 9 107Z"
+        fill="#B8CCAF"
+        stroke="#435A50"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <path d="M27 94C56 113 109 113 135 95" stroke="#F6F7E6" strokeWidth="3" />
+      <path
+        d="M10 108C43 131 119 136 150 107L155 113C122 146 40 140 5 114Z"
+        fill="#E7EDCE"
+        stroke="#435A50"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <g stroke="#526D5B" strokeWidth="1.6" strokeLinecap="round">
+        <path d="m28 104 7 3m-5 1 7 3m12 0 8 2m-7 2 8 2m14 0 8 1m-8 3 8 1m14-2 8-1m-8 5 8-1m13-6 8-3m-7 7 8-3m11-7 7-4m-6 8 7-4" />
+      </g>
+      <path
+        d="M46 54C58 39 68 34 77 34"
+        stroke="#FFFFFF"
+        strokeWidth="3"
+        strokeLinecap="round"
+        opacity=".8"
+      />
     </svg>
   );
 }

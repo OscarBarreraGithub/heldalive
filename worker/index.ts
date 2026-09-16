@@ -15,11 +15,8 @@ import {
   dayKey,
   dutyLimit,
   isAllowedOrigin,
-  isProjectKind,
   MAX_HELPERS,
   MAX_THOUGHT_CHARS,
-  MEMORY_BUDGET,
-  plainArt,
   ROOM_CAPACITY,
 } from "../shared/protocol";
 import type {
@@ -38,23 +35,9 @@ import type {
   Thought,
   WorkspaceFile,
 } from "../shared/protocol";
-import {
-  methodMessages,
-  artMessages,
-  packMessages,
-  planMessages,
-  recallMessages,
-  reflectionMessages,
-  wanderMessages,
-} from "../shared/personality";
-import {
-  makeMemoryCase,
-  parseAnswers,
-  parsePlan,
-  scoreAnswers,
-  STRATEGIES,
-  validAnswerResponse,
-} from "../shared/experiments";
+import { artMessages } from "../shared/personality";
+import { ART_MAX_TOKENS, inspectArt } from "../shared/ascii";
+import { scoreAnswers } from "../shared/experiments";
 import type { MemoryCase } from "../shared/experiments";
 import { modelAssetUrl } from "../shared/modelAssets";
 
@@ -134,6 +117,7 @@ type Stored = {
   scores: Snapshot["memoryScores"];
   cleanedDay: string;
   modelVersion?: number;
+  artEdition?: number;
   bestMethod?: WorkspaceFile;
   memoryCandidate?: WorkspaceFile;
   launchSupport?: boolean;
@@ -397,6 +381,34 @@ export class LivingRoom extends DurableObject<Env> {
       );
       this.save();
     }
+    this.enterArtEdition();
+  }
+  private enterArtEdition() {
+    if (this.state.artEdition === 6) return;
+    for (const a of this.state.active) {
+      const owner = this.peers().find((p) => p.peer.id === a.peerId);
+      if (owner) this.send(owner.ws, { type: "cancel", jobId: a.task.id });
+    }
+    if (this.state.project && this.state.project.status !== "finished")
+      this.state.projects.push({
+        ...this.state.project,
+        status: "interrupted",
+      });
+    this.state.active = [];
+    this.state.queue = [];
+    this.state.project = null;
+    this.state.results = [];
+    this.state.nextThoughtAt = 0;
+    this.state.artEdition = 6;
+    for (const { ws, peer } of this.peers()) {
+      peer.audit = null;
+      ws.serializeAttachment(peer);
+    }
+    this.event(
+      "edition",
+      "The art-only edition begins. Earlier drawings and research records stay in the archive.",
+    );
+    this.save();
   }
   private writeFile(file: WorkspaceFile) {
     this.ctx.storage.sql.exec(
@@ -684,15 +696,6 @@ export class LivingRoom extends DurableObject<Env> {
     });
     this.state.activity = this.state.activity.slice(-32);
   }
-  private votes(): Record<ProjectKind, number> {
-    const votes = { art: 0, memory: 0, wander: 0 };
-    for (const row of this.ctx.storage.sql.exec<{ choice: string; n: number }>(
-      "SELECT choice,COUNT(*) AS n FROM visitors WHERE choice_day=? GROUP BY choice",
-      dayKey(Date.now()),
-    ))
-      if (isProjectKind(row.choice)) votes[row.choice] = row.n;
-    return votes;
-  }
   private profile(id: string): Profile {
     const p = this.ctx.storage.sql
       .exec<VisitorRow>("SELECT * FROM visitors WHERE id=?", id)
@@ -701,8 +704,7 @@ export class LivingRoom extends DurableObject<Env> {
     return {
       days: p?.days || 0,
       today: p?.last_day === today,
-      choice:
-        p?.choice_day === today && isProjectKind(p.choice) ? p.choice : null,
+      choice: null,
       completedJobs: p?.jobs || 0,
       checks: p?.checks || 0,
     };
@@ -756,10 +758,7 @@ export class LivingRoom extends DurableObject<Env> {
               ? "mac"
               : "waiting";
     const busy = new Set(this.state.active.map((a) => a.peerId));
-    const active =
-      this.state.active.find(
-        (a) => a.task.kind === "reflect" || a.task.kind === "wander",
-      ) || this.state.active[0];
+    const active = this.state.active[0];
     return {
       type: "state",
       version: 2,
@@ -800,23 +799,19 @@ export class LivingRoom extends DurableObject<Env> {
       active: active
         ? {
             id: active.task.id,
-            text: ["reflect", "wander"].includes(active.task.kind)
-              ? active.text
-              : "",
+            text: active.text,
             startedAt: active.startedAt,
             kind: active.task.kind,
           }
         : null,
-      agents: this.state.active.map((a) => ({
+      agents: this.state.active.map((a, i) => ({
         id: a.task.id,
-        role: ["plan", "reflect", "wander", "method"].includes(a.task.kind)
-          ? "Held"
-          : "Helper",
+        role: i === 0 ? "Artist" : "Helper",
         kind: a.task.kind,
         startedAt: a.startedAt,
         source: a.source,
         title: a.task.title,
-        draft: cleanThought(a.text).slice(-240),
+        draft: cleanThought(a.text, false),
         characters: a.text.length,
         inputWords: a.task.messages
           .map((m) => m.content)
@@ -828,7 +823,14 @@ export class LivingRoom extends DurableObject<Env> {
       project: this.state.project,
       projects: this.state.projects.slice(-8),
       queueLength: this.state.queue.length,
-      activity: this.state.activity.slice(-12),
+      activity: this.state.activity
+        .filter((e) => {
+          const edition = [...this.state.activity]
+            .reverse()
+            .find((a) => a.kind === "edition");
+          return !edition || e.at >= edition.at;
+        })
+        .slice(-12),
       artworks: this.recent<Artwork>("artworks", 6),
       artworkCount: this.ctx.storage.sql
         .exec<{ n: number }>("SELECT COUNT(*) AS n FROM artworks")
@@ -838,7 +840,7 @@ export class LivingRoom extends DurableObject<Env> {
       journal: this.state.journal,
       workspace: this.recent<WorkspaceFile>("workspace", 12),
       bestMethod: this.state.bestMethod,
-      votes: this.votes(),
+      votes: { art: 0, memory: 0, wander: 0 },
       day: dayKey(now),
       totalTokens: this.state.totalTokens,
       totalComputeMs: this.state.totalComputeMs,
@@ -896,7 +898,7 @@ export class LivingRoom extends DurableObject<Env> {
       this.event(
         "power",
         data.enabled
-          ? "The artist’s Mini is available for launch support. Complete browser groups get work first."
+          ? "Temporary preview support is available. Complete browser groups get work first."
           : "Browser independence is enabled. Missing browser coverage now pauses all thought generation.",
       );
       this.save();
@@ -1082,7 +1084,7 @@ export class LivingRoom extends DurableObject<Env> {
         this.send(ws, {
           type: "error",
           message:
-            "The studio uses the artist's Mac. Open the live habitat to lend browser compute.",
+            "The studio uses preview support. Open the live habitat to lend browser compute.",
         });
         return;
       }
@@ -1112,25 +1114,11 @@ export class LivingRoom extends DurableObject<Env> {
       );
       this.send(ws, { type: "profile", profile: this.profile(peer.identity) });
     } else if (data.type === "vote" && peer.role === "visitor") {
-      if (!isProjectKind(data.choice)) {
-        this.send(ws, {
-          type: "error",
-          message: "Choose one of the three daily paths.",
-        });
-        return;
-      }
-      const day = dayKey(now);
-      this.ctx.storage.sql.exec(
-        "UPDATE visitors SET choice=?,choice_day=?,days=days+CASE WHEN last_day<>? THEN 1 ELSE 0 END,last_day=?,last_seen=? WHERE id=? AND choice_day<>?",
-        data.choice,
-        day,
-        day,
-        day,
-        now,
-        peer.identity,
-        day,
-      );
-      this.send(ws, { type: "profile", profile: this.profile(peer.identity) });
+      this.send(ws, {
+        type: "error",
+        message: "Voting is closed. This edition only makes ASCII art.",
+      });
+      return;
     } else if (data.type === "audit_done" && peer.role === "visitor") {
       const a = peer.audit;
       if (
@@ -1193,6 +1181,18 @@ export class LivingRoom extends DurableObject<Env> {
           peer.availableAt = now + 15000;
         } else job.text += data.text;
       } else if (data.type === "done") {
+        const art = inspectArt(job.text);
+        if (job.task.kind !== "art" || !art.ok) {
+          this.fail(
+            job,
+            "The sketch did not fit the canvas rules; trying another drawing.",
+          );
+          peer.availableAt = now + 1000;
+          ws.serializeAttachment(peer);
+          this.save();
+          await this.tick();
+          return;
+        }
         this.state.active = this.state.active.filter(
           (a) => a.task.id !== job.task.id,
         );
@@ -1235,7 +1235,7 @@ export class LivingRoom extends DurableObject<Env> {
       this.send(ws, {
         type: "error",
         message:
-          "Held accepts fixed choices and assigned work, not visitor messages.",
+          "This installation accepts assigned work, not visitor prompts or votes.",
       });
       return;
     }
@@ -1262,7 +1262,7 @@ export class LivingRoom extends DurableObject<Env> {
       title,
       maxTokens:
         kind === "art"
-          ? 180
+          ? ART_MAX_TOKENS
           : kind === "pack"
             ? 140
             : kind === "recall"
@@ -1275,312 +1275,32 @@ export class LivingRoom extends DurableObject<Env> {
   }
   private complete(job: Active, tokens: number, durationMs: number) {
     const t = job.task;
-    const text = cleanThought(job.text);
+    if (t.kind !== "art") return;
+    const checked = inspectArt(job.text);
+    if (!checked.ok) return;
     const now = Date.now();
-    if (t.kind === "plan") {
-      const plan = parsePlan(text);
-      if (!plan) {
-        this.event(
-          "retry",
-          "Held's plan was unreadable. Giving it a free-time turn.",
-          job.source,
-        );
-        const p: Project = {
-          id: crypto.randomUUID(),
-          kind: "wander",
-          title: "A little free time",
-          focus: "A little free time",
-          helpers: 1,
-          at: now,
-          completed: 0,
-          total: 2,
-          status: "working",
-        };
-        this.state.project = p;
-        this.state.results = [];
-        this.state.queue.push(
-          this.task(
-            "wander",
-            wanderMessages(this.mode(), this.state.journal),
-            p.title,
-          ),
-        );
-        return;
-      }
-      const p: Project = {
-        id: crypto.randomUUID(),
-        kind: plan.kind,
-        title: plan.focus,
-        focus: plan.focus,
-        helpers:
-          plan.kind === "memory"
-            ? 5
-            : plan.kind === "wander"
-              ? 1
-              : plan.helpers,
-        at: now,
-        completed: 0,
-        total:
-          plan.kind === "memory"
-            ? 12
-            : plan.kind === "wander"
-              ? 2
-              : plan.helpers + 1,
-        status: "working",
-      };
-      this.state.project = p;
-      this.state.results = [];
-      this.event(
-        "plan",
-        `Held chose ${p.kind === "art" ? "to draw" : p.kind === "memory" ? "a memory experiment" : "some free time"}: ${p.focus}`,
-        job.source,
-      );
-      if (p.kind === "art")
-        for (let i = 0; i < p.helpers; i++)
-          this.state.queue.push(
-            this.task(
-              "art",
-              artMessages(this.mode(), p, i + 1),
-              `Drawing · helper ${i + 1}`,
-            ),
-          );
-      if (p.kind === "wander")
-        this.state.queue.push(
-          this.task(
-            "wander",
-            wanderMessages(this.mode(), this.state.journal),
-            "Free time",
-          ),
-        );
-      if (p.kind === "memory") {
-        const previous =
-          this.state.bestMethod?.text ||
-          "Write compact name=object pairs. Omit locations and filler.";
-        this.state.queue.push(
-          this.task(
-            "method",
-            methodMessages(previous, JSON.stringify(this.state.scores)),
-            "Revising memory/strategy.md",
-          ),
-        );
-      }
-      this.writeFile({
-        id: t.id,
-        path: "plans/current.md",
-        text: job.text,
-        at: now,
-        author: "model",
-      });
-      return;
-    }
-    if (t.kind === "method" && text) {
-      const incumbent = this.state.bestMethod || {
-        id: "initial-method",
-        path: "memory/strategy.md",
-        text: "Write compact name=object pairs. Omit locations and filler.",
-        at: now,
-        author: "installation" as const,
-        status: "kept" as const,
-      };
-      this.state.bestMethod = incumbent;
-      this.writeFile(incumbent);
-      const candidate: WorkspaceFile = {
-        id: t.id,
-        path: "memory/strategy.md",
-        text: text.slice(0, 400),
-        at: now,
-        author: "model",
-        parent: incumbent.id,
-        status: "candidate",
-      };
-      this.state.memoryCandidate = candidate;
-      this.writeFile(candidate);
-      // Facts are drawn AFTER the proposal; all five approaches get identical held-out data.
-      const data = makeMemoryCase(
-        crypto.getRandomValues(new Uint32Array(1))[0] % 1200,
-      );
-      for (const strategy of ["notes", "ledger", "story"] as Strategy[])
-        this.state.queue.push(
-          this.task(
-            "pack",
-            packMessages(this.mode(), data, strategy),
-            `Writing ${strategy}`,
-            { strategy, memoryCase: data },
-          ),
-        );
-      for (const method of [incumbent, candidate])
-        this.state.queue.push(
-          this.task(
-            "pack",
-            packMessages(this.mode(), data, "custom", method.text),
-            "Testing a model-written method",
-            {
-              strategy: "custom",
-              memoryCase: data,
-              methodId: method.id,
-              methodText: method.text,
-            },
-          ),
-        );
-      this.event(
-        "memory",
-        "Held wrote a new memory instruction. Helpers will compare it with the current one on the same unseen record.",
-        job.source,
-      );
-    } else if (t.kind === "art" && text) {
-      const artwork: Artwork = {
-        id: t.id,
-        title: this.state.project?.title || "A little drawing",
-        text: plainArt(job.text),
-        at: now,
-        source: job.source,
-        projectId: t.projectId,
-        model:
-          this.mode() === "browser"
-            ? `SmolLM2 · 360M · ${job.source === "browser" ? "shared" : "Mini"}`
-            : "Qwen 2.5 · 0.5B",
-      };
-      this.ctx.storage.sql.exec(
-        "INSERT INTO artworks (id,value,at) VALUES (?,?,?)",
-        artwork.id,
-        JSON.stringify(artwork),
-        now,
-      );
-      this.state.results.push(`A drawing: ${artwork.text}`);
-      this.event("art", "A new drawing arrived in the collection.", job.source);
-    } else if (t.kind === "pack" && t.memoryCase && t.strategy) {
-      const memory = text.slice(0, MEMORY_BUDGET);
-      this.state.queue.push(
-        this.task(
-          "recall",
-          recallMessages(this.mode(), memory, t.memoryCase.questions),
-          `Recalling from ${t.strategy}`,
-          {
-            strategy: t.strategy,
-            methodId: t.methodId,
-            methodText: t.methodText,
-            memoryCase: t.memoryCase,
-            memory,
-            truncated: text.length > MEMORY_BUDGET,
-          },
-        ),
-      );
-      this.event(
-        "memory",
-        `A helper packed ${t.strategy} into ${memory.length} characters.`,
-        job.source,
-      );
-    } else if (t.kind === "recall" && t.memoryCase && t.strategy) {
-      const answers = parseAnswers(text);
-      const correct = scoreAnswers(answers, t.memoryCase.expected);
-      const trial: MemoryTrial = {
-        model:
-          this.mode() === "browser"
-            ? "SmolLM2-360M-Instruct-q4"
-            : "Qwen2.5-0.5B",
-        id: t.id,
-        strategy: t.strategy,
-        methodId: t.methodId,
-        methodText: t.methodText,
-        memory: t.memory || "",
-        answers,
-        expected: t.memoryCase.expected,
-        correct,
-        total: 3,
-        at: now,
-        source: job.source,
-        checked: 0,
-        truncated: Boolean(t.truncated),
-        responseValid: validAnswerResponse(text),
-        response: text,
-        questions: t.memoryCase.questions,
-        record: t.memoryCase.facts,
-        projectId: t.projectId,
-      };
-      this.ctx.storage.sql.exec(
-        "INSERT INTO trials (id,value,at) VALUES (?,?,?)",
-        trial.id,
-        JSON.stringify(trial),
-        now,
-      );
-      if (
-        t.strategy === "custom" &&
-        this.state.bestMethod &&
-        this.state.memoryCandidate
-      ) {
-        const pair = this.recent<MemoryTrial>("trials", 30).filter(
-          (r) => r.projectId === t.projectId && r.strategy === "custom",
-        );
-        const a = pair.find(
-            (r) => r.methodId === this.state.memoryCandidate!.id,
-          ),
-          b = pair.find((r) => r.methodId === this.state.bestMethod!.id);
-        if (a && b) {
-          const wins = a.responseValid && a.correct > b.correct;
-          if (wins) {
-            this.writeFile({ ...this.state.bestMethod, status: "retired" });
-            this.state.bestMethod = {
-              ...this.state.memoryCandidate,
-              status: "kept",
-            };
-            this.writeFile(this.state.bestMethod);
-          } else
-            this.writeFile({
-              ...this.state.memoryCandidate,
-              status: "retired",
-            });
-          this.event(
-            "memory",
-            `Memory comparison: new method ${a.correct}/3, current method ${b.correct}/3. ${wins ? "Kept the new instruction." : "Kept the current instruction."} One tiny trial, not a general result.`,
-            job.source,
-          );
-          this.state.memoryCandidate = undefined;
-        }
-      }
-      const score = this.state.scores[t.strategy];
-      score.correct += correct;
-      score.total += 3;
-      score.trials++;
-      this.state.results.push(
-        `${t.strategy}: ${correct}/3 exactly recalled${trial.responseValid ? "" : " (invalid response format)"}, ${trial.memory.length} characters${trial.truncated ? ", truncated to budget" : ""}.`,
-      );
-      this.event(
-        "memory",
-        trial.responseValid
-          ? `${t.strategy}: ${correct} of 3 objects remembered.`
-          : `${t.strategy}: response format failed; scored 0 of 3.`,
-        job.source,
-      );
-    } else if ((t.kind === "reflect" || t.kind === "wander") && text) {
-      this.state.thoughts.push({
-        id: t.id,
-        text,
-        at: now,
-        source: job.source,
-        tokens,
-        durationMs,
-        kind: t.kind,
-      });
-      this.state.thoughts = this.state.thoughts.slice(-60);
-      this.state.journal = text.slice(0, 600);
-      this.writeFile({
-        id: t.id,
-        path: "journal.md",
-        text: this.state.journal,
-        at: now,
-        author: "model",
-      });
-      this.state.results.push(text);
-      this.event(
-        t.kind,
-        t.kind === "reflect"
-          ? "Held wrote a new journal entry."
-          : "Held took a moment to follow its own curiosity.",
-        job.source,
-      );
-    }
+    const artwork: Artwork = {
+      id: t.id,
+      title: t.title,
+      text: checked.text,
+      at: now,
+      source: job.source,
+      projectId: t.projectId,
+      model:
+        this.mode() === "browser" ? "SmolLM2 · 360M · q4" : "Qwen 2.5 · 0.5B",
+    };
+    this.ctx.storage.sql.exec(
+      "INSERT INTO artworks (id,value,at) VALUES (?,?,?)",
+      artwork.id,
+      JSON.stringify(artwork),
+      now,
+    );
     if (this.state.project) this.state.project.completed++;
-    if (t.kind === "reflect") this.finishProject();
+    this.event(
+      "art",
+      "A new ASCII drawing arrived in the collection.",
+      job.source,
+    );
   }
   private finishProject() {
     if (this.state.project) {
@@ -1605,7 +1325,6 @@ export class LivingRoom extends DurableObject<Env> {
         "pause",
         "A task was set aside after three unsuccessful attempts.",
       );
-      if (job.task.kind === "reflect") this.finishProject();
     }
     this.event("pause", reason);
     this.state.nextThoughtAt = Date.now() + 3000;
@@ -1646,6 +1365,7 @@ export class LivingRoom extends DurableObject<Env> {
     await this.tick();
   }
   private async tick(): Promise<void> {
+    this.enterArtEdition();
     const now = Date.now();
     for (const { ws, peer } of this.peers())
       if (now - peer.seen > 45000) {
@@ -1689,19 +1409,9 @@ export class LivingRoom extends DurableObject<Env> {
       !this.state.queue.length &&
       this.state.project?.status === "working"
     ) {
-      this.state.project.status = "reflecting";
-      this.state.queue.push(
-        this.task(
-          "reflect",
-          reflectionMessages(
-            this.mode(),
-            this.state.project,
-            this.state.results,
-          ),
-          "Writing in the journal",
-        ),
-      );
+      this.finishProject();
     }
+
     const busy = new Set(this.state.active.map((a) => a.peerId));
     const leaders = new Set(
       this.pipelines()
@@ -1731,20 +1441,43 @@ export class LivingRoom extends DurableObject<Env> {
       !this.state.active.length &&
       (!this.state.project || this.state.project.status === "finished") &&
       now >= this.state.nextThoughtAt
-    )
-      this.state.queue.push(
-        this.task(
-          "plan",
-          planMessages(
-            this.mode(),
-            this.state.journal,
-            this.votes(),
-            this.state.project?.kind,
+    ) {
+      const themes = [
+        "a little alien",
+        "a small flower",
+        "a geometric pattern",
+        "a little cat",
+        "a small house",
+        "a mountain",
+        "a sailing boat",
+        "a star",
+      ];
+      const focus =
+        themes[crypto.getRandomValues(new Uint32Array(1))[0] % themes.length];
+      const number = this.ctx.storage.sql
+        .exec<{ n: number }>("SELECT COUNT(*) AS n FROM artworks")
+        .one().n;
+      const count = Math.max(1, Math.min(MAX_HELPERS, workers.length));
+      this.state.project = {
+        id: crypto.randomUUID(),
+        kind: "art",
+        title: focus,
+        focus,
+        helpers: count,
+        at: now,
+        completed: 0,
+        total: count,
+        status: "working",
+      };
+      for (let i = 0; i < count; i++)
+        this.state.queue.push(
+          this.task(
+            "art",
+            artMessages(this.mode(), this.state.project, i + 1),
+            `Sketch ${number + i + 1} · ${focus}`,
           ),
-          "Choosing the next project",
-          { projectId: "" },
-        ),
-      );
+        );
+    }
     if (visitors.length && now >= this.state.nextThoughtAt)
       for (const worker of workers) {
         if (this.state.active.length >= MAX_HELPERS) break;
@@ -1775,55 +1508,9 @@ export class LivingRoom extends DurableObject<Env> {
             kind: task.kind,
             messages: task.messages,
             maxTokens: task.maxTokens,
-            temperature:
-              task.kind === "recall" || task.kind === "pack"
-                ? 0.1
-                : task.kind === "method"
-                  ? 0.25
-                  : task.kind === "plan"
-                    ? 0.65
-                    : 0.85,
+            temperature: 0.55,
           },
         });
-      }
-    const trials = this.recent<MemoryTrial>("trials", 6);
-    for (const { ws, peer } of visitors)
-      if (
-        peer.checks &&
-        now >= peer.nextAuditAt &&
-        (!peer.audit || now > peer.audit.deadline)
-      ) {
-        const trial = trials.find(
-          (t) =>
-            t.checked < 3 &&
-            !this.ctx.storage.sql
-              .exec(
-                "SELECT 1 FROM audit_checks WHERE identity=? AND trial=?",
-                peer.identity,
-                t.id,
-              )
-              .toArray().length,
-        );
-        if (trial) {
-          peer.audit = {
-            id: crypto.randomUUID(),
-            trialId: trial.id,
-            answers: trial.answers,
-            expected: trial.expected,
-            deadline: now + 30000,
-          };
-          peer.nextAuditAt = now + 30000;
-          ws.serializeAttachment(peer);
-          this.send(ws, {
-            type: "audit",
-            job: {
-              id: peer.audit.id,
-              trialId: trial.id,
-              answers: trial.answers,
-              expected: trial.expected,
-            },
-          });
-        }
       }
     this.save();
     this.broadcast();

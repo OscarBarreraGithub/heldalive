@@ -53,6 +53,10 @@ await copyFile(
   resolve("bridge/native_model.py"),
   join(runtime, "native_model.py"),
 );
+await copyFile(
+  resolve("shared/ascii-spec.json"),
+  join(runtime, "ascii-spec.json"),
+);
 await copyFile(config, join(runtime, "bridge.json"));
 await chmod(join(runtime, "bridge.json"), 0o600);
 await mkdir(join(runtime, "logs"), { recursive: true, mode: 0o700 });

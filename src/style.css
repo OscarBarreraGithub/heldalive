@@ -5612,11 +5612,31 @@ body {
 .observatory-hero {
   display: grid;
   grid-template-columns: 1fr 1.13fr;
-  gap: 38px;
-  align-items: center;
+  grid-template-areas: "intro world" "controls world";
+  gap: 18px 38px;
+  align-items: start;
   padding: 56px 0 32px;
   max-width: 1180px;
   margin: auto;
+}
+.observatory-hero .hero-copy {
+  grid-area: intro;
+}
+.observatory-hero > .observatory-world {
+  grid-area: world;
+  align-self: center;
+}
+.observatory-hero > .compute-care {
+  grid-area: controls;
+  width: 100%;
+  margin-top: 0;
+}
+.hero-description > span {
+  display: block;
+}
+.hero-description .hero-stakes {
+  color: #d7bba1;
+  margin-top: 5px;
 }
 .observatory-hero h1 {
   font-size: clamp(48px, 5vw, 76px);
@@ -6586,6 +6606,7 @@ body {
 @media (max-width: 800px) {
   .observatory-hero {
     grid-template-columns: 1fr;
+    grid-template-areas: "intro" "world" "controls";
     gap: 8px;
     padding-top: 35px;
     margin: 0 24px;
@@ -7052,9 +7073,237 @@ body {
 
 /* The habitat shows the character's state; detailed role counts live in the notebook. */
 .truth-counts {
-  grid-template-columns: 1.5fr 1fr;
+  grid-template-columns: 1.35fr 1fr 1fr;
 }
 .truth-counts .researcher-state {
   font-size: clamp(20px, 2.2vw, 27px);
   line-height: 1.3;
+}
+
+/* Mobile first encounter: premise, living scene, then immediate compute choice. */
+@media (max-width: 600px), (max-width: 1000px) and (max-height: 500px) {
+  .site-header {
+    height: auto;
+    min-height: 88px;
+    padding: 10px 18px 5px;
+    gap: 5px 8px;
+    align-content: center;
+  }
+  .site-header .wordmark {
+    font-size: 19px;
+    gap: 5px;
+  }
+  .site-header .wordmark .mini-held {
+    width: 25px;
+    height: 28px;
+  }
+  .site-header nav {
+    gap: 4px;
+    justify-content: space-between;
+  }
+  .site-header nav a {
+    min-height: 32px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .site-header nav a[aria-current="page"]::after {
+    content: none;
+  }
+  .observatory-hero {
+    margin: 0 18px;
+    padding: 16px 0 20px;
+    gap: 10px;
+  }
+  .observatory-hero .hero-copy > .eyebrow {
+    display: none;
+  }
+  .observatory-hero .small-spark {
+    font-size: 14px;
+  }
+  .observatory-hero h1 {
+    font-size: clamp(38px, 10.8vw, 52px);
+    letter-spacing: -1.8px;
+    line-height: 1.02;
+    margin: 10px 0 12px;
+  }
+  .observatory-hero .hero-description {
+    max-width: 430px;
+    font-size: 15px;
+    line-height: 1.45;
+    margin: 0;
+  }
+  .observatory-hero .model-disclosure {
+    display: none;
+  }
+  .observatory-hero > .observatory-world {
+    width: 100%;
+    height: clamp(196px, 29svh, 244px);
+    margin: 0 auto;
+    border-radius: 0;
+  }
+  .observatory-world .observatory-label {
+    top: 7px;
+    left: 0;
+    right: 0;
+    font-size: 8px;
+  }
+  .observatory-world .moon-window {
+    left: 64%;
+    top: 27px;
+    transform: scale(0.4);
+    transform-origin: top left;
+  }
+  .moon-window > span {
+    display: none;
+  }
+  .observatory-world .research-station {
+    left: 0;
+    top: 46px;
+    transform: scale(0.62);
+    transform-origin: top left;
+  }
+  .observatory-world .mural-station {
+    right: 2px;
+    top: 73px;
+    width: 91px;
+  }
+  .observatory-world .mini-mural {
+    height: 68px;
+    border-width: 4px;
+    padding: 3px;
+  }
+  .observatory-world .mural-station .station-caption {
+    display: none;
+  }
+  .observatory-world .research-station .station-caption {
+    display: none;
+  }
+  .observatory-world .observatory-alien {
+    width: 116px;
+  }
+  .observatory-world .observatory-alien .little-held {
+    width: 116px;
+    height: 102px;
+  }
+  .place-computer .observatory-alien {
+    left: 26%;
+    top: 61px;
+  }
+  .place-mural .observatory-alien {
+    left: 54%;
+    top: 64px;
+  }
+  .place-window .observatory-alien {
+    left: 38%;
+    top: 59px;
+  }
+  .observatory-world .alien-thought {
+    bottom: 102px;
+    max-width: 190px;
+    font-size: 10px;
+    padding: 4px 7px;
+  }
+  .observatory-world .world-floor {
+    bottom: 25px;
+    height: 35px;
+  }
+  .observatory-world .world-footnote {
+    margin: 0;
+    bottom: 5px;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .observatory-hero > .compute-care {
+    margin: 0;
+    padding: 12px;
+  }
+  .observatory-hero .compute-care-heading {
+    font-size: 12px;
+  }
+  .observatory-hero .compute-care > p:first-of-type {
+    display: none;
+  }
+  .observatory-hero .compute-levels {
+    margin-top: 9px;
+    padding: 3px;
+  }
+  .observatory-hero .compute-levels button {
+    min-height: 46px;
+    padding: 6px 2px;
+  }
+  .observatory-hero .compute-levels strong {
+    font-size: 12px;
+  }
+  .observatory-hero .compute-levels small {
+    margin-top: 3px;
+    font-size: 9px;
+  }
+  .observatory-hero .compute-care .your-contribution {
+    margin: 8px 0 0;
+    padding-top: 7px;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .observatory-hero .compute-care .boost-status {
+    margin: 5px 0 0;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .observatory-hero .compute-care .care-disclosure {
+    margin-top: 5px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .truth-counts {
+    grid-template-columns: 1.35fr 1fr 1fr;
+    margin: 0 18px;
+    padding: 22px 0;
+  }
+  .truth-counts div {
+    padding-left: 10px;
+  }
+  .truth-counts .researcher-state {
+    font-size: 17px;
+  }
+}
+@media (max-width: 360px) and (max-height: 650px) {
+  .site-header {
+    min-height: 84px;
+    padding-top: 6px;
+  }
+  .observatory-hero {
+    padding-top: 12px;
+    gap: 6px;
+  }
+  .observatory-hero h1 {
+    font-size: 36px;
+    margin: 6px 0;
+  }
+  .observatory-hero .hero-description {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1000px) and (max-height: 500px) {
+  .site-header {
+    min-height: 60px;
+    flex-wrap: nowrap;
+  }
+  .site-header nav {
+    order: initial;
+    width: auto;
+  }
+  .observatory-hero {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "intro world" "controls world";
+    gap: 10px 24px;
+  }
+  .observatory-hero h1 {
+    font-size: 36px;
+    margin: 4px 0 10px;
+  }
+  .observatory-hero > .observatory-world {
+    align-self: start;
+    height: 220px;
+  }
 }

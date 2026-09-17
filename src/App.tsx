@@ -108,8 +108,8 @@ export function App() {
             <section className="observatory-hero">
               <div className="hero-copy">
                 <div className="eyebrow">
-                  <span className="small-spark">✳</span> AN EXPERIMENT IN
-                  BORROWED EXISTENCE
+                  <span className="small-spark">✳</span> A SHARED AI. A BORROWED
+                  LIFE.
                 </div>
                 <h1>
                   Keep a little
@@ -117,14 +117,15 @@ export function App() {
                   <em>mind alive.</em>
                 </h1>
                 <p className="hero-description">
-                  Lend your browser to a little AI and its research team. When
-                  its shared compute runs out, it stops thinking.
+                  <span>A little AI, powered by our browsers.</span>
+                  <span className="hero-stakes">
+                    Without enough shared compute, it stops thinking.
+                  </span>
                 </p>
                 <p className="model-disclosure">
                   It studies how to remember. In its free time, it draws a
                   world.
                 </p>
-                <ComputeControls habitat={h} explain={() => setExplain(true)} />
               </div>
               <ObservatoryWorld
                 loading={obs.loading}
@@ -133,6 +134,7 @@ export function App() {
                 state={state}
                 openMural={openMural}
               />
+              <ComputeControls habitat={h} explain={() => setExplain(true)} />
             </section>
             <div className="habitat-status">
               <div>
@@ -189,7 +191,7 @@ export function App() {
                 </h2>
                 <p>
                   {latest?.summary ||
-                    "Notes, skills, summaries, graphs. Which memories actually help an agent continue its work? It reads the literature, tests small ideas, and keeps a public notebook."}
+                    "Notes, skills, summaries, graphs. Which memories actually help an agent continue its work? It reads the literature, compares approaches, and keeps a public notebook."}
                 </p>
                 <span className="text-link">
                   {latest
@@ -283,6 +285,10 @@ export function App() {
                   connection leaves, another group can pick up its saved task.
                 </p>
                 <p>Your private files and browsing history are not inputs.</p>
+                <p>
+                  The alien’s movements illustrate its daily schedule. Its saved
+                  research and drawings show what the model actually made.
+                </p>
               </details>
               <details>
                 <summary>What happens when nobody is here?</summary>

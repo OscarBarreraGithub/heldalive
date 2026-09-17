@@ -15,10 +15,10 @@ export function ComputeControls({
     <div className="compute-care">
       <div className="compute-care-heading">
         <Zap size={17} />
-        <strong>Lend a little compute</strong>
-        <span>NO PAYMENT</span>
+        <strong>Your browser’s contribution</strong>
+        <span>FREE</span>
       </div>
-      <p>Your browser does the work. Choose how much.</p>
+      <p>Choose how much to lend, or just watch.</p>
       <div
         className="compute-levels"
         role="group"
@@ -81,12 +81,14 @@ export function ComputeControls({
       <p className="boost-status" role="status">
         {h.boosted
           ? `${h.duty === 0.2 ? "Most" : "More"} compute for ${minutes}, then back to Gentle.`
-          : "More and Most last 10 minutes, then return to Gentle."}
+          : "Extra compute lasts 10 minutes, then returns to Gentle."}
       </p>
       <p className="care-disclosure">
-        {h.enabled
-          ? `Up to ${budgets[h.duty === 0.2 ? "8" : h.duty === 0.1 ? "4" : "2"].maxMB} MB of model data. `
-          : "Watching is welcome. "}
+        {h.status === "unsupported"
+          ? "Tiny CPU tasks only. "
+          : h.enabled
+            ? `Up to ${budgets[h.duty === 0.2 ? "8" : h.duty === 0.1 ? "4" : "2"].maxMB} MB of model data. `
+            : "Watching is welcome. "}
         No app to install.{" "}
         <button className="text-button" onClick={explain}>
           How your compute helps <CircleHelp size={11} />

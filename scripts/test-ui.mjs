@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true });
-const output = ".local/qa/edition11";
+const output = ".local/qa/edition12";
 await mkdir(output, { recursive: true });
 const errors = [];
 const modelRequests = [];
@@ -68,7 +68,8 @@ try {
   await page.getByText("What is this tab actually doing?", { exact: true }).click();
 
   for (const width of [320, 390, 768, 1440]) {
-    await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });
+    const height = {320:568,390:740,768:1024,1440:1000}[width];
+    await page.setViewportSize({ width, height });
     for (const section of ["habitat", "research", "math"]) {
       await page.goto(base + "#" + section);
       await page.locator("h1").waitFor();
@@ -79,6 +80,15 @@ try {
         const controls = await page.locator(".compute-care").boundingBox();
         assert.ok(headline && controls && headline.y < controls.y, "The explanation comes before compute controls");
         assert.ok(headline.y + headline.height < 650, "The main purpose is visible without scrolling");
+        if (width <= 600) {
+          const scene = await page.locator(".observatory-world").boundingBox();
+          const alien = await page.locator(".observatory-alien").boundingBox();
+          const choices = await page.locator(".compute-levels").boundingBox();
+          assert.ok(scene && scene.y < controls.y, "Meet the alien before the settings panel");
+          assert.ok(alien && alien.y + alien.height < height, "The alien is on the first screen");
+          assert.ok(choices && choices.y + choices.height < height, "Compute and opt-out choices are on the first screen");
+          assert.match(await page.locator(".hero-description").innerText(), /powered by our browsers/);
+        }
         assert.equal(await page.locator("[data-phone-equivalents]").isVisible(), true, "Phone-equivalent count remains visible at every viewport");
       }
       if (width === 390 || width === 1440) await page.screenshot({ path: `${output}/${width}-${section}.png`, fullPage: true });

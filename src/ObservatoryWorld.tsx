@@ -39,7 +39,7 @@ export function ObservatoryWorld({
       aria-label="The alien's observatory"
     >
       <div className="observatory-label">
-        <span>OBSERVATORY 001</span>
+        <span>THE LITTLE ONE</span>
         <span>
           <i className={`live-dot ${working ? "" : "rest"}`} />
           {loading
@@ -131,7 +131,7 @@ export function ObservatoryWorld({
       </div>
       <div className="world-floor" aria-hidden="true" />
       <p className="world-footnote">
-        Its movements illustrate the schedule. The work is in the notebook.
+        Researching memory. Drawing a world in its free time.
       </p>
     </div>
   );

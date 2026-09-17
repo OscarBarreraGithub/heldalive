@@ -86,7 +86,9 @@ try {
     0.05,
     "Expiry returns to gentle automatically",
   );
-  await page.getByRole("button", { name: "Watch only", exact: true }).click();
+  await page.getByRole("button", { name: "Contribution settings" }).click();
+  await page.getByRole("switch", { name: "Browser compute" }).click();
+  await page.getByRole("button", { name: "Got it" }).click();
   await page.getByText("You’re just watching", { exact: true }).waitFor();
   const before = transfers;
   await page.reload();

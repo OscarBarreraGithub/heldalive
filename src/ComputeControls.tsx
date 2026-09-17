@@ -1,6 +1,6 @@
 import { CURRENT_MODEL as model } from "../shared/model";
 import budgets from "../shared/model-budgets.json";
-import { CircleHelp, Pause, Zap } from "lucide-react";
+import { CircleHelp, Zap } from "lucide-react";
 import type { useHabitat } from "./useHabitat";
 export function ComputeControls({
   habitat: h,
@@ -18,21 +18,12 @@ export function ComputeControls({
         <strong>Your browser’s contribution</strong>
         <span>FREE</span>
       </div>
-      <p>Choose how much to lend, or just watch.</p>
+      <p>A little by default. A little more, if you like.</p>
       <div
         className="compute-levels"
         role="group"
         aria-label="Browser compute level"
       >
-        <button
-          aria-label="Watch only"
-          aria-pressed={!h.enabled}
-          onClick={h.pause}
-        >
-          <Pause size={13} />
-          <strong>Watch</strong>
-          <small>no compute</small>
-        </button>
         {(
           [
             { name: "Gentle", duty: 0.05, layers: 2 },

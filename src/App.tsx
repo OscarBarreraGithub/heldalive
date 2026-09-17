@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, ArrowRight, Check, Pause, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowRight,
+  Check,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { CURRENT_MODEL as model } from "../shared/model";
 import budgets from "../shared/model-budgets.json";
 import { RESEARCH_URL, activityLabel } from "../shared/observatory";
@@ -11,7 +17,7 @@ import { ObservatoryWorld } from "./ObservatoryWorld";
 import { ResearchPage } from "./ResearchPage";
 import { Mural } from "./Mural";
 import { MathPage } from "./MathPage";
-import { useSimulatedCompute } from "./ComputeEstimate";
+import { SharedPresence } from "./SharedPresence";
 type Page = "habitat" | "research" | "math";
 function fromHash(): Page {
   return location.hash === "#math"
@@ -31,8 +37,6 @@ export function App() {
   const obs = useObservatory();
   const { data, online } = obs;
   const status = data?.status;
-  const simulatedCompute = useSimulatedCompute();
-  const phoneCompute = simulatedCompute + (state?.contributors || 0);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const change = () => {
@@ -87,20 +91,13 @@ export function App() {
             </a>
           ))}
         </nav>
-        <div className="here-pill scenario-pill">
-          <span className="compute-reading">
-            <b data-phone-equivalents>{phoneCompute}</b> phone-equivalents
-          </span>
-          {h.enabled && (
-            <button
-              className="quick-pause"
-              aria-label="Pause browser compute"
-              onClick={h.pause}
-            >
-              <Pause size={12} /> Pause
-            </button>
-          )}
-        </div>
+        <button
+          className="compute-settings"
+          onClick={() => setExplain(true)}
+          aria-label="Contribution settings"
+        >
+          <SlidersHorizontal size={14} /> Settings
+        </button>
       </header>
       <main id="main">
         {page === "habitat" && (
@@ -126,6 +123,7 @@ export function App() {
                   It studies how to remember. In its free time, it draws a
                   world.
                 </p>
+                <SharedPresence state={state} connected={h.connected} />
               </div>
               <ObservatoryWorld
                 loading={obs.loading}
@@ -257,9 +255,9 @@ export function App() {
                 <summary>What is this tab actually doing?</summary>
                 <p>
                   A visible, compatible browser automatically offers a Gentle
-                  piece of the Qwen3 model. Watch stops it. More and Most offer
-                  extra compute for ten minutes. This is free; it uses device
-                  resources and downloads model data.
+                  piece of the Qwen3 model. Settings lets you switch that off.
+                  More and Most offer extra compute for ten minutes. This is
+                  free; it uses device resources and downloads model data.
                 </p>
                 <p>
                   <strong>Your piece:</strong> {h.usage.layers} of{" "}
@@ -285,6 +283,13 @@ export function App() {
                   connection leaves, another group can pick up its saved task.
                 </p>
                 <p>Your private files and browsing history are not inputs.</p>
+                <p>
+                  The live count is visible browser sessions, including yours,
+                  not unique people. Holding a piece means its model data has
+                  loaded; useful inference needs a complete group. The lights
+                  show the next incomplete group, or the first complete group. A
+                  bright light means a layer is working right now.
+                </p>
                 <p>
                   The alien’s movements illustrate its daily schedule. Its saved
                   research and drawings show what the model actually made.
@@ -355,6 +360,25 @@ export function App() {
         </div>
         <span className="eyebrow">A LITTLE POWER. NO PAYMENT.</span>
         <h2 id="consent-title">Your tab helps run the experiment.</h2>
+        <div className="compute-setting-row">
+          <div>
+            <strong>Browser compute</strong>
+            <span>
+              {h.enabled
+                ? "On · lend compute while this tab is visible"
+                : "Off · just watching, no model downloads"}
+            </span>
+          </div>
+          <button
+            className="compute-switch"
+            role="switch"
+            aria-label="Browser compute"
+            aria-checked={h.enabled}
+            onClick={() => (h.enabled ? h.pause() : h.gentle())}
+          >
+            {h.enabled ? "On" : "Off"}
+          </button>
+        </div>
         <p>
           Qwen3 4B is split across browsers. Each complete group can run an
           agent’s next response. More groups give the alien more capacity to
@@ -380,21 +404,12 @@ export function App() {
           can remain cached. There is no app to install and no payment.
         </p>
         <p>
-          Watch stops contribution and stays saved. Hidden tabs withdraw;
-          closing the page stops its work. Browser code cannot access your
-          private files. The site accepts no visitor prompts or votes.
+          Switching compute off stops contribution and stays saved. Hidden tabs
+          withdraw; closing the page stops its work. Browser code cannot access
+          your private files. The site accepts no visitor prompts or votes.
         </p>
         <button className="button dark" onClick={() => setExplain(false)}>
           Got it <Check size={16} />
-        </button>
-        <button
-          className="text-button just-watch"
-          onClick={() => {
-            h.pause();
-            setExplain(false);
-          }}
-        >
-          I’ll just watch
         </button>
       </dialog>
     </>

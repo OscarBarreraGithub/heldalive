@@ -243,8 +243,10 @@ try {
   await support(false);
   await pages
     .at(-1)
-    .getByRole("button", { name: "Watch only", exact: true })
+    .getByRole("button", { name: "Contribution settings" })
     .click();
+  await pages.at(-1).getByRole("switch", { name: "Browser compute" }).click();
+  await pages.at(-1).getByRole("button", { name: "Got it" }).click();
   await pages[0].waitForTimeout(1200);
   const lost = await state();
   const lostTrialIds = new Set((await browserTrials()).map((t) => t.id));

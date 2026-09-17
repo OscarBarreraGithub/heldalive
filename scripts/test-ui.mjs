@@ -1,9 +1,9 @@
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true });
-const output = ".local/qa/edition12";
+const output = ".local/qa/edition13";
 await mkdir(output, { recursive: true });
 const errors = [];
 const modelRequests = [];
@@ -37,12 +37,10 @@ try {
   await page.goto(base);
   await page.getByRole("heading", { name: "Keep a little mind alive." }).waitFor();
   assert.equal(await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link").count(), 3);
-  await page.locator("[data-phone-equivalents]").waitFor();
-  const scenario = Number((await page.locator("[data-phone-equivalents]").innerText()).replace("≈", ""));
-  assert.ok(scenario >= 86, "Combined count includes the bounded authored baseline");
-  assert.equal(await page.getByText("SIMULATED ESTIMATE", { exact: true }).count(), 0);
-  assert.equal(await page.getByText("SIMULATED COMPUTE", { exact: true }).count(), 0);
-  assert.equal(await page.getByText("real connected tabs", { exact: true }).count(), 0);
+  await expect(page.locator("[data-live-sessions]")).toHaveText(/\d/);
+  assert.equal(await page.locator("[data-phone-equivalents]").count(), 0);
+  assert.equal(await page.getByRole("button", { name: /Watch only|Pause browser compute/ }).count(), 0);
+  assert.equal(await page.locator(".compute-levels button").count(), 3);
   assert.equal(await page.getByText("active research roles", { exact: true }).count(), 0);
   assert.equal(await page.getByText("worker jobs running", { exact: true }).count(), 0);
   assert.match(await page.locator(".researcher-state").innerText(), /Thinking|Between thoughts|Offline|Paused|Resting|Connecting|Waiting for compute/);
@@ -55,8 +53,9 @@ try {
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   assert.equal(await page.getByRole("button", { name: "How your compute helps" }).evaluate((el) => document.activeElement === el), true, "Explanation restores keyboard focus");
-  await page.getByRole("button", { name: "How your compute helps" }).click();
-  await page.getByRole("button", { name: "I’ll just watch" }).click();
+  await page.getByRole("button", { name: "Contribution settings" }).click();
+  await expect(page.getByRole("switch", { name: "Browser compute" })).toHaveAttribute("aria-checked", "false");
+  await page.getByRole("button", { name: "Got it" }).click();
   await page.reload();
   await page.getByText("You’re just watching", { exact: true }).waitFor();
   assert.equal(await page.evaluate(() => localStorage.getItem("held-participation")), "watch");
@@ -86,10 +85,13 @@ try {
           const choices = await page.locator(".compute-levels").boundingBox();
           assert.ok(scene && scene.y < controls.y, "Meet the alien before the settings panel");
           assert.ok(alien && alien.y + alien.height < height, "The alien is on the first screen");
-          assert.ok(choices && choices.y + choices.height < height, "Compute and opt-out choices are on the first screen");
+          const presence = await page.locator(".shared-presence").boundingBox();
+          assert.ok(presence && presence.y + presence.height < height, "Live participation is on the first screen");
+          if (height >= 700) assert.ok(choices && choices.y + choices.height < height, "Compute choices fit on an ordinary phone screen");
+          await expect(page.getByRole("button", { name: "Contribution settings" })).toBeInViewport();
           assert.match(await page.locator(".hero-description").innerText(), /powered by our browsers/);
         }
-        assert.equal(await page.locator("[data-phone-equivalents]").isVisible(), true, "Phone-equivalent count remains visible at every viewport");
+        assert.equal(await page.locator("[data-live-sessions]").isVisible(), true, "Live session count remains visible at every viewport");
       }
       if (width === 390 || width === 1440) await page.screenshot({ path: `${output}/${width}-${section}.png`, fullPage: true });
     }

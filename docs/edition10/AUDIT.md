@@ -67,3 +67,5 @@ Central runner still actually uses GPT-5.6 Luna through Codex CLI. Fifteen-minut
 ## Model references
 
 Model choice and architecture were checked against the [official Qwen3.5 9B card](https://huggingface.co/Qwen/Qwen3.5-9B). The installed artifact is the [MLX community 4-bit conversion](https://huggingface.co/mlx-community/Qwen3.5-9B-4bit/tree/8b2b98c00a6b4d291155e4890773ca8f769aee53), running with [MLX LM](https://github.com/ml-explore/mlx-lm). Local measurements, rather than card benchmarks, establish the commissioning results in [MODEL-VERIFICATION.json](MODEL-VERIFICATION.json).
+
+Automatic continuation was also observed after the persisted cooldown: Qwen started `research-1789619937785-01-orchestrator` without intervention, created its own manager branch, and updated the main-branch current-loop pointer while the role was running.

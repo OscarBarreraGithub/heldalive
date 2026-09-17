@@ -12,6 +12,10 @@ The browser workload performs synthetic pack/recall memory trials during the res
 
 Cloudflare serves the site, coordinates browser chains, and persists public records. A private local runner uses authenticated Codex CLI calls and publishes only validated research/art records. Exact active station prompts, credentials and private state are not exported. No audience, work, model source or expenses are fabricated.
 
+## Phone-equivalent scenario
+
+The header and home page show an explicitly **simulated** Qwen compute-equivalent estimate, centered on 100 small phone contributions. Its slow fluctuations are part of the artwork. The math page explains the unmeasured phone-speed assumption and the hypothetical 10% desktop allocation. Actual connected tabs and work remain separate measured counters. See [scenario assumptions](docs/edition09/COMPUTE-SCENARIO.md).
+
 ## Daily rhythm (UTC)
 
 | Window | Activity |

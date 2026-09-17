@@ -7015,3 +7015,137 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Authored phone-equivalent scenario; measured counters keep their own row. */
+.scenario-pill {
+  border-radius: 12px;
+}
+.scenario-pill > a {
+  display: grid;
+  gap: 3px;
+  color: #dbe3cc;
+  text-decoration: none;
+  line-height: 1.25;
+}
+.scenario-pill b {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.scenario-pill small {
+  color: #c4b897;
+  font: 8px/1.4 var(--mono);
+  letter-spacing: 0.07em;
+}
+.compute-estimate {
+  max-width: 450px;
+  margin: 0 0 18px;
+  padding: 15px 17px;
+  border: 1px solid #465044;
+  border-left: 3px solid #b6c498;
+  border-radius: 6px;
+  background: #202820;
+}
+.estimate-reading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.estimate-reading > strong {
+  color: #e1e8cb;
+  font: 500 38px/1 var(--serif, Georgia, serif);
+  font-variant-numeric: tabular-nums;
+  min-width: 92px;
+}
+.estimate-reading > div {
+  display: grid;
+  gap: 6px;
+}
+.estimate-reading span {
+  font-size: 13px;
+  color: #d6ddc7;
+}
+.estimate-reading small {
+  color: #d0bd96;
+  font: 9px/1.4 var(--mono);
+  letter-spacing: 0.09em;
+}
+.compute-estimate p {
+  margin: 12px 0 0;
+  color: #b8c2ae;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.compute-estimate a {
+  color: #e0e8cb;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.estimate-explanation {
+  padding: 28px;
+  margin: 32px 0;
+}
+.estimate-explanation h2 {
+  font:
+    32px/1.2 Georgia,
+    serif;
+  margin: 14px 0;
+  color: #e0e5ce;
+}
+.estimate-explanation p {
+  color: #bec8b6;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.estimate-explanation .estimate-equation {
+  font-family: var(--mono);
+  color: #e1e8cd;
+  padding: 12px 0;
+  border-block: 1px solid #465044;
+}
+@media (max-width: 800px) {
+  .compute-estimate {
+    max-width: none;
+  }
+}
+@media (max-width: 600px) {
+  .site-header .scenario-pill {
+    max-width: calc(100% - 135px);
+    padding: 6px 8px;
+    white-space: normal;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .scenario-pill > a {
+    font-size: 10px;
+  }
+  .scenario-pill b {
+    font-size: 14px;
+  }
+  .scenario-pill small {
+    font-size: 7px;
+  }
+  .scenario-pill .quick-pause {
+    border: 0;
+    padding: 2px 0;
+    margin: 0;
+  }
+  .compute-estimate {
+    padding: 12px;
+  }
+  .estimate-reading {
+    gap: 10px;
+  }
+  .estimate-reading > strong {
+    font-size: 34px;
+    min-width: 80px;
+  }
+  .estimate-reading span {
+    font-size: 12px;
+  }
+  .estimate-explanation {
+    padding: 20px;
+  }
+  .estimate-explanation h2 {
+    font-size: 27px;
+  }
+}

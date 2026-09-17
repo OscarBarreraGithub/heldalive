@@ -11,6 +11,7 @@ import { ObservatoryWorld } from "./ObservatoryWorld";
 import { ResearchPage } from "./ResearchPage";
 import { Mural } from "./Mural";
 import { MathPage } from "./MathPage";
+import { ComputeEstimate, useSimulatedCompute } from "./ComputeEstimate";
 type Page = "habitat" | "research" | "math";
 function fromHash(): Page {
   return location.hash === "#math"
@@ -30,6 +31,7 @@ export function App() {
   const obs = useObservatory();
   const { data, online } = obs;
   const status = data?.status;
+  const simulatedCompute = useSimulatedCompute();
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const change = () => {
@@ -84,12 +86,16 @@ export function App() {
             </a>
           ))}
         </nav>
-        <div className="here-pill">
-          <i className={`live-dot ${connected ? "" : "rest"}`} />
-          <span>
-            {connected ? (state?.viewers ?? 0) : "—"}{" "}
-            <span className="here-label">tabs here</span>
-          </span>
+        <div className="here-pill scenario-pill">
+          <a
+            href="#math"
+            aria-label="About the simulated phone-equivalent estimate"
+          >
+            <span>
+              <b>≈{simulatedCompute}</b> phone-equivalents
+            </span>
+            <small>SIMULATED COMPUTE</small>
+          </a>
           {h.enabled && (
             <button
               className="quick-pause"
@@ -129,6 +135,7 @@ export function App() {
                     : "being checked"}
                   .
                 </p>
+                <ComputeEstimate value={simulatedCompute} />
                 <ComputeControls habitat={h} explain={() => setExplain(true)} />
               </div>
               <ObservatoryWorld
@@ -166,7 +173,7 @@ export function App() {
             >
               <div>
                 <strong>{connected ? (state?.viewers ?? 0) : "—"}</strong>
-                <span>open tabs</span>
+                <span>real connected tabs</span>
               </div>
               <div>
                 <strong>{state?.contributors || 0}</strong>

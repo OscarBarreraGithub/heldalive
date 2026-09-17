@@ -37,6 +37,13 @@ try {
   await page.goto(base);
   await page.getByRole("heading", { name: "Keep a little mind alive." }).waitFor();
   assert.equal(await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link").count(), 3);
+  await page.getByLabel("Simulated phone-equivalent compute").waitFor();
+  const scenario = Number((await page.locator("[data-simulated-phone-equivalents]").innerText()).replace("≈", ""));
+  assert.ok(scenario >= 86 && scenario <= 114, "Authored estimate remains in its stated bounds");
+  assert.equal(await page.getByText("SIMULATED ESTIMATE", { exact: true }).isVisible(), true);
+  assert.equal(await page.getByText("SIMULATED COMPUTE", { exact: true }).isVisible(), true);
+  assert.equal(await page.getByText("real connected tabs", { exact: true }).isVisible(), true);
+
   await page.getByRole("button", { name: "How your compute helps" }).click();
   await page.getByRole("dialog").waitFor({ state: "visible" });
   assert.match(await page.getByRole("dialog").innerText(), /113–345/);
@@ -68,6 +75,7 @@ try {
         const controls = await page.locator(".compute-care").boundingBox();
         assert.ok(headline && controls && headline.y < controls.y, "The explanation comes before compute controls");
         assert.ok(headline.y + headline.height < 650, "The main purpose is visible without scrolling");
+        assert.equal(await page.getByText("SIMULATED COMPUTE", { exact: true }).isVisible(), true, "Simulation disclosure remains visible at every viewport");
       }
       if (width === 390 || width === 1440) await page.screenshot({ path: `${output}/${width}-${section}.png`, fullPage: true });
     }

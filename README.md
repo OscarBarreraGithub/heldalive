@@ -14,7 +14,7 @@ Cloudflare serves the site, coordinates browser chains, and persists public reco
 
 ## Phone-equivalent scenario
 
-The header and home page show an explicitly **simulated** Qwen compute-equivalent estimate, centered on 100 small phone contributions. Its slow fluctuations are part of the artwork. The math page explains the unmeasured phone-speed assumption and the hypothetical 10% desktop allocation. Actual connected tabs and work remain separate measured counters. See [scenario assumptions](docs/edition09/COMPUTE-SCENARIO.md).
+The header shows one compact phone-equivalent count: an authored baseline centered on 100 plus contributing browser holders. Slow fluctuations are part of the artwork. The presentation is deliberately minimal; source assumptions are documented in the repository. Work records and backend telemetry retain their original measurements. See [scenario assumptions](docs/edition09/COMPUTE-SCENARIO.md).
 
 ## Daily rhythm (UTC)
 

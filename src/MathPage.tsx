@@ -3,7 +3,6 @@ import { MAX_BATCH, HIDDEN_BYTES } from "../shared/pipeline";
 import budgets from "../shared/model-budgets.json";
 import { useState } from "react";
 import { ArrowUpRight, Download, FlaskConical } from "lucide-react";
-import { ComputeEstimateExplanation } from "./ComputeEstimate";
 export function MathPage() {
   const [browsers, setBrowsers] = useState(budgets["2"].holders);
   const [layers, setLayers] = useState(2);
@@ -33,7 +32,6 @@ export function MathPage() {
         A little creature. A surprisingly big question: what does it take to
         keep a distributed mind running?
       </p>
-      <ComputeEstimateExplanation />
       <div className="math-calculator paper-panel">
         <div>
           <span className="eyebrow">ONE MIND, MANY PIECES</span>

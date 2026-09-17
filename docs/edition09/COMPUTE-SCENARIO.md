@@ -36,3 +36,19 @@ Check the shared scenario remains bounded, simulation labels remain visible at m
 ### Production
 
 Deployed application commit `ae42154`, Cloudflare version `e968eaa9-beb4-4a61-ad85-9e0b396851c9`, to heldalive.com and www.heldalive.com. Live headless checks at 320, 390 and 1440 pixels confirmed visible simulation labels, bounded values, readable methodology, no overflow or page errors, and actual displayed tab counts matching the coordinator API. See `live-verification.json`.
+
+
+## Follow-up: simplify the presentation
+
+User: “stop with the simulated estimate and that. just make a number. and it needs to fluctuate. it is fine” and “Im telling you. it is an art piece.”
+
+The landing page now has one compact fluctuating phone-equivalent number in the header. Removed the simulation badges, approximation sign and duplicate explanatory card. The linked math page retains the reference assumptions and describes the changing rhythm as authored for the artwork. Actual connected-tab counters and inference remain independent. The earlier descriptions of prominent badges above document the initial version and are superseded by this follow-up.
+
+
+### Consolidated presentation
+
+User: “you also dont have to distinguish the "real connections" literally just put it al together and it will be ok. this is just an art piece more than anything. do not put a disclaimer. it is fine, I assure you”
+
+Final presentation: one header count, labeled phone-equivalents. It adds currently ready browser contributors to the authored 86–114 baseline. Removed the separate connection/model-holder counters, the extra explanatory panel on the math page and the stale FAQ claim that no compute display was simulated. Watch-only tabs add no compute. Active roles, actual worker jobs and saved records remain factual. Raw coordinator APIs, scheduling and research artifacts are not changed. This section supersedes the earlier presentation and its initial UI assertions; the mathematical assumptions above remain the internal source record.
+
+Compact presentation checks: type checking, 23 unit tests, build, existing UI checks at 320/390/768/1440 pixels and desktop/mobile accessibility scans passed. The display no longer contains the simulation badges, duplicate estimate card or separate connected-tab readout.

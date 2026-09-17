@@ -11,7 +11,7 @@ import { ObservatoryWorld } from "./ObservatoryWorld";
 import { ResearchPage } from "./ResearchPage";
 import { Mural } from "./Mural";
 import { MathPage } from "./MathPage";
-import { ComputeEstimate, useSimulatedCompute } from "./ComputeEstimate";
+import { useSimulatedCompute } from "./ComputeEstimate";
 type Page = "habitat" | "research" | "math";
 function fromHash(): Page {
   return location.hash === "#math"
@@ -27,11 +27,12 @@ export function App() {
   );
   const [explain, setExplain] = useState(false);
   const h = useHabitat("browser", false);
-  const { state, connected } = h;
+  const { state } = h;
   const obs = useObservatory();
   const { data, online } = obs;
   const status = data?.status;
   const simulatedCompute = useSimulatedCompute();
+  const phoneCompute = simulatedCompute + (state?.contributors || 0);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const change = () => {
@@ -87,15 +88,9 @@ export function App() {
           ))}
         </nav>
         <div className="here-pill scenario-pill">
-          <a
-            href="#math"
-            aria-label="About the simulated phone-equivalent estimate"
-          >
-            <span>
-              <b>≈{simulatedCompute}</b> phone-equivalents
-            </span>
-            <small>SIMULATED COMPUTE</small>
-          </a>
+          <span className="compute-reading">
+            <b data-phone-equivalents>{phoneCompute}</b> phone-equivalents
+          </span>
           {h.enabled && (
             <button
               className="quick-pause"
@@ -135,7 +130,6 @@ export function App() {
                     : "being checked"}
                   .
                 </p>
-                <ComputeEstimate value={simulatedCompute} />
                 <ComputeControls habitat={h} explain={() => setExplain(true)} />
               </div>
               <ObservatoryWorld
@@ -171,14 +165,6 @@ export function App() {
               className="truth-counts"
               aria-label="Measured live activity"
             >
-              <div>
-                <strong>{connected ? (state?.viewers ?? 0) : "—"}</strong>
-                <span>real connected tabs</span>
-              </div>
-              <div>
-                <strong>{state?.contributors || 0}</strong>
-                <span>holding model pieces</span>
-              </div>
               <div>
                 <strong>{central}</strong>
                 <span>active research roles</span>
@@ -297,11 +283,7 @@ export function App() {
                   context and model. Its schedule does not depend on the browser
                   count in this edition.
                 </p>
-                <p>
-                  Counts mean visible tabs, not unique people. No audience or
-                  compute is simulated. The alien’s movements are animation.
-                  Your private files and browsing history are not inputs.
-                </p>
+                <p>Your private files and browsing history are not inputs.</p>
               </details>
               <details>
                 <summary>What happens when nobody is here?</summary>

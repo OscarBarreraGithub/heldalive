@@ -2,7 +2,20 @@ import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
-const count = Number(process.env.HELD_TEST_PEERS || 18);
+assert.ok(
+  ["127.0.0.1", "localhost"].includes(new URL(base).hostname),
+  "Browser chain checks are local only",
+);
+const count = Number(process.env.HELD_TEST_PEERS || 5);
+const hour = new Date().getUTCHours();
+const station = hour < 20 ? "research" : hour === 20 ? "mural" : "rest";
+assert.notEqual(
+  station,
+  "rest",
+  "Run actual model work during 00–20 UTC research or 20–21 UTC art; rest windows intentionally schedule no new jobs",
+);
+const output = ".local/qa/edition08";
+const startedAll = Date.now();
 const requestedJobs = Number(process.env.HELD_TEST_JOBS || 1);
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const contexts = [];
@@ -11,6 +24,54 @@ const events = [];
 const assignments = [];
 const downloads = [];
 let browserDone = 0;
+const modelJobs = new Map();
+const completedJobs = new Set();
+const pageErrors = [];
+const browserTrials = async () => {
+  const { trials } = await fetch(base + "/api/trials?room=browser").then((r) =>
+    r.json(),
+  );
+  return trials.filter(
+    (t) =>
+      t.source === "browser" &&
+      completedJobs.has(t.id) &&
+      [...modelJobs.values()].some(
+        (job) =>
+          job.kind === "pack" &&
+          completedJobs.has(job.id) &&
+          job.messages.at(-1).content.split("RECORD:\n")[1] === t.record,
+      ),
+  );
+};
+function verifyTrial(trial) {
+  assert.equal(trial.source, "browser");
+  assert.equal(
+    modelJobs.get(trial.id)?.kind,
+    "recall",
+    "Stored result came from a browser recall job",
+  );
+  assert.equal(trial.record.split("\n").length, 12);
+  assert.equal(trial.questions.length, 3);
+  assert.equal(trial.expected.length, 3);
+  assert.equal(trial.answers.length, 3);
+  assert.equal(trial.responseValid, true);
+  assert.ok(trial.memory.length > 0 && trial.memory.length <= 240);
+  assert.equal(trial.total, 3);
+  const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  assert.equal(
+    trial.correct,
+    trial.expected.reduce(
+      (score, answer, i) =>
+        score + Number(normalize(answer) === normalize(trial.answers[i] || "")),
+      0,
+    ),
+    "Published score is reproducible from stored answers",
+  );
+  assert.match(trial.model, /Qwen3/);
+  const prompt = modelJobs.get(trial.id).messages;
+  assert.equal(prompt.length, 2, "Recall starts from a separate short context");
+  assert.ok(!prompt.at(-1).content.includes("RECORD:\n"));
+}
 const nativeDuringLaunch = process.env.HELD_TEST_LAUNCH === "1";
 let config;
 if (nativeDuringLaunch) {
@@ -35,7 +96,7 @@ async function support(enabled) {
   });
   assert.equal(r.status, 200);
 }
-await mkdir(".local/qa/edition07", { recursive: true });
+await mkdir(output, { recursive: true });
 const state = async () =>
   fetch(base + "/api/state?room=browser").then((r) => r.json());
 try {
@@ -72,6 +133,7 @@ try {
         try {
           const d = JSON.parse(String(frame.payload));
           if (d.type === "pipeline_assign") assignments[i] = d.piece;
+          if (d.type === "job") modelJobs.set(d.job.id, d.job);
         } catch {}
       }),
     );
@@ -79,11 +141,18 @@ try {
       if (m.type() === "warning" || m.type() === "error")
         console.log("browser", i, m.text().slice(0, 500));
     });
-    page.on("pageerror", (e) => console.log("ERROR", i, e.message));
+    page.on("pageerror", (e) => {
+      pageErrors.push(e.message);
+      console.log("ERROR", i, e.message);
+    });
     page.on("websocket", (ws) =>
       ws.on("framesent", (frame) => {
         try {
-          if (JSON.parse(String(frame.payload)).type === "done") browserDone++;
+          const message = JSON.parse(String(frame.payload));
+          if (message.type === "done") {
+            browserDone++;
+            completedJobs.add(message.jobId);
+          }
         } catch {}
       }),
     );
@@ -136,7 +205,9 @@ try {
     }
     if (
       browserDone >= requestedJobs &&
-      s.artworkCount >= before.artworkCount + requestedJobs
+      (station === "research"
+        ? (await browserTrials()).length >= requestedJobs
+        : s.artworkCount >= before.artworkCount + requestedJobs)
     ) {
       worked = s;
       break;
@@ -145,6 +216,15 @@ try {
   }
   assert.ok(worked, "The shared model must complete real assigned work");
   assert.ok(worked.pipelines.some((p) => p.ready));
+  const initialTrials = station === "research" ? await browserTrials() : [];
+  for (const trial of initialTrials) verifyTrial(trial);
+  if (station === "research")
+    assert.ok(
+      [...modelJobs.values()].some(
+        (j) => j.kind === "pack" && completedJobs.has(j.id),
+      ),
+      "The browser completed the preceding pack stage too",
+    );
   const usage = await Promise.all(
     pages.map((p) =>
       p.locator("[data-work-ms]").evaluate((el) => ({
@@ -167,6 +247,7 @@ try {
     .click();
   await pages[0].waitForTimeout(1200);
   const lost = await state();
+  const lostTrialIds = new Set((await browserTrials()).map((t) => t.id));
   assert.equal(
     lost.modelAvailable,
     false,
@@ -186,7 +267,7 @@ try {
       name:
         count === 5
           ? "Most compute"
-          : count === 8
+          : count === 9
             ? "More compute"
             : "Gentle compute",
     })
@@ -197,16 +278,29 @@ try {
     .waitFor({ timeout: 120000 });
   let recovered = await state();
   assert.ok(recovered.modelAvailable, "Replacement restores full coverage");
-  const resumeDeadline = Date.now() + 180000;
+  const resumeDeadline = Date.now() + 300000;
   while (Date.now() < resumeDeadline) {
     recovered = await state();
-    if (recovered.artworkCount > lost.artworkCount) break;
+    if (
+      station === "research"
+        ? (await browserTrials()).some((t) => !lostTrialIds.has(t.id))
+        : recovered.artworkCount > lost.artworkCount
+    )
+      break;
     await pages[0].waitForTimeout(1000);
   }
+  const recoveredTrials =
+    station === "research"
+      ? (await browserTrials()).filter((t) => !lostTrialIds.has(t.id))
+      : [];
   assert.ok(
-    recovered.artworkCount > lost.artworkCount,
+    station === "research"
+      ? recoveredTrials.length > 0
+      : recovered.artworkCount > lost.artworkCount,
     "A restored pipeline completes new model work",
   );
+  for (const trial of recoveredTrials) verifyTrial(trial);
+  assert.deepEqual(pageErrors, [], "No uncaught browser errors");
   // Automation keeps contexts foregrounded; exercise the hidden-page handler explicitly.
   await pages.at(-1).evaluate(() => {
     Object.defineProperty(document, "hidden", {
@@ -222,15 +316,21 @@ try {
     "Hidden holder withdraws its physical piece",
   );
   await pages[0].screenshot({
-    path: ".local/qa/edition07/shared-working.png",
+    path: `${output}/shared-working.png`,
     fullPage: true,
   });
   await writeFile(
-    ".local/qa/edition07/shared-result.json",
+    `${output}/shared-result.json`,
     JSON.stringify(
       {
         contexts: count,
+        station,
         browserDone,
+        initialTrials,
+        recoveredTrials,
+        modelJobs: [...modelJobs.values()],
+        pageErrors,
+        totalElapsedMs: Date.now() - startedAll,
         automatic: count === 18,
         usage,
         assignments,
@@ -247,7 +347,7 @@ try {
     ),
   );
   console.log(
-    "PASS assigned-piece downloads, shared work, physical loss, no fallback, completed recovery, synthetic visibility withdrawal",
+    `PASS ${count} actual browser holders: owned-layer downloads, ${station === "research" ? "real pack+recall inference and persisted/recomputed trial scores" : "real ASCII work"}, physical loss, frozen tokens without fallback, completed recovery, synthetic visibility withdrawal`,
   );
 } finally {
   await browser.close();

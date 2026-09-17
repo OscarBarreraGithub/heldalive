@@ -8,6 +8,8 @@ assert.ok(
   "Fixture inference must only run against a local installation",
 );
 const clients = [];
+const hour = new Date().getUTCHours();
+const station = hour < 20 ? "research" : hour === 20 ? "mural" : "rest";
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 async function until(fn, message, timeout = 40000) {
   const end = Date.now() + timeout;
@@ -168,58 +170,140 @@ try {
   );
   // Explicit LOCAL coordinator fixtures, never model-quality evidence.
   const art = "    /\\\n   /  \\\n  /____\\\n  | [] |\n  |____|";
-  const first = await take("art");
-  assert.equal(first.job.maxTokens, 384);
-  assert.ok(clients.flatMap((c) => c.jobs).every((j) => j.kind === "art"));
-  viewer.send({ type: "done", jobId: first.job.id, tokens: 100 });
-  await wait(100);
-  assert.ok(
-    viewer.state.agents.some((a) => a.id === first.job.id),
-    "A spectator cannot complete another holder's work",
-  );
-  const inputs = await fetch(base + "/api/inputs?room=browser").then((r) =>
-    r.json(),
-  );
-  const inspected = inputs.tasks.find((t) => t.id === first.job.id);
-  assert.deepEqual(inspected.messages, first.job.messages);
-  assert.equal(inspected.maxOutputTokens, 384);
-  assert.equal(
-    (await fetch(base + "/api/inputs?room=browser", { method: "POST" })).status,
-    405,
-  );
-  const before = viewer.state.artworkCount;
-  const credits = first.c.profile.completedJobs;
-  complete(first.c, first.job, "Here is a drawing with explanatory prose.");
-  await until(
-    () => !viewer.state.agents.some((a) => a.id === first.job.id),
-    "reject invalid art",
-  );
-  assert.equal(viewer.state.artworkCount, before);
-  assert.equal(
-    first.c.profile.completedJobs,
-    credits,
-    "Bad output earns no art credit",
-  );
-  const valid = await take("art");
-  complete(valid.c, valid.job, art);
-  await until(
-    () => viewer.state.artworkCount > before,
-    "Valid drawing archived",
-  );
-  assert.equal(viewer.state.artworks[0].text, art);
-  assert.ok(
-    clients.flatMap((c) => c.jobs).every((j) => j.kind === "art"),
-    "No plans, memory or prose jobs",
-  );
-  const next = await take("art");
-  const missing = workers.find(
-    (c) => c.piece.group === next.c.piece.group && c !== next.c,
-  );
+  const initialKind = station === "research" ? "pack" : "art";
+  let next;
+  if (station === "rest") {
+    await wait(3500);
+    assert.equal(
+      viewer.state.agents.length,
+      0,
+      "No new browser work outside research/art windows",
+    );
+    assert.equal(clients.flatMap((c) => c.jobs).length, 0);
+  } else {
+    const first = await take(initialKind);
+    assert.equal(first.job.maxTokens, initialKind === "pack" ? 140 : 384);
+    assert.ok(
+      clients
+        .flatMap((c) => c.jobs)
+        .every((j) => [initialKind, "recall"].includes(j.kind)),
+    );
+    viewer.send({ type: "done", jobId: first.job.id, tokens: 100 });
+    await wait(100);
+    assert.ok(
+      viewer.state.agents.some((a) => a.id === first.job.id),
+      "A spectator cannot complete another holder's work",
+    );
+    const inputs = await fetch(base + "/api/inputs?room=browser").then((r) =>
+      r.json(),
+    );
+    const inspected = inputs.tasks.find((t) => t.id === first.job.id);
+    assert.deepEqual(inspected.messages, first.job.messages);
+    assert.equal(inspected.maxOutputTokens, first.job.maxTokens);
+    assert.equal(
+      (await fetch(base + "/api/inputs?room=browser", { method: "POST" }))
+        .status,
+      405,
+    );
+    const before = viewer.state.artworkCount;
+    const credits = first.c.profile.completedJobs;
+    complete(
+      first.c,
+      first.job,
+      initialKind === "pack" ? "" : "Here is a drawing with explanatory prose.",
+    );
+    await until(
+      () => !viewer.state.agents.some((a) => a.id === first.job.id),
+      "Invalid output rejected",
+    );
+    assert.equal(viewer.state.artworkCount, before);
+    assert.equal(
+      first.c.profile.completedJobs,
+      credits,
+      "Invalid output earns no credit",
+    );
+    const valid = await take(initialKind);
+    if (initialKind === "art") {
+      complete(valid.c, valid.job, art);
+      await until(
+        () => viewer.state.artworkCount > before,
+        "Valid drawing archived",
+      );
+      assert.equal(viewer.state.artworks[0].text, art);
+    } else {
+      const record = valid.job.messages.at(-1).content.split("RECORD:\n")[1];
+      assert.equal(record.split("\n").length, 12);
+      const pairs = [
+        ...record.matchAll(/(\w+) keeps a (\w+) in the \w+\./g),
+      ].map((m) => [m[1], m[2]]);
+      assert.equal(pairs.length, 12);
+      const memory = pairs
+        .map(([name, object]) => `${name}=${object}`)
+        .join(";");
+      assert.ok(memory.length <= 240);
+      complete(valid.c, valid.job, memory);
+      const recall = await take("recall");
+      assert.equal(recall.job.maxTokens, 60);
+      assert.equal(
+        recall.job.messages.length,
+        2,
+        "Recall gets a new short context",
+      );
+      const prompt = recall.job.messages.at(-1).content;
+      assert.ok(
+        !prompt.includes("RECORD:\n"),
+        "Full source record is not carried to recall",
+      );
+      assert.ok(
+        prompt.includes(JSON.stringify(memory)),
+        "Only compressed memory is carried forward",
+      );
+      const names = [...prompt.matchAll(/What object does (\w+) keep\?/g)].map(
+        (m) => m[1],
+      );
+      const answers = names.map((name) => new Map(pairs).get(name));
+      assert.equal(answers.length, 3);
+      assert.ok(answers.every(Boolean));
+      complete(recall.c, recall.job, JSON.stringify({ answers }));
+      await until(
+        () => viewer.state.trials.find((t) => t.id === recall.job.id),
+        "Recall trial archived",
+      );
+      const { trials } = await fetch(base + "/api/trials?room=browser").then(
+        (r) => r.json(),
+      );
+      const trial = trials.find((t) => t.id === recall.job.id);
+      assert.ok(trial, "Stored trial API contains the completed fixture");
+      assert.equal(trial.source, "browser");
+      assert.equal(trial.record, record);
+      assert.equal(trial.questions.length, 3);
+      assert.deepEqual(trial.answers, answers);
+      assert.deepEqual(trial.expected, answers);
+      assert.equal(trial.correct, 3);
+      assert.equal(trial.total, 3);
+      assert.equal(trial.responseValid, true);
+      assert.equal(trial.memory, memory);
+      assert.equal(trial.model, model.label);
+    }
+    next = await until(() => {
+      for (const c of clients) {
+        const index = c.jobs.findIndex((j) =>
+          viewer.state.agents.some((a) => a.id === j.id),
+        );
+        if (index >= 0) return { c, job: c.jobs.splice(index, 1)[0] };
+      }
+      return null;
+    }, "Next scheduled job");
+  }
+  const missing = next
+    ? workers.find((c) => c.piece.group === next.c.piece.group && c !== next.c)
+    : workers[0];
   close(missing);
-  await until(
-    () => !viewer.state.agents.some((a) => a.id === next.job.id),
-    "Lost piece cancels lease",
-  );
+  if (next)
+    await until(
+      () => !viewer.state.agents.some((a) => a.id === next.job.id),
+      "Lost piece cancels lease",
+    );
   const replacement = await connect();
   replacement.send({
     type: "pipeline_offer",
@@ -237,8 +321,12 @@ try {
     modelId: model.id,
     key: part.piece.key,
   });
+  await until(
+    () => viewer.state.pipelines.filter((p) => p.ready).length === 2,
+    "Two complete chains restored",
+  );
   console.log(
-    "PASS: authenticated sockets, votes rejected, no prompts, physical coverage, two chains, art-only jobs, exact inputs, invalid output rejected without credit, valid artwork preserved, disconnect and gap replacement. LOCAL fixtures only.",
+    `PASS: authenticated sockets, votes rejected, no prompts, old-model refusal, physical coverage, two chains, ${station} schedule, ${station === "research" ? "pack/recall context boundary and persisted scored trial" : station === "mural" ? "valid artwork and invalid output rejection" : "rest-window inactivity"}, disconnect and gap replacement. LOCAL coordinator fixtures only, not inference evidence.`,
   );
 } finally {
   for (const c of clients) close(c);

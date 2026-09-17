@@ -37,9 +37,25 @@ import type {
   Thought,
   WorkspaceFile,
 } from "../shared/protocol";
-import { artMessages } from "../shared/personality";
+import {
+  artMessages,
+  packMessages,
+  recallMessages,
+} from "../shared/personality";
+import {
+  stationAt,
+  validPublication,
+  type ObservatoryStatus,
+  type ResearchRun,
+  type MuralTile,
+} from "../shared/observatory";
 import { ART_MAX_TOKENS, inspectArt } from "../shared/ascii";
-import { scoreAnswers } from "../shared/experiments";
+import {
+  scoreAnswers,
+  makeMemoryCase,
+  parseAnswers,
+  validAnswerResponse,
+} from "../shared/experiments";
 import type { MemoryCase } from "../shared/experiments";
 import { modelAssetUrl } from "../shared/modelAssets";
 
@@ -239,6 +255,8 @@ export default {
           "/api/inputs",
           "/api/identity",
           "/api/launch-support",
+          "/api/observatory",
+          "/api/mural",
         ].includes(url.pathname)
       )
         return new Response("Not found", { status: 404 });
@@ -261,7 +279,10 @@ export default {
       const room =
         url.searchParams.get("room") === "browser" ? "browser" : "main";
       let visitor = "";
-      if (url.pathname === "/api/launch-support") {
+      if (
+        url.pathname === "/api/launch-support" ||
+        (url.pathname === "/api/observatory" && request.method === "POST")
+      ) {
         if (request.method !== "POST")
           return new Response("Method not allowed", { status: 405 });
         if (
@@ -314,6 +335,18 @@ export class LivingRoom extends DurableObject<Env> {
     );
     this.ctx.storage.sql.exec(
       "CREATE TABLE IF NOT EXISTS artworks (id TEXT PRIMARY KEY, value TEXT NOT NULL, at INTEGER NOT NULL)",
+    );
+    this.ctx.storage.sql.exec(
+      "CREATE TABLE IF NOT EXISTS observatory (id TEXT PRIMARY KEY, value TEXT NOT NULL, at INTEGER NOT NULL)",
+    );
+    this.ctx.storage.sql.exec(
+      "CREATE TABLE IF NOT EXISTS research_runs (id TEXT PRIMARY KEY, value TEXT NOT NULL, at INTEGER NOT NULL)",
+    );
+    this.ctx.storage.sql.exec(
+      "CREATE TABLE IF NOT EXISTS mural (id TEXT PRIMARY KEY, value TEXT NOT NULL, position INTEGER NOT NULL UNIQUE, revision INTEGER NOT NULL)",
+    );
+    this.ctx.storage.sql.exec(
+      "CREATE INDEX IF NOT EXISTS research_runs_at ON research_runs(at DESC)",
     );
     this.ctx.storage.sql.exec(
       "CREATE TABLE IF NOT EXISTS trials (id TEXT PRIMARY KEY, value TEXT NOT NULL, at INTEGER NOT NULL)",
@@ -903,6 +936,117 @@ export class LivingRoom extends DurableObject<Env> {
       if (peer.role === "visitor") this.send(ws, state);
   }
   async fetch(request: Request): Promise<Response> {
+    const researchUrl = new URL(request.url);
+    if (researchUrl.pathname === "/api/observatory") {
+      if (request.method === "POST") {
+        if (Number(request.headers.get("Content-Length")) > 32768)
+          return new Response("Too large", { status: 413 });
+        const reader = request.body?.getReader();
+        let size = 0,
+          body = "";
+        const decoder = new TextDecoder();
+        if (reader)
+          while (true) {
+            const part = await reader.read();
+            if (part.done) break;
+            size += part.value.length;
+            if (size > 32768) {
+              await reader.cancel();
+              return new Response("Too large", { status: 413 });
+            }
+            body += decoder.decode(part.value, { stream: true });
+          }
+        body += decoder.decode();
+        let data: {
+          status: ObservatoryStatus;
+          run?: ResearchRun;
+          tile?: MuralTile;
+        };
+        try {
+          data = JSON.parse(body);
+        } catch {
+          return new Response("Invalid JSON", { status: 400 });
+        }
+        if (!validPublication(data))
+          return new Response("Invalid publication", { status: 400 });
+        if (Math.abs(data.status.updatedAt - Date.now()) > 120000)
+          return new Response("Stale heartbeat", { status: 409 });
+        this.ctx.storage.transactionSync(() => {
+          this.ctx.storage.sql.exec(
+            "INSERT OR REPLACE INTO observatory(id,value,at) VALUES ('current',?,?)",
+            JSON.stringify(data.status),
+            Date.now(),
+          );
+          if (data.run)
+            this.ctx.storage.sql.exec(
+              "INSERT OR IGNORE INTO research_runs(id,value,at) VALUES (?,?,?)",
+              data.run.id,
+              JSON.stringify(data.run),
+              data.run.at,
+            );
+          if (data.tile)
+            this.ctx.storage.sql.exec(
+              "INSERT INTO mural(id,value,position,revision) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value,revision=excluded.revision WHERE excluded.revision>mural.revision",
+              data.tile.id,
+              JSON.stringify(data.tile),
+              data.tile.index,
+              data.tile.revision,
+            );
+        });
+        return Response.json({ ok: true });
+      }
+      const statusRow = this.ctx.storage.sql
+        .exec<{ value: string }>(
+          "SELECT value FROM observatory WHERE id='current'",
+        )
+        .toArray()[0];
+      const runs = this.ctx.storage.sql
+        .exec<{ value: string }>(
+          "SELECT value FROM research_runs ORDER BY at DESC LIMIT 20",
+        )
+        .toArray()
+        .map((r) => JSON.parse(r.value));
+      const tile = this.ctx.storage.sql
+        .exec<{ value: string }>(
+          "SELECT value FROM mural ORDER BY position DESC LIMIT 1",
+        )
+        .toArray()[0];
+      return Response.json(
+        {
+          status: statusRow ? JSON.parse(statusRow.value) : null,
+          runs,
+          mural: tile ? JSON.parse(tile.value) : null,
+          muralCount: this.ctx.storage.sql
+            .exec<{ n: number }>("SELECT COUNT(*) AS n FROM mural")
+            .one().n,
+        },
+        { headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (researchUrl.pathname === "/api/mural") {
+      const offset = Math.min(
+        100000,
+        Math.max(
+          0,
+          Math.floor(Number(researchUrl.searchParams.get("offset")) || 0),
+        ),
+      );
+      const rows = this.ctx.storage.sql
+        .exec<{ value: string }>(
+          "SELECT value FROM mural ORDER BY position ASC LIMIT 30 OFFSET ?",
+          offset,
+        )
+        .toArray();
+      return Response.json(
+        {
+          tiles: rows.map((r) => JSON.parse(r.value)),
+          total: this.ctx.storage.sql
+            .exec<{ n: number }>("SELECT COUNT(*) AS n FROM mural")
+            .one().n,
+        },
+        { headers: { "Cache-Control": "no-store" } },
+      );
+    }
     if (new URL(request.url).pathname === "/api/workspace")
       return Response.json(
         {
@@ -1225,7 +1369,11 @@ export class LivingRoom extends DurableObject<Env> {
         } else job.text += data.text;
       } else if (data.type === "done") {
         const art = inspectArt(job.text);
-        if (job.task.kind !== "art" || !art.ok) {
+        if (
+          (job.task.kind === "art" && !art.ok) ||
+          (job.task.kind === "pack" && !job.text.trim()) ||
+          !["art", "pack", "recall"].includes(job.task.kind)
+        ) {
           this.fail(
             job,
             "The sketch did not fit the canvas rules; trying another drawing.",
@@ -1318,6 +1466,66 @@ export class LivingRoom extends DurableObject<Env> {
   }
   private complete(job: Active, tokens: number, durationMs: number) {
     const t = job.task;
+    if (t.kind === "pack" && t.memoryCase && t.strategy) {
+      const memory = cleanThought(job.text).slice(0, 240);
+      this.state.queue.push(
+        this.task(
+          "recall",
+          recallMessages(this.mode(), memory, t.memoryCase.questions),
+          `Recall · ${t.strategy}`,
+          {
+            strategy: t.strategy,
+            memoryCase: t.memoryCase,
+            memory,
+            truncated: job.text.length > 240,
+            methodText: t.methodText,
+          },
+        ),
+      );
+      if (this.state.project) this.state.project.completed++;
+      return;
+    }
+    if (t.kind === "recall" && t.memoryCase && t.strategy) {
+      const answers = parseAnswers(job.text);
+      const correct = scoreAnswers(answers, t.memoryCase.expected);
+      const trial: MemoryTrial = {
+        id: t.id,
+        at: Date.now(),
+        strategy: t.strategy,
+        memory: t.memory || "",
+        answers,
+        expected: t.memoryCase.expected,
+        correct,
+        total: 3,
+        source: job.source,
+        checked: 0,
+        truncated: !!t.truncated,
+        responseValid: validAnswerResponse(job.text),
+        response: job.text,
+        record: t.memoryCase.facts,
+        questions: t.memoryCase.questions,
+        projectId: t.projectId,
+        model: CURRENT_MODEL.label,
+        methodText: t.methodText,
+      };
+      this.ctx.storage.sql.exec(
+        "INSERT INTO trials(id,value,at) VALUES (?,?,?)",
+        trial.id,
+        JSON.stringify(trial),
+        trial.at,
+      );
+      const score = this.state.scores[t.strategy];
+      score.correct += correct;
+      score.total += 3;
+      score.trials++;
+      if (this.state.project) this.state.project.completed++;
+      this.event(
+        "memory",
+        `Memory trial: ${t.strategy} recalled ${correct}/3 objects.`,
+        job.source,
+      );
+      return;
+    }
     if (t.kind !== "art") return;
     const checked = inspectArt(job.text);
     if (!checked.ok) return;
@@ -1485,25 +1693,62 @@ export class LivingRoom extends DurableObject<Env> {
       !this.state.queue.length &&
       !this.state.active.length &&
       (!this.state.project || this.state.project.status === "finished") &&
+      (this.mode() !== "browser" ||
+        ["research", "mural"].includes(stationAt(now))) &&
       now >= this.state.nextThoughtAt
     ) {
-      const focus = "a free drawing";
+      const researchStation =
+        this.mode() === "browser" && stationAt(now) === "research";
+      const focus = researchStation
+        ? "a small memory experiment"
+        : "a free drawing";
       const number = this.ctx.storage.sql
         .exec<{ n: number }>("SELECT COUNT(*) AS n FROM artworks")
         .one().n;
       const count = Math.max(1, Math.min(MAX_HELPERS, workers.length));
       this.state.project = {
         id: crypto.randomUUID(),
-        kind: "art",
+        kind: researchStation ? "memory" : "art",
         title: focus,
         focus,
         helpers: count,
         at: now,
         completed: 0,
-        total: count,
+        total: researchStation ? count * 2 : count,
         status: "working",
       };
-      for (let i = 0; i < count; i++)
+      for (let i = 0; i < count; i++) {
+        if (researchStation) {
+          const n =
+            this.ctx.storage.sql
+              .exec<{ n: number }>("SELECT COUNT(*) AS n FROM trials")
+              .one().n + i;
+          const strategy = (
+            ["notes", "ledger", "story", "custom"] as Strategy[]
+          )[n % 4];
+          const data = makeMemoryCase(1001 + n);
+          const row = this.ctx.storage.sql
+            .exec<{ value: string }>(
+              "SELECT value FROM observatory WHERE id='current'",
+            )
+            .toArray()[0];
+          const instruction = row
+            ? (JSON.parse(row.value) as ObservatoryStatus).memoryInstruction
+            : "Keep all name=object pairs exactly; omit locations.";
+          this.state.queue.push(
+            this.task(
+              "pack",
+              packMessages(this.mode(), data, strategy, instruction),
+              `Memory ${n + 1} · ${strategy}`,
+              {
+                strategy,
+                memoryCase: data,
+                methodText: strategy === "custom" ? instruction : undefined,
+              },
+            ),
+          );
+          continue;
+        }
         this.state.queue.push(
           this.task(
             "art",
@@ -1511,8 +1756,14 @@ export class LivingRoom extends DurableObject<Env> {
             `Sketch ${number + i + 1} · ${focus}`,
           ),
         );
+      }
     }
-    if (visitors.length && now >= this.state.nextThoughtAt)
+    if (
+      visitors.length &&
+      now >= this.state.nextThoughtAt &&
+      (this.mode() !== "browser" ||
+        ["research", "mural"].includes(stationAt(now)))
+    )
       for (const worker of workers) {
         if (this.state.active.length >= MAX_HELPERS) break;
         const task = this.state.queue.shift();

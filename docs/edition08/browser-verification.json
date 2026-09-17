@@ -1,0 +1,119 @@
+{
+  "scope": "Headless localhost Qwen3 4B inference; all five browser contexts share one Mac. No remote output fixtures.",
+  "station": "research",
+  "contexts": 5,
+  "contribution": "Most; up to eight layers each",
+  "completedBrowserJobs": 4,
+  "totalElapsedMs": 87927,
+  "afterCoverageElapsedMs": 69005,
+  "usageBeforeWithdrawal": [
+    {
+      "ms": 6574.800000071526,
+      "passes": 231,
+      "modelBytes": 673038336
+    },
+    {
+      "ms": 6504.6999997496605,
+      "passes": 231,
+      "modelBytes": 454250496
+    },
+    {
+      "ms": 6645.700000166893,
+      "passes": 231,
+      "modelBytes": 454250496
+    },
+    {
+      "ms": 6539.699999809265,
+      "passes": 231,
+      "modelBytes": 454250496
+    },
+    {
+      "ms": 4352.499999940395,
+      "passes": 231,
+      "modelBytes": 445918208
+    }
+  ],
+  "initialTrials": [
+    {
+      "id": "97a88c13-e6bb-45fe-bed0-d86388fae87b",
+      "at": 1789612464949,
+      "strategy": "notes",
+      "memory": "- Mira: leaf  \n- Otto: ribbon  \n- Fern: marble  \n- Lumi: feather  \n- Pip: button  \n- Cleo: key  \n- Moss: bell  \n- Ivo: thimble  \n- Nell: coin  \n- Rumi: pebble  \n- Wren: acorn  \n- Kit: shell",
+      "answers": [
+        "shell",
+        "button",
+        "key"
+      ],
+      "expected": [
+        "shell",
+        "button",
+        "key"
+      ],
+      "correct": 3,
+      "total": 3,
+      "source": "browser",
+      "checked": 0,
+      "truncated": false,
+      "responseValid": true,
+      "response": "{\"answers\":[\"shell\",\"button\",\"key\"]}",
+      "record": "Mira keeps a leaf in the studio.\nOtto keeps a ribbon in the station.\nFern keeps a marble in the attic.\nLumi keeps a feather in the meadow.\nPip keeps a button in the bakery.\nCleo keeps a key in the kitchen.\nMoss keeps a bell in the orchard.\nIvo keeps a thimble in the cellar.\nNell keeps a coin in the library.\nRumi keeps a pebble in the tower.\nWren keeps a acorn in the garden.\nKit keeps a shell in the harbor.",
+      "questions": [
+        "What object does Kit keep?",
+        "What object does Pip keep?",
+        "What object does Cleo keep?"
+      ],
+      "projectId": "2a37d51f-b503-464d-afa4-8526b6dfd0c6",
+      "model": "Qwen3 \u00b7 4B"
+    }
+  ],
+  "recoveredTrials": [
+    {
+      "id": "b6ecf771-3c1e-40ea-9332-f739f537d53d",
+      "at": 1789612484542,
+      "strategy": "ledger",
+      "memory": "Mira=button;Otto=marble;Fern=acorn;Lumi=pebble;Pip=thimble;Cleo=key;Moss=bell;Ivo=feather;Nell=coin;Rumi=leaf;Wren=ribbon;Kit=shell",
+      "answers": [
+        "leaf",
+        "thimble",
+        "pebble"
+      ],
+      "expected": [
+        "leaf",
+        "thimble",
+        "pebble"
+      ],
+      "correct": 3,
+      "total": 3,
+      "source": "browser",
+      "checked": 0,
+      "truncated": false,
+      "responseValid": true,
+      "response": "{\"answers\":[\"leaf\",\"thimble\",\"pebble\"]}",
+      "record": "Mira keeps a button in the orchard.\nOtto keeps a marble in the attic.\nFern keeps a acorn in the bakery.\nLumi keeps a pebble in the studio.\nPip keeps a thimble in the cellar.\nCleo keeps a key in the kitchen.\nMoss keeps a bell in the harbor.\nIvo keeps a feather in the meadow.\nNell keeps a coin in the station.\nRumi keeps a leaf in the tower.\nWren keeps a ribbon in the garden.\nKit keeps a shell in the library.",
+      "questions": [
+        "What object does Rumi keep?",
+        "What object does Pip keep?",
+        "What object does Lumi keep?"
+      ],
+      "projectId": "2a37d51f-b503-464d-afa4-8526b6dfd0c6",
+      "model": "Qwen3 \u00b7 4B"
+    }
+  ],
+  "withdrawal": {
+    "modelAvailable": false,
+    "active": null,
+    "tokens": 5971,
+    "frozenForMs": 6500
+  },
+  "recovered": {
+    "modelAvailable": true,
+    "tokens": 5983
+  },
+  "uncaughtBrowserErrors": [],
+  "limitations": [
+    "Two small recall trials are not evidence of a best memory method.",
+    "Five local browser contexts do not measure five internet-connected devices.",
+    "Visibility withdrawal invokes the browser visibility handler synthetically.",
+    "Source labels from arbitrary remote participants are not proof of honest computation."
+  ]
+}

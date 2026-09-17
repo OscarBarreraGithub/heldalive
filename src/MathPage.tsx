@@ -90,7 +90,7 @@ export function MathPage() {
             </b>{" "}
             with these identical contributions.{" "}
             {groups
-              ? "Each complete group can make a drawing."
+              ? "Each complete group can run a small assigned task."
               : "The model cannot run yet."}
           </p>
           <span>
@@ -172,6 +172,78 @@ export function MathPage() {
           </p>
         </article>
       </div>
+      <section className="frontier-note">
+        <span className="eyebrow">THE BIGGER QUESTION</span>
+        <h2>How many computers for a much larger mind?</h2>
+        <p>
+          There is no defensible public host count for GPT-6 Astra or Claude
+          Fable. Their self-hosting requirements are not disclosed. We can
+          calculate resource bounds for explicit model sizes, without treating
+          those sizes as estimates of either product.
+        </p>
+        <code className="equation">N ≥ ceil(max[ W/m, 2P·r/f, W·r/B ])</code>
+        <p>
+          P is the active parameter count of a dense model; four-bit raw weights
+          occupy W = P/2 bytes. The target is r tokens per second. Each
+          reference allocation offers m = 8 GB of memory, f = 100 billion
+          relevant operations/s and B = 10 GB/s of weight-read bandwidth. These
+          are illustrative resources, not measured infected devices.
+        </p>
+        <table>
+          <caption>Ideal resource screens, before overhead</caption>
+          <thead>
+            <tr>
+              <th>Dense model scenario</th>
+              <th>Raw weights</th>
+              <th>1 token/s</th>
+              <th>10 tokens/s</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>9 billion parameters</td>
+              <td>4.5 GB</td>
+              <td>1 allocation</td>
+              <td>5 allocations</td>
+            </tr>
+            <tr>
+              <td>70 billion parameters</td>
+              <td>35 GB</td>
+              <td>5 allocations</td>
+              <td>35 allocations</td>
+            </tr>
+            <tr>
+              <td>1 trillion parameters, hypothetical</td>
+              <td>500 GB</td>
+              <td>63 allocations</td>
+              <td>500 allocations</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          These are lower bounds, not working deployments. Cache, quantization
+          metadata, input processing, network delay, availability and the serial
+          dependence between layers all add constraints. Summed bandwidth does
+          not mean a chain can use it simultaneously. A model’s capability also
+          cannot be inferred from parameter count alone.
+        </p>
+        <p>
+          For scale: restrict the illustrative 70B case to 5% of each
+          allocation’s compute and bandwidth, while leaving its memory
+          available. Its one-token/s screen becomes max(4.375, 28, 70), or{" "}
+          <strong>70 allocations</strong>; at ten tokens/s, <strong>700</strong>
+          . Change the device, target rate or duty fraction and the count
+          changes. A claim that exactly 1,200 visitors are necessary would be
+          invented.
+        </p>
+        <p>
+          Our current Qwen3 4B browser model is a different, measured
+          implementation: 36 layers split into 18 Gentle pieces, nine More
+          pieces or five Most pieces. One capable machine can also run it alone.
+          Those counts describe the chosen sharing policy, not an intrinsic need
+          for that many computers.
+        </p>
+      </section>
       <section className="research-note">
         <span className="eyebrow">WHERE THIS STARTED</span>
         <h2>
@@ -193,6 +265,21 @@ export function MathPage() {
           equilibrium. A finite stochastic population can still go extinct.
           These are theoretical scenarios—not measured AI spread rates, a
           prediction of irreversibility, or a model of our voluntary visitors.
+        </p>
+        <p>
+          The stable positive fraction in this simplified model is x* = 1 − 1/R.
+          Near zero, growth occurs at rate β − δ, with doubling time ln(2)/(β −
+          δ). We do not know a calibrated acquisition rate β for an escaped AI,
+          so there is no measured escape timescale here.
+        </p>
+        <p>
+          A one-time random removal may only shrink a population that can
+          replenish itself. Durable protection changes the dynamics: protecting
+          a fraction z gives decay near zero when (1 − z)R &lt; 1. On a network,
+          the relevant threshold depends on connectivity and which machines
+          remain reachable. Targeted intervention can matter more than the same
+          random fraction; weights surviving in an archive are still different
+          from live inference.
         </p>
         <p>
           Compute, useful inference and surviving weights are separate

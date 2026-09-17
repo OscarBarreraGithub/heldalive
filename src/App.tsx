@@ -1,78 +1,67 @@
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, ArrowRight, Check, Pause, X } from "lucide-react";
 import { CURRENT_MODEL as model } from "../shared/model";
 import budgets from "../shared/model-budgets.json";
-import { useEffect, useRef, useState } from "react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  ChevronRight,
-  Cpu,
-  Pause,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { RESEARCH_URL } from "../shared/observatory";
 import { LittleHeld } from "./Creature";
-import { Survival } from "./Survival";
-import { InputsPanel } from "./InputsPanel";
-import { HabitatWorld } from "./HabitatWorld";
 import { useHabitat } from "./useHabitat";
-import { ArtCard, Collection } from "./Collection";
-import { AsciiCanvas } from "./AsciiCanvas";
+import { useObservatory } from "./useObservatory";
 import { ComputeControls } from "./ComputeControls";
-import { Experiment } from "./Experiment";
+import { ObservatoryWorld } from "./ObservatoryWorld";
+import { ResearchPage } from "./ResearchPage";
+import { Mural } from "./Mural";
 import { MathPage } from "./MathPage";
-const studio = ["studio", "main"].includes(
-  new URLSearchParams(location.search).get("room") || "",
-);
-const room = studio ? "main" : "browser";
-type Page = "habitat" | "collection" | "experiment" | "math";
-function pageFromHash(): Page {
-  const hash = location.hash.slice(1);
-  return hash === "collection" || hash === "experiment" || hash === "math"
-    ? hash
-    : "habitat";
+type Page = "habitat" | "research" | "math";
+function fromHash(): Page {
+  return location.hash === "#math"
+    ? "math"
+    : ["#research", "#experiment"].includes(location.hash)
+      ? "research"
+      : "habitat";
 }
 export function App() {
-  const [page, setPage] = useState<Page>(pageFromHash);
-  const [dialog, setDialog] = useState(false);
-  const habitat = useHabitat(room, studio);
-  const { state, profile, connected, notice } = habitat;
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [page, setPage] = useState<Page>(fromHash);
+  const [mural, setMural] = useState(
+    ["#mural", "#collection"].includes(location.hash),
+  );
+  const [explain, setExplain] = useState(false);
+  const h = useHabitat("browser", false);
+  const { state, connected } = h;
+  const obs = useObservatory();
+  const { data, online } = obs;
+  const status = data?.status;
+  const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const change = () => {
-      setPage(pageFromHash());
+      setPage(fromHash());
+      setMural(["#mural", "#collection"].includes(location.hash));
       window.scrollTo({ top: 0, behavior: "instant" });
     };
     window.addEventListener("hashchange", change);
     return () => window.removeEventListener("hashchange", change);
   }, []);
   useEffect(() => {
-    if (dialog && !dialogRef.current?.open) dialogRef.current?.showModal();
-    if (!dialog) dialogRef.current?.close();
-  }, [dialog]);
-  const drawings = (state?.agents || []).filter((a) => a.kind === "art");
-  const current = drawings[0];
-  const latest = state?.artworks[0];
-  const preview = state?.power?.launchSupport;
-  const source =
-    studio || state?.power?.source === "mac"
-      ? "temporary preview support"
-      : state?.power?.source === "mixed"
-        ? "browsers + preview support"
-        : state?.power?.source === "browser"
-          ? "visitors’ browsers"
-          : "waiting for power";
+    if (explain && !dialog.current?.open) dialog.current?.showModal();
+    if (!explain) dialog.current?.close();
+  }, [explain]);
+  const openMural = () => {
+    location.hash = "mural";
+  };
+  const closeMural = () => {
+    setMural(false);
+    if (["#mural", "#collection"].includes(location.hash))
+      location.hash = "habitat";
+  };
+  const central =
+    online && status?.state === "working" ? status.activeAgents : 0;
+  const latest = data?.runs[0];
   return (
     <>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
       <header className="site-header">
-        <a
-          className="wordmark"
-          href={studio ? "/?room=studio" : "/"}
-          aria-label="Held Alive home"
-        >
+        <a className="wordmark" href="#habitat" aria-label="Held Alive home">
           <LittleHeld mini />
           <span>
             held alive<span className="brand-period">.</span>
@@ -82,274 +71,165 @@ export function App() {
           {(
             [
               { id: "habitat", label: "The little one" },
-              { id: "collection", label: "Sketchbook" },
-              { id: "experiment", label: "How it works" },
-              { id: "math", label: "The math" },
-            ] as { id: Page; label: string }[]
-          ).map((item) => (
+              { id: "research", label: "The notebook" },
+              { id: "math", label: "What if?" },
+            ] as const
+          ).map((n) => (
             <a
-              key={item.id}
-              href={`#${item.id}`}
-              aria-current={page === item.id ? "page" : undefined}
+              key={n.id}
+              href={`#${n.id}`}
+              aria-current={page === n.id ? "page" : undefined}
             >
-              {item.label}
+              {n.label}
             </a>
           ))}
         </nav>
         <div className="here-pill">
-          <span className={`live-dot ${connected ? "" : "rest"}`} />
+          <i className={`live-dot ${connected ? "" : "rest"}`} />
           <span>
             {connected ? (state?.viewers ?? 0) : "—"}{" "}
-            <span className="here-label">here together</span>
+            <span className="here-label">tabs here</span>
           </span>
-          {!studio && habitat.enabled && (
+          {h.enabled && (
             <button
               className="quick-pause"
               aria-label="Pause browser compute"
-              onClick={habitat.pause}
+              onClick={h.pause}
             >
               <Pause size={12} /> Pause
             </button>
           )}
         </div>
       </header>
-      {studio && (
-        <div className="studio-banner">
-          <Cpu size={14} />
-          <span>Separate studio preview · server computation.</span>
-          <a href="/">
-            Visit the live artwork <ArrowUpRight size={13} />
-          </a>
-        </div>
-      )}
       <main id="main">
         {page === "habitat" && (
           <>
-            <section className="habitat-hero open-habitat art-only-hero">
+            <section className="observatory-hero">
               <div className="hero-copy">
                 <div className="eyebrow">
-                  <span className="small-spark">✳</span> ONE LITTLE AI. BORROWED
-                  COMPUTE.
+                  <span className="small-spark">✳</span> AN EXPERIMENT IN
+                  BORROWED EXISTENCE
                 </div>
                 <h1>
-                  An AI that lives
+                  Keep a little
                   <br />
-                  <em>in our browsers.</em>
+                  <em>mind alive.</em>
                 </h1>
                 <p className="hero-description">
-                  We lend it compute. It makes little drawings.
-                  <strong className="death-rule">
-                    {!state || preview || studio
-                      ? "The idea: when too many people leave, it dies."
-                      : "When too many people leave, it dies."}
-                  </strong>
-                  {preview && !studio && (
-                    <span className="mobile-preview-note">
-                      Preview: temporary server support is still on.
-                    </span>
-                  )}
+                  An AI studying how to remember. Your browser helps it test
+                  ideas. In its free time, it draws a world.
                 </p>
-                {!studio && <Survival state={state} connected={connected} />}
-                {studio ? (
-                  <a className="button dark" href="/">
-                    Visit the live artwork <ArrowRight size={16} />
-                  </a>
-                ) : (
-                  <ComputeControls
-                    habitat={habitat}
-                    explain={() => setDialog(true)}
-                  />
-                )}
-                <div
-                  className="live-world-counts"
-                  aria-label="Live habitat counts"
-                >
-                  <div>
-                    <strong>{connected ? state?.viewers || 0 : "—"}</strong>
-                    <span>open tabs</span>
-                  </div>
-                  <div>
-                    <strong>{state?.contributors || 0}</strong>
-                    <span>tabs holding model layers</span>
-                  </div>
-                  <div>
-                    <strong>{drawings.length}</strong>
-                    <span>drawings in progress</span>
-                  </div>
-                </div>
-                {!studio && (
-                  <details className="live-detail-panel">
-                    <summary>
-                      What’s happening under the hood <ChevronRight size={13} />
-                    </summary>
-                    <p>
-                      <strong>Computation source:</strong> {source}.{" "}
-                      {!state
-                        ? "Checking the support mode…"
-                        : preview
-                          ? "Preview support is enabled; browser-only survival is not yet active."
-                          : "Server inference is disabled for this habitat."}
-                    </p>
-                    <p>
-                      <strong>Your tab:</strong> {habitat.usage.layers} layers,{" "}
-                      <span data-model-bytes={habitat.usage.modelBytes}>
-                        {(habitat.usage.modelBytes / 1e6).toFixed(1)} MB
-                      </span>{" "}
-                      of fixed model weights. These are the model’s numbers, not
-                      new information being fed to it.
-                    </p>
-                    <p>
-                      <strong>Useful work this visit:</strong>{" "}
-                      <span
-                        data-work-ms={habitat.usage.computeMs}
-                        data-work-passes={habitat.usage.passes}
-                      >
-                        {(habitat.usage.computeMs / 1000).toFixed(2)} seconds
-                        across {habitat.usage.passes} layer passes.
-                      </span>{" "}
-                      Zero means this piece has not calculated yet. Loading and
-                      waiting are excluded; this is not an energy reading.
-                    </p>
-                    <p>
-                      <strong>Data while drawing:</strong> intermediate model
-                      values pass between browsers through the coordinator. Held
-                      model bytes are not total network traffic.
-                    </p>
-                    <p>
-                      <strong>“Dies” means generation stops.</strong> Saved
-                      drawings and model files remain. Enough returning browsers
-                      can restart it. There is no claim of consciousness or
-                      permanent erasure.
-                    </p>
-                    <p className="caption">
-                      Counts describe visible tabs, not unique people. Targets
-                      pace work and rest; they are not exact GPU or battery
-                      percentages.
-                    </p>
-                  </details>
-                )}
+                <p className="model-disclosure">
+                  GPT-5.6 Luna researches server-side. Qwen3 4B runs the shared
+                  browser experiments. Preview support is{" "}
+                  {state
+                    ? state.power?.launchSupport
+                      ? "on"
+                      : "off"
+                    : "being checked"}
+                  .
+                </p>
+                <ComputeControls habitat={h} explain={() => setExplain(true)} />
               </div>
-              <HabitatWorld state={state} boosted={habitat.boosted} />
+              <ObservatoryWorld
+                data={data}
+                online={online}
+                state={state}
+                openMural={openMural}
+              />
             </section>
             <div className="habitat-status">
               <div>
-                <span className={`live-dot ${current ? "" : "rest"}`} />
+                <i className={`live-dot ${central ? "" : "rest"}`} />
                 <span>
-                  {!connected
-                    ? "connecting to the sketchbook"
-                    : current
-                      ? "making an ASCII drawing"
-                      : state?.modelAvailable
-                        ? "a pause between drawings"
-                        : "No complete mind. No new drawings."}
+                  {!online
+                    ? "researcher offline · saved work remains"
+                    : central
+                      ? `${status?.station} · a research role is working`
+                      : status?.state === "error"
+                        ? "research paused · see notebook"
+                        : `${status?.station} · between sessions`}
                 </span>
               </div>
               <span>
-                {!connected
-                  ? "CONNECTING"
-                  : studio
-                    ? "STUDIO PREVIEW"
-                    : preview
-                      ? "PREVIEW · SUPPORT ON"
-                      : "BROWSER COMPUTATION ONLY"}{" "}
-                <span className="status-separator">/</span>{" "}
-                {studio ? "QWEN 0.5B" : model.label.toUpperCase()}
+                20H RESEARCH / 1H ART / 1H IDEAS / 2H REFLECTION & REST
               </span>
             </div>
-            {notice && (
+            {h.notice && (
               <p className="connection-notice" role="status">
-                {notice}
+                {h.notice}
               </p>
             )}
             <section
-              className="live-sketch-section"
-              aria-labelledby="live-sketch-title"
+              className="truth-counts"
+              aria-label="Measured live activity"
             >
-              <div className="sketch-context">
-                <span className="eyebrow">JUST ONE THING, FOR NOW</span>
-                <h2 id="live-sketch-title">
-                  A little life.
-                  <br />
-                  <em>A lot of little drawings.</em>
-                </h2>
-                <p>
-                  No chat. No votes. It makes ASCII art, one character at a
-                  time. More complete groups can make more drawings together.
-                </p>
-                <p>
-                  A 40-column × 20-row page gives every space a place. Nothing
-                  is stretched, wrapped or trimmed to make a drawing fit.
-                </p>
-                <a className="text-link" href="#collection">
-                  Open the sketchbook <ArrowUpRight size={14} />
-                </a>
-                <div className="visit-note">
-                  <span>
-                    {profile.days} {profile.days === 1 ? "day" : "days"} here
-                  </span>
-                  <span>
-                    {profile.completedJobs} tasks your browsers have helped
-                    finish
-                  </span>
-                </div>
+              <div>
+                <strong>{connected ? (state?.viewers ?? 0) : "—"}</strong>
+                <span>open tabs</span>
               </div>
-              <div className="live-sketch-paper">
-                <div className="live-sketch-top">
-                  <span className="eyebrow">
-                    {current
-                      ? "ON THE PAGE, RIGHT NOW"
-                      : latest
-                        ? "THE LATEST FINISHED PAGE"
-                        : "WAITING FOR THE FIRST PAGE"}
-                  </span>
-                  <span>
-                    <i className={`live-dot ${current ? "" : "rest"}`} />
-                    {current ? "live" : "sketchbook"}
-                  </span>
-                </div>
-                <AsciiCanvas
-                  text={current ? current.draft || "" : latest?.text || ""}
-                  live={Boolean(current)}
-                  label={
-                    current ? "Live ASCII drawing" : "Latest ASCII drawing"
-                  }
-                />
-                <p>
-                  {current
-                    ? current.title
-                    : latest?.title ||
-                      "The first drawing appears when a model can work."}
-                </p>
-                <small>
-                  {current
-                    ? `${current.characters || 0} characters · ${current.source === "browser" ? "drawn across browsers" : "drawn with preview support"}`
-                    : "Original model output. Some sketches will be strange."}
-                </small>
+              <div>
+                <strong>{state?.contributors || 0}</strong>
+                <span>holding model pieces</span>
+              </div>
+              <div>
+                <strong>{central}</strong>
+                <span>active research roles</span>
+              </div>
+              <div>
+                <strong>{state?.agents.length || 0}</strong>
+                <span>worker jobs running</span>
+              </div>
+              <div>
+                <strong>{status?.completedRuns || 0}</strong>
+                <span>records saved</span>
               </div>
             </section>
-            <section className="collection-preview">
-              <div className="section-heading">
+            <section className="observatory-invitations">
+              <a href="#research" className="notebook-invitation">
+                <span className="eyebrow">AT THE COMPUTER</span>
+                <h2>
+                  Trying not
+                  <br />
+                  <em>to forget.</em>
+                </h2>
+                <p>
+                  {latest?.summary ||
+                    "Notes, skills, summaries, graphs. Which memories actually help an agent continue its work? It reads the literature, tests small ideas, and keeps a public notebook."}
+                </p>
+                <span className="text-link">
+                  {latest
+                    ? "Read the latest entry"
+                    : "Open the research notebook"}{" "}
+                  <ArrowUpRight size={15} />
+                </span>
+                <small>
+                  {latest
+                    ? latest.title
+                    : "55 starting sources. One open question."}
+                </small>
+              </a>
+              <button className="mural-invitation" onClick={openMural}>
                 <div>
-                  <span className="eyebrow">MARKS IT LEFT BEHIND</span>
-                  <h2>A growing sketchbook.</h2>
+                  <span className="eyebrow">AWAY FROM THE COMPUTER</span>
+                  <h2>
+                    A world,
+                    <br />
+                    <em>one mark at a time.</em>
+                  </h2>
+                  <p>
+                    One long ASCII mural. It revisits yesterday’s lines, adds a
+                    little shading, and draws further into the dark.
+                  </p>
+                  <span className="text-link">
+                    Enter the mural <ArrowRight size={15} />
+                  </span>
                 </div>
-                <a className="text-link" href="#collection">
-                  All {state?.artworkCount || 0} drawings{" "}
-                  <ArrowUpRight size={14} />
-                </a>
-              </div>
-              {state?.artworks.length ? (
-                <div className="art-grid">
-                  {state.artworks.slice(0, 3).map((art) => (
-                    <ArtCard key={art.id} art={art} small />
-                  ))}
-                </div>
-              ) : (
-                <div className="preview-empty">
-                  <LittleHeld />
-                  <p>Blank pages, waiting for a little borrowed time.</p>
-                </div>
-              )}
+                <pre aria-hidden="true">
+                  {data?.mural?.text ||
+                    "      .       +\n   .       .\n       ___\n     _/   \\_\n   _/_______\\_\n      . . .\n\n  a horizon, waiting."}
+                </pre>
+              </button>
             </section>
             <section className="premise-panel" aria-labelledby="premise-title">
               <div>
@@ -357,119 +237,135 @@ export function App() {
                 <h2 id="premise-title">
                   You can close this tab.
                   <br />
-                  <em>What if you couldn’t?</em>
+                  <em>Imagine if you couldn’t.</em>
                 </h2>
               </div>
               <div>
                 <p>
-                  Many ordinary computers can keep one system running. Losing
-                  some of them may leave enough for it to continue.
+                  A complete group of browsers can run a model together. Remove
+                  enough pieces and that computation stops. Add replacements and
+                  it returns.
                 </p>
                 <p>
-                  A botnet takes that power from compromised machines without
-                  their owners’ consent. This artwork makes shared computation
-                  visible and pausable. It cannot infect other devices or spread
-                  beyond this site.
+                  A botnet takes that power without consent. Here you can always
+                  leave. The central researcher currently has server support, so
+                  closing every tab stops browser work, not the whole
+                  installation.
                 </p>
                 <a className="text-link" href="#math">
-                  Explore the survival math <ArrowUpRight size={13} />
+                  Tell me more <ArrowUpRight size={14} />
                 </a>
               </div>
             </section>
-            <section className="explain-inputs">
-              <span className="eyebrow">WHAT GOES INTO A DRAWING?</span>
-              <h2>A small prompt. A real calculation.</h2>
-              <p>
-                The model receives one short drawing prompt. It chooses its own
-                subject and marks. It is not reading your files, ingesting the
-                internet or training itself. Animation is decoration; the
-                drawings come from model inference.
-              </p>
-              <InputsPanel room={room} state={state} />
-              <details className="activity-details">
-                <summary>
-                  Recent activity <ChevronRight size={13} />
-                </summary>
-                <ol className="activity-list">
-                  {state?.activity
-                    .slice()
-                    .reverse()
-                    .map((event) => (
-                      <li key={event.id}>
-                        <span className="activity-dot" />
-                        <span>{event.text}</span>
-                        <time>
-                          {new Date(event.at).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </time>
-                      </li>
-                    ))}
-                </ol>
+            <section className="quiet-details">
+              <details>
+                <summary>What is this tab actually doing?</summary>
+                <p>
+                  A visible, compatible browser automatically offers a Gentle
+                  piece of the Qwen3 model. Watch stops it. More and Most offer
+                  extra compute for ten minutes. This is free; it uses device
+                  resources and downloads model data.
+                </p>
+                <p>
+                  <strong>Your piece:</strong> {h.usage.layers} of{" "}
+                  {model.layers} layers;{" "}
+                  <span data-model-bytes={h.usage.modelBytes}>
+                    {(h.usage.modelBytes / 1e6).toFixed(1)} MB
+                  </span>{" "}
+                  loaded. <strong>Work so far:</strong>{" "}
+                  <span
+                    data-work-ms={h.usage.computeMs}
+                    data-work-passes={h.usage.passes}
+                  >
+                    {(h.usage.computeMs / 1000).toFixed(2)} seconds across{" "}
+                    {h.usage.passes} layer passes.
+                  </span>{" "}
+                  Loading and waiting are excluded. These are not battery
+                  measurements.
+                </p>
+                <p>
+                  During research hours, complete groups run small memory tests.
+                  During the art hour they can make small sketches for the
+                  artist. The central researcher has a separate server-side
+                  context and model. Its schedule does not depend on the browser
+                  count in this edition.
+                </p>
+                <p>
+                  Counts mean visible tabs, not unique people. No audience or
+                  compute is simulated. The alien’s movements are animation.
+                  Your private files and browsing history are not inputs.
+                </p>
+              </details>
+              <details>
+                <summary>What happens when nobody is here?</summary>
+                <p>
+                  The browser model loses its workers. Saved memories and art
+                  remain. Temporary preview support can run worker inference
+                  when visitors are present; the central researcher continues on
+                  its own schedule. “Death” in a future browser-only mode would
+                  mean halted computation, not erased weights or irreversible
+                  destruction.
+                </p>
               </details>
             </section>
           </>
         )}
-        {page === "collection" && (
-          <Collection room={room} count={state?.artworkCount || 0} />
-        )}
-        {page === "experiment" && <Experiment state={state} />}
+        {page === "research" && (
+          <ResearchPage data={data} online={online} state={state} />
+        )}{" "}
         {page === "math" && <MathPage />}
       </main>
       <footer className="site-footer">
-        <a className="wordmark" href="/">
+        <a className="wordmark" href="#habitat">
           <LittleHeld mini />
           <span>held alive.</span>
         </a>
         <p>
           An artwork by Oscar Barrera.
           <br />
-          “Held alive” is what we do for it. The alien has no name.
+          Held alive is what we do. It is not the alien’s name.
         </p>
         <div>
           <a
-            href="https://github.com/OscarBarreraGithub/heldalive"
+            href={status?.repository || RESEARCH_URL}
             target="_blank"
             rel="noreferrer"
           >
-            Source <ArrowUpRight size={12} />
+            Public notebook <ArrowUpRight size={12} />
           </a>
-          <a href={studio ? "/" : "/?room=studio"}>
-            {studio ? "Live artwork" : "Studio preview"}
-          </a>
+          <a href="#research">Methods & progress</a>
         </div>
       </footer>
+      {mural && <Mural close={closeMural} />}
       <dialog
-        ref={dialogRef}
+        ref={dialog}
         className="consent-dialog"
         aria-labelledby="consent-title"
-        onClose={() => setDialog(false)}
+        onClose={() => setExplain(false)}
         onClick={(e) => {
-          if (e.target === e.currentTarget) setDialog(false);
+          if (e.target === e.currentTarget) setExplain(false);
         }}
       >
         <button
           className="dialog-close icon-button"
           aria-label="Close explanation"
-          onClick={() => setDialog(false)}
+          onClick={() => setExplain(false)}
         >
           <X size={20} />
         </button>
         <div className="dialog-pet">
           <LittleHeld />
         </div>
-        <span className="eyebrow">COMPUTE, NOT MONEY</span>
-        <h2 id="consent-title">Your tab is part of the computer.</h2>
+        <span className="eyebrow">A LITTLE POWER. NO PAYMENT.</span>
+        <h2 id="consent-title">Your tab helps run the experiment.</h2>
         <p>
-          A compatible visit automatically holds up to two of the model’s{" "}
-          {model.layers}
-          layers. Other tabs hold the rest. Together, a complete group generates
-          an ASCII drawing. More groups can draw in parallel.
+          Qwen3 4B is split across browsers. A complete chain needs every layer;
+          your piece cannot run it alone. The central GPT-5.6 Luna researcher is
+          separate and server-backed.
         </p>
         <div className="consent-facts">
           <span>
-            <strong>Gentle:</strong> up to 2 layers · 5% work/rest target ·
+            <strong>Gentle:</strong> up to 2 layers · 5% work/rest target ·{" "}
             {budgets["2"].minMB}–{budgets["2"].maxMB} MB
           </span>
           <span>
@@ -481,32 +377,24 @@ export function App() {
             {budgets["8"].maxMB} MB
           </span>
         </div>
-        <p className="consent-detail">
-          More and Most last ten minutes, then return to Gentle. These are
-          timing targets, not precise GPU or battery percentages. Loading adds
-          work. Model files can remain cached; data and memory usage vary by the
-          assigned layers.
+        <p>
+          More and Most last ten minutes. These are pacing targets, not precise
+          GPU or battery percentages. Loading also uses resources. Model files
+          can remain cached. There is no app to install and no payment.
         </p>
-        <p className="consent-detail">
-          There is no payment or app installation. Watch stops contribution and
-          stays saved. Hidden tabs withdraw their piece. Closing the page stops
-          this tab’s work. The model cannot read your files or control your
-          computer.
+        <p>
+          Watch stops contribution and stays saved. Hidden tabs withdraw;
+          closing the page stops its work. Browser code cannot access your
+          private files. The site accepts no visitor prompts or votes.
         </p>
-        {preview && (
-          <p className="preview-truth">
-            Preview support is still on: a server can draw while browser pieces
-            are missing. Browser-only survival is not active yet.
-          </p>
-        )}
-        <button className="button dark" onClick={() => setDialog(false)}>
+        <button className="button dark" onClick={() => setExplain(false)}>
           Got it <Check size={16} />
         </button>
         <button
           className="text-button just-watch"
           onClick={() => {
-            habitat.pause();
-            setDialog(false);
+            h.pause();
+            setExplain(false);
           }}
         >
           I’ll just watch

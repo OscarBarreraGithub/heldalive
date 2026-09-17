@@ -80,6 +80,19 @@ const tooBig = await fetch(base + "/api/observatory?room=browser", {
   body: "x".repeat(33000),
 });
 assert.equal(tooBig.status, 413);
+const chunkedTooBig = await fetch(base + "/api/observatory?room=browser", {
+  method: "POST",
+  headers: { Authorization: "Bearer " + token },
+  body: new ReadableStream({
+    start(controller) {
+      for (let i = 0; i < 34; i++) controller.enqueue(new Uint8Array(1000));
+      controller.close();
+    },
+  }),
+  duplex: "half",
+});
+assert.equal(chunkedTooBig.status, 413);
+
 const mural = await (
   await fetch(base + "/api/mural?room=browser&offset=0")
 ).json();

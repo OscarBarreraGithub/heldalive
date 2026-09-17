@@ -314,7 +314,36 @@ export default {
         }
       } else if (request.method !== "GET")
         return new Response("Method not allowed", { status: 405 });
-      const forwarded = new Request(request);
+      // Buffer this small authenticated publication before crossing the DO RPC
+      // boundary. Early rejection inside a streamed RPC can leave its sender
+      // reading a request body after the response has already been returned.
+      let forwarded: Request;
+      if (url.pathname === "/api/observatory" && request.method === "POST") {
+        if (Number(request.headers.get("Content-Length")) > 32768)
+          return new Response("Too large", { status: 413 });
+        const reader = request.body?.getReader();
+        const chunks: Uint8Array[] = [];
+        let size = 0;
+        if (reader) {
+          while (true) {
+            const part = await reader.read();
+            if (part.done) break;
+            size += part.value.length;
+            if (size > 32768) {
+              await reader.cancel();
+              return new Response("Too large", { status: 413 });
+            }
+            chunks.push(part.value);
+          }
+        }
+        const body = new Uint8Array(size);
+        let offset = 0;
+        for (const chunk of chunks) {
+          body.set(chunk, offset);
+          offset += chunk.length;
+        }
+        forwarded = new Request(request, { body });
+      } else forwarded = new Request(request);
       forwarded.headers.set("X-Held-Identity", visitor);
       return env.ROOMS.getByName(room).fetch(forwarded);
     }

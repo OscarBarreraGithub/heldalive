@@ -1,6 +1,8 @@
 import { ArrowUpRight, BookOpen } from "lucide-react";
 import {
   RESEARCH_URL,
+  CENTRAL_MODEL,
+  activityLabel,
   SCHEDULE,
   type Observatory,
 } from "../shared/observatory";
@@ -8,11 +10,13 @@ import type { Snapshot } from "../shared/protocol";
 import sources from "../agent-memory/sources.json";
 export function ResearchPage({
   data,
+  loading,
   online,
   state,
 }: {
   data: Observatory | null;
   online: boolean;
+  loading: boolean;
   state: Snapshot | null;
 }) {
   const status = data?.status;
@@ -39,7 +43,7 @@ export function ResearchPage({
         <div>
           <span className="eyebrow">ACTUAL PROGRESS</span>
           <h2>
-            {!online
+            {loading ? "Connecting to the researcher." : !online
               ? "The researcher is offline."
               : status?.state === "working"
                 ? "A thought in progress."
@@ -57,7 +61,7 @@ export function ResearchPage({
         <dl>
           <div>
             <dt>Completed steps</dt>
-            <dd>{status?.completedRuns || 0}</dd>
+            <dd>{status?.completedRuns ?? "—"}</dd>
           </div>
           <div>
             <dt>Sources in the initial review</dt>
@@ -65,11 +69,11 @@ export function ResearchPage({
           </div>
           <div>
             <dt>Central model</dt>
-            <dd>{status?.model || "GPT-5.6 Luna"}</dd>
+            <dd>{status?.model || CENTRAL_MODEL}</dd>
           </div>
           <div>
-            <dt>Active research roles</dt>
-            <dd>{online ? status?.activeAgents || 0 : 0}</dd>
+            <dt>Researcher</dt>
+            <dd>{activityLabel(status, online, loading)}</dd>
           </div>
         </dl>
       </section>
@@ -78,7 +82,7 @@ export function ResearchPage({
           ONE MANAGER. ONE LOOP. NO INFINITE REVIEWS.
         </span>
         <h2>
-          Luna sets the question.
+          The alien sets the question.
           <br />
           <em>A small team does the work.</em>
         </h2>
@@ -90,9 +94,9 @@ export function ResearchPage({
         </p>
         <ol className="workflow-steps">
           <li>
-            <strong>Luna → research manager</strong>
+            <strong>Orchestrator → research manager</strong>
             <span>
-              Luna reads the handoff and gives the manager one goal. It does not
+              The orchestrator reads the handoff and gives the manager one goal. It does not
               plan, review or research the task itself.
             </span>
           </li>
@@ -126,9 +130,9 @@ export function ResearchPage({
         <div className="workflow-links">
           <a
             className="text-link"
-            href={`${repo}/blob/main/orchestration/HANDOFF.md`}
+            href={`${repo}/blob/main/orchestration/CURRENT.md`}
           >
-            The handoff ↗
+            Current research loop ↗
           </a>
           <a
             className="text-link"
@@ -137,7 +141,7 @@ export function ResearchPage({
             Instance records ↗
           </a>
           <a className="text-link" href={`${repo}/tree/main/refs`}>
-            Luna’s references ↗
+            Research references ↗
           </a>
           <a className="text-link" href={`${repo}/tree/main/wiki`}>
             Shared wiki ↗
@@ -224,13 +228,13 @@ export function ResearchPage({
           ))}
         </div>
         <p>
-          These are work windows. Bounded sessions run about every 15 minutes,
-          with pauses between them. Only completed calls count as work; downtime
-          and rate limits are not hidden.
+          These are work windows. One role runs at a time, followed by a cooldown
+          about nine times as long as its model call. That targets 10% inference
+          duty over time. A pause between thoughts is part of its rhythm.
         </p>
         <p>
-          The core identity and saved continuity stay. At each station, only its
-          current objective changes. Luna delegates only to a research manager.
+          The core identity stays. Each station gets its own objective and saved
+          continuity in a fresh model context. The orchestrator delegates only to a research manager.
           That manager assigns planning, research and reviews to separate
           instances, one at a time. Each has a recorded objective, result and
           status.
@@ -356,7 +360,7 @@ export function ResearchPage({
         <span className="eyebrow">THE READING SHELF</span>
         <h2>The commissioning reading shelf.</h2>
         <p>
-          This initial operator-commissioned review is separate from Luna’s own
+          This initial operator-commissioned review is separate from the agent’s own
           research. The live loop discovers and checks its sources in refs/.
           This shelf is broad, not literally exhaustive; paper abstracts were
           screened first.
@@ -382,10 +386,10 @@ export function ResearchPage({
           configured publisher has write access; outside visitors do not.
         </p>
         <p>
-          The central researcher runs server-side on GPT-5.6 Luna. Qwen3 4B is
-          the separate open-weight browser worker. More browser coverage enables
-          more worker copies; it does not turn the central model into a larger
-          model or pay its inference bill.
+          The central researcher uses Qwen3.5 9B, running server-side. Qwen3 4B
+          handles the shared browser experiments. More browser coverage enables
+          more worker copies. Historical records retain the model that actually
+          produced them.
         </p>
       </section>
     </div>

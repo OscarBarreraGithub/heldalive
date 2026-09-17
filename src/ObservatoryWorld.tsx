@@ -4,12 +4,14 @@ import type { Snapshot } from "../shared/protocol";
 import { LittleHeld } from "./Creature";
 export function ObservatoryWorld({
   data,
+  loading,
   online,
   state,
   openMural,
 }: {
   data: Observatory | null;
   online: boolean;
+  loading: boolean;
   state: Snapshot | null;
   openMural: () => void;
 }) {
@@ -40,7 +42,7 @@ export function ObservatoryWorld({
         <span>OBSERVATORY 001</span>
         <span>
           <i className={`live-dot ${working ? "" : "rest"}`} />
-          {!online
+          {loading ? "connecting" : !online
             ? "researcher offline"
             : working
               ? "at work"

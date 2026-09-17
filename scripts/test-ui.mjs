@@ -43,6 +43,10 @@ try {
   assert.equal(await page.getByText("SIMULATED ESTIMATE", { exact: true }).count(), 0);
   assert.equal(await page.getByText("SIMULATED COMPUTE", { exact: true }).count(), 0);
   assert.equal(await page.getByText("real connected tabs", { exact: true }).count(), 0);
+  assert.equal(await page.getByText("active research roles", { exact: true }).count(), 0);
+  assert.equal(await page.getByText("worker jobs running", { exact: true }).count(), 0);
+  assert.match(await page.locator(".researcher-state").innerText(), /Thinking|Between thoughts|Offline|Paused|Resting|Connecting/);
+
 
   await page.getByRole("button", { name: "How your compute helps" }).click();
   await page.getByRole("dialog").waitFor({ state: "visible" });

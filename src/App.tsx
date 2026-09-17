@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, ArrowRight, Check, Pause, X } from "lucide-react";
 import { CURRENT_MODEL as model } from "../shared/model";
 import budgets from "../shared/model-budgets.json";
-import { RESEARCH_URL } from "../shared/observatory";
+import { RESEARCH_URL, activityLabel } from "../shared/observatory";
 import { LittleHeld } from "./Creature";
 import { useHabitat } from "./useHabitat";
 import { useObservatory } from "./useObservatory";
@@ -121,7 +121,7 @@ export function App() {
                   ideas. In its free time, it draws a world.
                 </p>
                 <p className="model-disclosure">
-                  GPT-5.6 Luna researches server-side. Qwen3 4B runs the shared
+                  Qwen3.5 9B researches server-side. Qwen3 4B runs the shared
                   browser experiments. Preview support is{" "}
                   {state
                     ? state.power?.launchSupport
@@ -133,6 +133,7 @@ export function App() {
                 <ComputeControls habitat={h} explain={() => setExplain(true)} />
               </div>
               <ObservatoryWorld
+                loading={obs.loading}
                 data={data}
                 online={online}
                 state={state}
@@ -143,7 +144,9 @@ export function App() {
               <div>
                 <i className={`live-dot ${central ? "" : "rest"}`} />
                 <span>
-                  {!online
+                  {obs.loading
+                    ? "connecting to the researcher"
+                    : !online
                     ? "researcher offline · saved work remains"
                     : central
                       ? `${status?.station} · a research role is working`
@@ -166,15 +169,13 @@ export function App() {
               aria-label="Measured live activity"
             >
               <div>
-                <strong>{central}</strong>
-                <span>active research roles</span>
+                <strong className="researcher-state">
+                  {activityLabel(status, online, obs.loading)}
+                </strong>
+                <span>researcher</span>
               </div>
               <div>
-                <strong>{state?.agents.length || 0}</strong>
-                <span>worker jobs running</span>
-              </div>
-              <div>
-                <strong>{status?.completedRuns || 0}</strong>
+                <strong>{status?.completedRuns ?? "—"}</strong>
                 <span>records saved</span>
               </div>
             </section>
@@ -300,7 +301,7 @@ export function App() {
           </>
         )}
         {page === "research" && (
-          <ResearchPage data={data} online={online} state={state} />
+          <ResearchPage loading={obs.loading} data={data} online={online} state={state} />
         )}{" "}
         {page === "math" && <MathPage />}
       </main>
@@ -349,7 +350,7 @@ export function App() {
         <h2 id="consent-title">Your tab helps run the experiment.</h2>
         <p>
           Qwen3 4B is split across browsers. A complete chain needs every layer;
-          your piece cannot run it alone. The central GPT-5.6 Luna researcher is
+          your piece cannot run it alone. The central Qwen3.5 9B researcher is
           separate and server-backed.
         </p>
         <div className="consent-facts">

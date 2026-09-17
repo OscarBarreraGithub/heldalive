@@ -1,0 +1,35 @@
+{
+  "model": "Qwen3.5-9B-4bit",
+  "revision": "8b2b98c00a6b4d291155e4890773ca8f769aee53",
+  "mlx_lm": "0.31.3",
+  "mlx": "0.32.2",
+  "commissioning": {
+    "model-smoke-output": {
+      "model": null,
+      "durationMs": null,
+      "inferenceMs": 19058,
+      "inputTokens": 358,
+      "outputTokens": 275,
+      "peakMemoryGB": 5.66744028
+    },
+    "research-result": {
+      "model": "Qwen3.5-9B-4bit",
+      "durationMs": 63676,
+      "inferenceMs": 62751,
+      "inputTokens": 4290,
+      "outputTokens": 799,
+      "peakMemoryGB": 6.78046367
+    },
+    "mural-result": {
+      "model": "Qwen3.5-9B-4bit",
+      "durationMs": 15071,
+      "inferenceMs": 14216,
+      "inputTokens": 312,
+      "outputTokens": 177,
+      "peakMemoryGB": 5.595333376,
+      "rows": 24,
+      "maxColumns": 25
+    }
+  },
+  "limits": "These are commissioning calls, not a benchmark or proof of research quality. Initial art JSON output failed; constrained ASCII-only generation passed canvas validation."
+}

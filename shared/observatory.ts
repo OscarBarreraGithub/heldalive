@@ -16,6 +16,15 @@ export function stationAt(at: number): Station {
   const hour = new Date(at).getUTCHours();
   return SCHEDULE.find((s) => hour >= s.start && hour < s.end)!.station;
 }
+export const CENTRAL_MODEL = "Qwen3.5-9B-4bit";
+export function activityLabel(status: ObservatoryStatus | null | undefined, online: boolean, loading = false): string {
+  if (loading) return "Connecting";
+  if (!online) return "Offline";
+  if (status?.state === "working") return "Thinking";
+  if (status?.state === "error") return "Paused";
+  if (status?.state === "resting") return "Resting";
+  return "Between thoughts";
+}
 export const RESEARCH_URL = "https://github.com/heldalive/memory-research";
 export const MURAL_COLUMNS = 72;
 export const MURAL_ROWS = 24;

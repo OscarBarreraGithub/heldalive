@@ -3,6 +3,7 @@ import type { Observatory } from "../shared/observatory";
 export function useObservatory() {
   const [data, setData] = useState<Observatory | null>(null);
   const [failed, setFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     let dead = false;
     const controller = new AbortController();
@@ -21,7 +22,7 @@ export function useObservatory() {
       } catch {
         if (!dead) setFailed(true);
       } finally {
-        if (!dead) timer = setTimeout(poll, 15000);
+        if (!dead) { setLoading(false); timer = setTimeout(poll, 15000); }
       }
     }
     void poll();
@@ -33,5 +34,5 @@ export function useObservatory() {
   }, []);
   const online =
     !!data?.status && !failed && Date.now() - data.status.updatedAt < 120000;
-  return { data, online, failed };
+  return { data, online, failed, loading };
 }

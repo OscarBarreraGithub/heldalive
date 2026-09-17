@@ -7049,3 +7049,12 @@ body {
     margin: 0;
   }
 }
+
+/* The habitat shows the character's state; detailed role counts live in the notebook. */
+.truth-counts {
+  grid-template-columns: 1.5fr 1fr;
+}
+.truth-counts .researcher-state {
+  font-size: clamp(20px, 2.2vw, 27px);
+  line-height: 1.3;
+}

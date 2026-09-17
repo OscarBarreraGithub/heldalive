@@ -54,3 +54,13 @@ Final presentation: one header count, labeled phone-equivalents. It adds current
 Compact presentation checks: type checking, 23 unit tests, build, existing UI checks at 320/390/768/1440 pixels and desktop/mobile accessibility scans passed. The display no longer contains the simulation badges, duplicate estimate card or separate connected-tab readout.
 
 Compact presentation deployed as `275a8ce`, Cloudflare version `fa3e3e0a-6c1c-45c0-9a41-8b15f7003b5b`. Live checks at 320, 390 and 1440 pixels passed with exactly one phone-equivalent counter, no removed labels/card, no overflow or page errors. Observed the live counter change from 91 to 90. Evidence: `compact-live-verification.json`.
+
+
+### Researcher status
+
+The user identified the zero as “Active research roles.” It measured model calls running at that instant; the persistent runner advances one role about every 15 minutes. Replaced the landing page's instantaneous role/job counts with Thinking / Between thoughts / Paused / Offline, and retained saved record count. The notebook retains detailed role telemetry. This is a presentation correction; no continuous inference or new scheduling behavior is claimed.
+
+
+## Edition 10 update
+
+The central researcher now targets Qwen3.5 9B, with measured-time 10% inference duty. The authored baseline remains 100; the assumed phone/native speed ratio is an illustrative coefficient, not a new physical-phone benchmark. Shared browser workers still use Qwen3 4B. Historical measurements above retain their original checkpoint.

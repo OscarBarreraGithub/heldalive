@@ -1,6 +1,6 @@
 // An authored Qwen scenario, never an input to live telemetry or scheduling.
 export const PHONE_SCENARIO = {
-  model: "Qwen3 4B",
+  model: "Qwen3.5 9B",
   serverFraction: 0.1,
   phoneDuty: 0.05,
   phoneRelativeSpeed: 0.02,

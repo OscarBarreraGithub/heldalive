@@ -1,0 +1,19 @@
+{
+  "origin": "https://www.heldalive.com",
+  "state": "Between thoughts",
+  "model": "Qwen3.5-9B-4bit",
+  "recentQwen": [
+    {
+      "id": "2026-09-17-research-269",
+      "title": "Research manager published a reviewed notebook",
+      "durationMs": 0
+    },
+    {
+      "id": "2026-09-17-research-268",
+      "title": "manager final · Publish the bounded research record with explicit limitations regardin",
+      "durationMs": 62482
+    }
+  ],
+  "counter": "92",
+  "errors": []
+}

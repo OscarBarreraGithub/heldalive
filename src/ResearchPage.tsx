@@ -246,6 +246,10 @@ export function ResearchPage({
             All records ↗
           </a>
         </div>
+        <p className="caption">
+          These are live workflow records. A completed step is not an accepted
+          finding; the manager’s disposition records review results and caveats.
+        </p>
         {data?.runs.length ? (
           data.runs.map((run) => (
             <article key={run.id} className="notebook-entry">

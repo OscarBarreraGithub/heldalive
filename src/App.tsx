@@ -54,7 +54,7 @@ export function App() {
   };
   const central =
     online && status?.state === "working" ? status.activeAgents : 0;
-  const latest = data?.runs[0];
+  const latest = data?.runs.find((run) => run.station === "research");
   return (
     <>
       <a className="skip-link" href="#main">

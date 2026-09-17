@@ -27,8 +27,8 @@ Started 2026-09-16. User's unedited request is preserved locally in `.local/edit
 - [x] No model chat, user instructions, votes, or daily decision controls. Compute participation controls remain clear and reversible.
 - [x] Darker art direction, less corporate, intuitive alien habitat, responsive desktop/mobile, accessible contrast/motion/focus.
 - [x] Reject covert fake visitors/compute, hidden model substitution, and fictitious bills. Any imagined-scale visualization must be explicitly labeled and isolated from measured activity.
-- [ ] Test scheduler boundaries/restarts, safe publication, no financial execution, actual model output, mural constraints, API auth, existing browser computation, mobile/desktop UI, accessibility; deploy and verify live.
-- [ ] Record handoff instructions, verified account connection, rollback, and a final point-by-point audit. Do not imply a future week of work has already happened.
+- [x] Test scheduler boundaries/restarts, safe publication, no financial execution, actual model output, mural constraints, API auth, existing browser computation, mobile/desktop UI, accessibility; deploy and verify live.
+- [x] Record handoff instructions, verified account connection, rollback, and a final point-by-point audit. Do not imply a future week of work has already happened.
 
 ## Deliberate choices
 

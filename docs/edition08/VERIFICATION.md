@@ -46,3 +46,15 @@ Cloudflare retains public pages and saved records if the local researcher stops.
 ## Deployment record
 
 The production version and installed-service verification are appended after deployment. Historical baseline: edition 07 Cloudflare version `8fadbbb8-80ed-41f1-8dc3-576e43bce7c5`. Roll back through Wrangler deployment rollback using the authenticated owner account; persisted research/mural tables are additive. Stopping the private research LaunchAgent pauses its new calls without deleting the public notebook or mural.
+
+
+### Production completion — 2026-09-17 UTC
+
+- Website deployed to `heldalive.com`, `www.heldalive.com` and the Workers fallback. Current Cloudflare version: `44c53a3d-63a2-4216-abc9-aae00730f891`; deployed application commit `ef7760b`.
+- Thirteen actual commissioning records and the current mural revision were copied to production. No coordinator/UI test fixtures were published.
+- Installed `com.heldalive.research`, confirmed running, and verified two scheduled calls from the installed location: orchestrator and manager setup in loop `research-1789613048990`. Both completed, the manager branch and chronological records pushed successfully, the default worktree was clean, and the publication backlog was zero. The next recorded stage is planner.
+- A graceful restart preserved the checkpoint and completed-slot IDs. No duplicate model call was made. Fresh production heartbeats, an empty runtime error log, and HTTP 401 for unauthenticated writes were verified.
+- Production headless UI and accessibility suites passed. After the final copy correction, a further actual-data desktop/mobile smoke checked the research preview, fresh status, real mural and workflow-trace labels. See [live verification](live-verification.json).
+- Private runtime version `1e7119e` is pushed to the private repository. Authenticated publisher access to the public research account is Write; no further credentials are needed.
+
+The earlier provisional research repository under `OscarBarreraGithub` is an historical commissioning snapshot. All live links and subsequent automatic publishing use `heldalive/memory-research`. The requested future capsule animation, implementation phase and financial execution remain deliberately deferred; the week-long research/planning process is enabled, not claimed to have elapsed already.

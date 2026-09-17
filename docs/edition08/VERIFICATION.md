@@ -50,7 +50,7 @@ The production version and installed-service verification are appended after dep
 
 ### Production completion — 2026-09-17 UTC
 
-- Website deployed to `heldalive.com`, `www.heldalive.com` and the Workers fallback. Current Cloudflare version: `44c53a3d-63a2-4216-abc9-aae00730f891`; deployed application commit `ef7760b`.
+- Website deployed to `heldalive.com`, `www.heldalive.com` and the Workers fallback. Current Cloudflare version: `4726cdc4-5a6c-469d-9ff8-0710c9fbcff8`; deployed application commit `b066320`.
 - Thirteen actual commissioning records and the current mural revision were copied to production. No coordinator/UI test fixtures were published.
 - Installed `com.heldalive.research`, confirmed running, and verified two scheduled calls from the installed location: orchestrator and manager setup in loop `research-1789613048990`. Both completed, the manager branch and chronological records pushed successfully, the default worktree was clean, and the publication backlog was zero. The next recorded stage is planner.
 - A graceful restart preserved the checkpoint and completed-slot IDs. No duplicate model call was made. Fresh production heartbeats, an empty runtime error log, and HTTP 401 for unauthenticated writes were verified.
@@ -58,3 +58,5 @@ The production version and installed-service verification are appended after dep
 - Private runtime version `1e7119e` is pushed to the private repository. Authenticated publisher access to the public research account is Write; no further credentials are needed.
 
 The earlier provisional research repository under `OscarBarreraGithub` is an historical commissioning snapshot. All live links and subsequent automatic publishing use `heldalive/memory-research`. The requested future capsule animation, implementation phase and financial execution remain deliberately deferred; the week-long research/planning process is enabled, not claimed to have elapsed already.
+
+- Final API hardening: bounded authenticated publication bodies before the Durable Object call. Both declared-length and chunked oversized payloads return 413, with no request-stream error in local logs. The 23 application tests passed again; production status remained HTTP 200 with a fresh heartbeat and no reported runtime error after deployment. UI assets were unchanged by this final server fix.

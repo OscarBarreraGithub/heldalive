@@ -1,0 +1,62 @@
+{
+  "deployment": "8fadbbb8-80ed-41f1-8dc3-576e43bce7c5",
+  "implementationCommit": "1158b8dad5c4e70bd19d7a46aa94037e0ff03733",
+  "ci": "https://github.com/OscarBarreraGithub/heldalive/actions/runs/35170118099",
+  "base": "https://heldalive.com",
+  "browsers": 5,
+  "completed": 1,
+  "elapsedMs": 388349,
+  "afterLoadMs": 20988,
+  "errors": [],
+  "model": "Qwen3 · 4B · shared",
+  "powerDuringInference": {
+    "launchSupport": true,
+    "macAvailable": true,
+    "browserChains": 1,
+    "source": "browser"
+  },
+  "originalArtworkCount": 20,
+  "afterArtworkCount": 37,
+  "oldSampleIdsPreserved": true,
+  "newNativeArtworkIds": [
+    "a00fb389-6704-4e4a-b5e5-af3d979fa260",
+    "e0e00c28-4a15-480d-83f6-fe7a081a789c",
+    "3273783d-0b7e-44dd-a29b-13ae6fc7f9f8",
+    "97d946ea-5cd8-42f2-8b86-4281ee9617cc",
+    "b2f9a690-828e-4aaf-9641-72288db6b901",
+    "3140c3cf-658a-4cfc-833f-0bddc8636a74",
+    "6fa7563f-dd66-40d3-bbf6-636f2277b8ec",
+    "98b3398a-122c-4d29-a444-80a93216e5af"
+  ],
+  "browserArtwork": [
+    {
+      "id": "79b7c015-e186-47f2-ae35-7b10c802e9e9",
+      "title": "Sketch 37 · a free drawing",
+      "text": "  .-\"\"-.\n /   \\\n|  o  |\n \\___/\n  `~`",
+      "at": 1789608900954,
+      "source": "browser",
+      "projectId": "3df5e6c0-6f13-4e92-b1ec-4d4104d37f13",
+      "model": "Qwen3 · 4B · q4"
+    }
+  ],
+  "modelRelease": {
+    "url": "https://github.com/OscarBarreraGithub/heldalive/releases/tag/model-qwen3-4b-v1",
+    "assets": [
+      {
+        "name": "qwen3-4b-2507-q4-v1-part1.tar.gz",
+        "bytes": 687692388,
+        "sha256": "sha256:00d6abba649c124206c5380357ecba0dcfe7d7cba2e6b4b568e65406bbff518a"
+      },
+      {
+        "name": "qwen3-4b-2507-q4-v1-part2.tar.gz",
+        "bytes": 679045595,
+        "sha256": "sha256:585e0a427de8e748ac1905162537f972d3fa58bd2976c94d62c3c656f8163c9c"
+      },
+      {
+        "name": "qwen3-4b-2507-q4-v1-part3.tar.gz",
+        "bytes": 687441321,
+        "sha256": "sha256:81c0715f4d24dd5351db082b5ba6c28232528a96aa2a2c7d03a49d325c1ed462"
+      }
+    ]
+  }
+}

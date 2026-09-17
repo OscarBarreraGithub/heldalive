@@ -18,3 +18,9 @@ Reviewer confirmed installed Qwen inference, cooldown persistence, the four fixe
 ## Final judgment
 
 The new model passed structured research-output validation, source provenance checks and canvas-dimension validation. This does not prove its research conclusions or artistic quality. Bounded excerpts and abstract screening are an intentionally limited initial research pipeline. A full Qwen-only multi-role loop has not yet been observed to completion; the migrated loop preserves the actual model for each historical role. Full browser orchestration offload and the later context-change animation remain future work, not completed functionality.
+
+## Post-review commissioning correction
+
+The automatic next-cycle test caught an additional semantic defect: Qwen copied the preceding manager's closeout into the orchestrator's assignment, including an instruction to stop future research. The first output is preserved and marked rejected for dispatch. The current role now appears in the system instruction and after historical context, and manager reports use input-only field names. The orchestrator must assign new research; duplicate closeouts and attempts to halt authorized research fail validation. A regression test covers both cases. Publication retries also drain during cooldown, because Git publishing itself does not consume model inference budget. These were handled by direct implementation judgment after the two reviewer rounds; no third round was requested.
+
+The corrected production retry passed: it assigned a new bounded memory-consolidation question, advanced to manager_setup, and published its instance and current-loop pointer. Final runtime regression suite: 23 passing tests.

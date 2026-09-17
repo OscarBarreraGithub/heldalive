@@ -55,9 +55,9 @@ Central runner still actually uses GPT-5.6 Luna through Codex CLI. Fifteen-minut
 ## Release verification
 
 - Website: Cloudflare version `c933dcac-56e7-4c38-9629-e0523885ab8b`.
-- Private runtime source: commit `5904838`; installed executable files match that source.
+- Private runtime source: commit `d0a18aa`; installed executable files match that source.
 - Actual production Qwen invocation: `research-1789613048990-08-manager-final`, completed in 62,482 ms. Its manager loop was published. API records `2026-09-17-research-268` and deterministic publication step `2026-09-17-research-269` are live.
-- Runtime regression suite: 22 passing tests, including persistent budget debt, source boundaries/citation provenance, bounded review loops, restart handling, station isolation and current-loop publication.
+- Runtime regression suite: 23 passing tests, including persistent budget debt, source boundaries/citation provenance, bounded review loops, restart handling, station isolation and current-loop publication.
 - Site: typecheck, 23 unit tests and build passed; local observatory and coordinator integration tests passed.
 - UI: all three destinations at 320/390/768/1440 pixels, persistent Watch opt-out, no spectator weight downloads, no visitor prompts/votes, keyboard dialogs and mural layout passed. Automated accessibility checks passed at mobile and desktop widths.
 - Production checks: both HTTPS domains expose Qwen status and published Qwen records; no page errors. The cooldown displays Between thoughts. Evidence is in `live-verification.json` and `www-verification.json`.
@@ -69,3 +69,7 @@ Central runner still actually uses GPT-5.6 Luna through Codex CLI. Fifteen-minut
 Model choice and architecture were checked against the [official Qwen3.5 9B card](https://huggingface.co/Qwen/Qwen3.5-9B). The installed artifact is the [MLX community 4-bit conversion](https://huggingface.co/mlx-community/Qwen3.5-9B-4bit/tree/8b2b98c00a6b4d291155e4890773ca8f769aee53), running with [MLX LM](https://github.com/ml-explore/mlx-lm). Local measurements, rather than card benchmarks, establish the commissioning results in [MODEL-VERIFICATION.json](MODEL-VERIFICATION.json).
 
 Automatic continuation was also observed after the persisted cooldown: Qwen started `research-1789619937785-01-orchestrator` without intervention, created its own manager branch, and updated the main-branch current-loop pointer while the role was running.
+
+The automatic-cycle check subsequently exposed a copied manager closeout in the first new orchestrator response. That response was marked rejected for dispatch while preserving its original output and usage. The role prompt and progress validation were strengthened; this is documented in the post-review commissioning correction in REVIEW.md. Automatic invocation alone was not treated as proof of correct orchestration.
+
+The corrected retry `research-1789619937785-02-orchestrator` completed in 34,852 ms and assigned a new research question about memory consolidation/forgetting versus static baselines at equal token budgets. It advanced to manager_setup with no publication backlog or runtime error. The shared manager-branch wiki records the rejection and correction.

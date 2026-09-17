@@ -64,7 +64,7 @@ describe("Bounded inference messages", () => {
     };
     expect(validStageCall(call)).toBe(true);
     expect(validStageCall({ ...call, count: MAX_BATCH + 1 })).toBe(false);
-    expect(validStageCall({ ...call, position: 1023 })).toBe(false);
+    expect(validStageCall({ ...call, position: 4095 })).toBe(false);
     expect(validStageCall({ ...call, data: call.data.slice(1) })).toBe(false);
     expect(validStageCall({ ...call, allowed: [model.vocab] })).toBe(false);
     expect(validStageCall({...call,repetitionIds:[model.vocab]})).toBe(false);

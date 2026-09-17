@@ -42,13 +42,15 @@ export function ObservatoryWorld({
         <span>OBSERVATORY 001</span>
         <span>
           <i className={`live-dot ${working ? "" : "rest"}`} />
-          {loading ? "connecting" : !online
-            ? "researcher offline"
-            : working
-              ? "at work"
-              : station === "rest"
-                ? "resting"
-                : "between thoughts"}
+          {loading
+            ? "connecting"
+            : !online
+              ? "researcher offline"
+              : working
+                ? "at work"
+                : station === "rest"
+                  ? "resting"
+                  : "between thoughts"}
         </span>
       </div>
       <div className="starfield" aria-hidden="true">
@@ -78,12 +80,16 @@ export function ObservatoryWorld({
           <div className="terminal-lines">
             <span>memory / experiment</span>
             <span>
-              {working ? "processing evidence_" : "waiting for next thought_"}
+              {working
+                ? `${state?.agents[0]?.role || "thinking"}_`
+                : status?.state === "waiting"
+                  ? "waiting for compute_"
+                  : "waiting for next thought_"}
             </span>
             <b>
-              {state?.trials[0]
-                ? `${state.trials[0].correct} / 3 recalled`
-                : "read · test · remember"}
+              {state?.workflow?.managers
+                ? `${state.workflow.managers} saved ${state.workflow.managers === 1 ? "team" : "teams"}`
+                : "plan · research · review"}
             </b>
             <span>continuity saved.</span>
           </div>

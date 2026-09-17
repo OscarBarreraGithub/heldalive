@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true });
-const output = ".local/qa/edition08";
+const output = ".local/qa/edition11";
 await mkdir(output, { recursive: true });
 const errors = [];
 const modelRequests = [];
@@ -45,13 +45,13 @@ try {
   assert.equal(await page.getByText("real connected tabs", { exact: true }).count(), 0);
   assert.equal(await page.getByText("active research roles", { exact: true }).count(), 0);
   assert.equal(await page.getByText("worker jobs running", { exact: true }).count(), 0);
-  assert.match(await page.locator(".researcher-state").innerText(), /Thinking|Between thoughts|Offline|Paused|Resting|Connecting/);
+  assert.match(await page.locator(".researcher-state").innerText(), /Thinking|Between thoughts|Offline|Paused|Resting|Connecting|Waiting for compute/);
 
 
   await page.getByRole("button", { name: "How your compute helps" }).click();
   await page.getByRole("dialog").waitFor({ state: "visible" });
   assert.match(await page.getByRole("dialog").innerText(), /113–345/);
-  assert.match(await page.getByRole("dialog").innerText(), /central .* separate and server-backed/);
+  assert.match(await page.getByRole("dialog").innerText(), /Each complete group can run an agent/);
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   assert.equal(await page.getByRole("button", { name: "How your compute helps" }).evaluate((el) => document.activeElement === el), true, "Explanation restores keyboard focus");

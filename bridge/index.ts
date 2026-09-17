@@ -45,7 +45,7 @@ async function generate(ws: WebSocket, job: Job) {
   const send = (data: unknown) => {
     if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
   };
-  const timeout = setTimeout(() => controller.abort(), 85_000);
+  const timeout = setTimeout(() => controller.abort(), job.agent ? 175_000 : 85_000);
   try {
     if (native) {
       await native.generate(job, send, controller.signal);
@@ -143,6 +143,7 @@ function connect() {
               type: "ready",
               ready: true,
               modelId: modelConfig.id,
+              protocol: 2,
             }),
           );
       } else {

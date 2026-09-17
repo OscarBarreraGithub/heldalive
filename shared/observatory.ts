@@ -16,11 +16,16 @@ export function stationAt(at: number): Station {
   const hour = new Date(at).getUTCHours();
   return SCHEDULE.find((s) => hour >= s.start && hour < s.end)!.station;
 }
-export const CENTRAL_MODEL = "Qwen3.5-9B-4bit";
-export function activityLabel(status: ObservatoryStatus | null | undefined, online: boolean, loading = false): string {
+export const CENTRAL_MODEL = "Qwen3 · 4B";
+export function activityLabel(
+  status: ObservatoryStatus | null | undefined,
+  online: boolean,
+  loading = false,
+): string {
   if (loading) return "Connecting";
   if (!online) return "Offline";
   if (status?.state === "working") return "Thinking";
+  if (status?.state === "waiting") return "Waiting for compute";
   if (status?.state === "error") return "Paused";
   if (status?.state === "resting") return "Resting";
   return "Between thoughts";
@@ -31,7 +36,7 @@ export const MURAL_ROWS = 24;
 export type ObservatoryStatus = {
   updatedAt: number;
   station: Station;
-  state: "working" | "idle" | "resting" | "error";
+  state: "working" | "idle" | "resting" | "error" | "waiting";
   objective: string;
   model: string;
   activeAgents: number;
@@ -113,10 +118,10 @@ export function validPublication(data: {
   if (
     !s ||
     !stations.has(s.station) ||
-    !["working", "idle", "resting", "error"].includes(s.state) ||
+    !["working", "idle", "resting", "error", "waiting"].includes(s.state) ||
     !integer(s.updatedAt) ||
     !integer(s.startedAt) ||
-    !integer(s.activeAgents, 2) ||
+    !integer(s.activeAgents, 8) ||
     !integer(s.completedRuns) ||
     !integer(s.fundingDay, 7) ||
     !text(s.objective, 1000) ||

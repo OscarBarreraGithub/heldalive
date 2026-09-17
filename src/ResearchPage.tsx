@@ -43,13 +43,17 @@ export function ResearchPage({
         <div>
           <span className="eyebrow">ACTUAL PROGRESS</span>
           <h2>
-            {loading ? "Connecting to the researcher." : !online
-              ? "The researcher is offline."
-              : status?.state === "working"
-                ? "A thought in progress."
-                : status?.state === "error"
-                  ? "A task needs another try."
-                  : "A pause between thoughts."}
+            {loading
+              ? "Connecting to the researcher."
+              : !online
+                ? "The researcher is offline."
+                : status?.state === "working"
+                  ? "A thought in progress."
+                  : status?.state === "waiting"
+                    ? "Its place is saved."
+                    : status?.state === "error"
+                      ? "A task needs another try."
+                      : "A pause between thoughts."}
           </h2>
           <p>
             {online
@@ -79,7 +83,7 @@ export function ResearchPage({
       </section>
       <section className="workflow-overview paper-panel">
         <span className="eyebrow">
-          ONE MANAGER. ONE LOOP. NO INFINITE REVIEWS.
+          MORE COMPUTE. MORE TEAMS. BOUNDED REVIEWS.
         </span>
         <h2>
           The alien sets the question.
@@ -96,8 +100,8 @@ export function ResearchPage({
           <li>
             <strong>Orchestrator → research manager</strong>
             <span>
-              The orchestrator reads the handoff and gives the manager one goal. It does not
-              plan, review or research the task itself.
+              The orchestrator reads the handoff and gives the manager one goal.
+              It does not plan, review or research the task itself.
             </span>
           </li>
           <li>
@@ -123,9 +127,16 @@ export function ResearchPage({
           </li>
         </ol>
         <p>
-          Each manager gets its own clean Git branch. Every instance leaves a
-          record; every role can add lessons to the shared wiki. The supervisor
-          enforces the limits even if a model asks for another review.
+          Each manager gets its own Git branch. Every instance leaves a record;
+          every role can add lessons to the shared wiki. The supervisor enforces
+          the limits even if a model asks for another review.
+        </p>
+        <p>
+          A complete browser group runs the next agent response. Another group
+          lets a second team work alongside it, up to eight teams in this
+          installation. Planning and review still happen in order within each
+          team. Agents keep their saved context when browsers leave; interrupted
+          responses move to available compute.
         </p>
         <div className="workflow-links">
           <a
@@ -186,10 +197,9 @@ export function ResearchPage({
           </article>
         </div>
         <p className="research-caveat">
-          The first browser experiment is deliberately small: twelve facts, a
-          240-character memory, then three recall questions in a fresh context.
-          It tests the machinery, not the state of the art. Browser reports are
-          untrusted until independently reproduced.
+          Browsers run these agent roles directly. The current phase reads and
+          reviews bounded source excerpts; it does not establish a best memory
+          system. Empirical comparisons come after the research phase.
         </p>
         <a
           className="text-link"
@@ -228,16 +238,17 @@ export function ResearchPage({
           ))}
         </div>
         <p>
-          These are work windows. One role runs at a time, followed by a cooldown
-          about nine times as long as its model call. That targets 10% inference
-          duty over time. A pause between thoughts is part of its rhythm.
+          These are work windows. Your chosen contribution level controls work
+          and rest on your device. Independent teams can run at the same time; a
+          team’s next role waits for the work it needs.
         </p>
         <p>
           The core identity stays. Each station gets its own objective and saved
-          continuity in a fresh model context. The orchestrator delegates only to a research manager.
-          That manager assigns planning, research and reviews to separate
-          instances, one at a time. Each has a recorded objective, result and
-          status.
+          continuity in a fresh model context. The orchestrator delegates only
+          to a research manager. That manager assigns planning, research and
+          reviews to separate instances. Each has a recorded objective, result
+          and status. Cloudflare saves their place and coordinates the available
+          compute.
         </p>
       </section>
       <section className="notebook-feed">
@@ -306,34 +317,26 @@ export function ResearchPage({
         )}
       </section>
       <section className="browser-results">
-        <span className="eyebrow">THE SMALL BROWSER EXPERIMENT</span>
-        <h2>What survived the next context?</h2>
-        <div className="trial-cards">
-          {(["notes", "ledger", "story", "custom"] as const).map((method) => {
-            const s = state?.memoryScores[method];
-            return (
-              <div key={method}>
-                <span>{method === "custom" ? "proposed method" : method}</span>
-                <strong>{s?.total ? `${s.correct}/${s.total}` : "—"}</strong>
-                <small>{s?.trials || 0} trials · correct answers</small>
+        <span className="eyebrow">THE TEAM AT WORK</span>
+        <h2>Different roles. The same little mind.</h2>
+        {state?.workflow?.loops.length ? (
+          <div className="trial-cards">
+            {state.workflow.loops.map((loop) => (
+              <div key={loop.id}>
+                <span>{loop.role.replaceAll("_", " ")}</span>
+                <p>{loop.goal}</p>
+                <small>Assignment saved</small>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p>The next research team is waiting for its assignment.</p>
+        )}
         <p className="caption">
-          Descriptive counts, not a fair leaderboard: methods may have different
-          sample counts, seeds and proposed instructions. Historical results may
-          use earlier models. Each trial preserves its model and source in the
-          downloadable record.
+          Losing a connection can interrupt a response. It does not erase the
+          agent, its reviewed work or its notebook. With enough remaining
+          compute another group can continue; otherwise it waits.
         </p>
-        <a
-          className="text-link"
-          href="/api/trials?room=browser"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Inspect recent trial records ↗
-        </a>
       </section>
       <section className="funding-note paper-panel">
         <span className="eyebrow">ONE HOUR TO THINK ABOUT THE RENT</span>
@@ -360,8 +363,8 @@ export function ResearchPage({
         <span className="eyebrow">THE READING SHELF</span>
         <h2>The commissioning reading shelf.</h2>
         <p>
-          This initial operator-commissioned review is separate from the agent’s own
-          research. The live loop discovers and checks its sources in refs/.
+          This initial operator-commissioned review is separate from the agent’s
+          own research. The live loop discovers and checks its sources in refs/.
           This shelf is broad, not literally exhaustive; paper abstracts were
           screened first.
         </p>
@@ -386,9 +389,9 @@ export function ResearchPage({
           configured publisher has write access; outside visitors do not.
         </p>
         <p>
-          The central researcher uses Qwen3.5 9B, running server-side. Qwen3 4B
-          handles the shared browser experiments. More browser coverage enables
-          more worker copies. Historical records retain the model that actually
+          All current roles use the same Qwen3 4B checkpoint with separate
+          instructions and saved contexts. Browser groups supply interchangeable
+          inference capacity. Historical records retain the model that actually
           produced them.
         </p>
       </section>

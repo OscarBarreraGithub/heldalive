@@ -1,5 +1,13 @@
 import { CURRENT_MODEL } from "../shared/model";
 import {
+  AGENT_PROTOCOL,
+  AGENT_MAX_CHARS,
+  type AgentJob,
+} from "../shared/agents";
+import { Director } from "../../heldalive-runtime/cloud/director";
+import { agentMeta } from "../../heldalive-runtime/cloud/roles";
+import { SqlDirectorStore } from "./director-store";
+import {
   HIDDEN_BYTES,
   completeCoverage,
   contributionLayers,
@@ -73,6 +81,7 @@ type Task = {
   truncated?: boolean;
   methodId?: string;
   methodText?: string;
+  agent?: AgentJob;
 };
 type Active = {
   task: Task;
@@ -91,6 +100,7 @@ type Peer = {
   seen: number;
   visible: boolean;
   ready: boolean;
+  protocol?: number;
   duty: number;
   availableAt: number;
   lastMessage: number;
@@ -139,6 +149,7 @@ type Stored = {
   bestMethod?: WorkspaceFile;
   memoryCandidate?: WorkspaceFile;
   launchSupport?: boolean;
+  launchAvailableAt?: number;
 };
 type VisitorRow = {
   id: string;
@@ -157,6 +168,7 @@ const emptyScores = (): Snapshot["memoryScores"] => ({
   story: { correct: 0, total: 0, trials: 0 },
 });
 const encoder = new TextEncoder();
+const nameRole = (role: string) => role.replaceAll("_", " ");
 async function equalSecrets(a: string, b: string) {
   const [x, y] = await Promise.all([
     crypto.subtle.digest("SHA-256", encoder.encode(a)),
@@ -257,6 +269,7 @@ export default {
           "/api/launch-support",
           "/api/observatory",
           "/api/mural",
+          "/api/workflow",
         ].includes(url.pathname)
       )
         return new Response("Not found", { status: 404 });
@@ -281,6 +294,7 @@ export default {
       let visitor = "";
       if (
         url.pathname === "/api/launch-support" ||
+        url.pathname === "/api/workflow" ||
         (url.pathname === "/api/observatory" && request.method === "POST")
       ) {
         if (request.method !== "POST")
@@ -318,8 +332,9 @@ export default {
       // boundary. Early rejection inside a streamed RPC can leave its sender
       // reading a request body after the response has already been returned.
       let forwarded: Request;
-      if (url.pathname === "/api/observatory" && request.method === "POST") {
-        if (Number(request.headers.get("Content-Length")) > 32768)
+      if (request.method === "POST") {
+        const limit = url.pathname === "/api/workflow" ? 65536 : 32768;
+        if (Number(request.headers.get("Content-Length")) > limit)
           return new Response("Too large", { status: 413 });
         const reader = request.body?.getReader();
         const chunks: Uint8Array[] = [];
@@ -329,7 +344,7 @@ export default {
             const part = await reader.read();
             if (part.done) break;
             size += part.value.length;
-            if (size > 32768) {
+            if (size > limit) {
               await reader.cancel();
               return new Response("Too large", { status: 413 });
             }
@@ -353,6 +368,8 @@ export default {
 
 export class LivingRoom extends DurableObject<Env> {
   private state: Stored;
+  private director: Director;
+  private directorStore: SqlDirectorStore;
   private lastBroadcast = 0;
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -467,6 +484,12 @@ export class LivingRoom extends DurableObject<Env> {
       this.save();
     }
     this.enterArtEdition();
+    this.directorStore = new SqlDirectorStore(this.ctx.storage.sql);
+    this.director = new Director(
+      this.directorStore,
+      env.GITHUB_TOKEN || "",
+      false,
+    );
   }
   private enterArtEdition() {
     if (this.state.artEdition === 6) return;
@@ -511,6 +534,46 @@ export class LivingRoom extends DurableObject<Env> {
   }
   private mode(): Mode {
     return this.state.room === "browser" ? "browser" : "mac";
+  }
+  private inferenceCapacity() {
+    const groups = this.pipelines().filter((g) => g.ready).length;
+    return (
+      groups ||
+      (this.state.launchSupport !== false &&
+      this.peers().some(
+        (p) =>
+          p.peer.role === "bridge" &&
+          p.peer.ready &&
+          p.peer.protocol === AGENT_PROTOCOL &&
+          Date.now() - p.peer.seen < 45000,
+      )
+        ? 1
+        : 0)
+    );
+  }
+  private syncDirectorQueue() {
+    if (!this.director.enabled) return;
+    const pending = this.director.pending();
+    const ids = new Set(pending.map((p) => p.id));
+    this.state.queue = this.state.queue.filter(
+      (t) => t.agent && ids.has(t.agent.instanceId),
+    );
+    const assigned = new Set(
+      [...this.state.queue, ...this.state.active.map((a) => a.task)].map(
+        (t) => t.agent?.instanceId,
+      ),
+    );
+    for (const p of pending)
+      if (!assigned.has(p.id))
+        this.state.queue.push(
+          this.task(p.kind, p.messages, nameRole(p.role), {
+            id: crypto.randomUUID(),
+            projectId: p.loopId,
+            maxTokens: p.maxTokens,
+            agent: agentMeta(p),
+          }),
+        );
+    this.save();
   }
   private peers() {
     return this.ctx
@@ -580,7 +643,15 @@ export class LivingRoom extends DurableObject<Env> {
       return true;
     }
     if (data.type === "pipeline_offer") {
+      if (this.director.enabled && data.protocol !== AGENT_PROTOCOL) {
+        this.send(ws, {
+          type: "pipeline_error",
+          message: "Reload this page to join the agent workflow.",
+        });
+        return true;
+      }
       this.releasePiece(peer);
+      peer.protocol = Number(data.protocol) || 1;
       peer.visible = data.visible !== false;
       peer.duty = dutyLimit(data.duty);
       if (peer.visible) {
@@ -869,13 +940,14 @@ export class LivingRoom extends DurableObject<Env> {
       version: 2,
       room: this.state.room,
       mode: this.mode(),
-      phase: !visitors.length
-        ? "sleeping"
-        : this.state.active.length
-          ? "thinking"
-          : !modelAvailable
-            ? "waiting"
-            : "resting",
+      phase:
+        !visitors.length && !this.director.enabled
+          ? "sleeping"
+          : this.state.active.length
+            ? "thinking"
+            : !modelAvailable
+              ? "waiting"
+              : "resting",
       viewers: visitors.length,
       contributors: this.mode() === "browser" ? workers.length : 0,
       readyContributors: workers.filter(
@@ -887,6 +959,9 @@ export class LivingRoom extends DurableObject<Env> {
           : "Qwen 2.5 · 0.5B",
       modelAvailable,
       power: { launchSupport, macAvailable, browserChains, source },
+      workflow: this.director.enabled
+        ? this.director.capacityView(this.inferenceCapacity())
+        : undefined,
       pipelines: this.pipelines().map((g) => ({
         group: g.group,
         ready: g.ready,
@@ -911,7 +986,11 @@ export class LivingRoom extends DurableObject<Env> {
         : null,
       agents: this.state.active.map((a, i) => ({
         id: a.task.id,
-        role: i === 0 ? "Artist" : "Helper",
+        role: a.task.agent
+          ? nameRole(a.task.agent.role)
+          : i === 0
+            ? "Artist"
+            : "Helper",
         kind: a.task.kind,
         startedAt: a.startedAt,
         source: a.source,
@@ -966,8 +1045,77 @@ export class LivingRoom extends DurableObject<Env> {
   }
   async fetch(request: Request): Promise<Response> {
     const researchUrl = new URL(request.url);
+    if (researchUrl.pathname === "/api/workflow") {
+      this.state.room = "browser";
+      let data: {
+        action?: string;
+        enabled?: boolean;
+        seed?: Parameters<Director["importContinuity"]>[0];
+      };
+      try {
+        data = await request.json();
+      } catch {
+        return new Response("Invalid JSON", { status: 400 });
+      }
+      if (data.action === "status")
+        return Response.json({
+          enabled: this.director.enabled,
+          capacity: this.inferenceCapacity(),
+          pending: this.director
+            .pending()
+            .map((p) => ({
+              id: p.id,
+              role: p.role,
+              failures: p.failures,
+              interruptions: p.interruptions,
+            })),
+          state: this.director.state,
+          outbox: this.directorStore.publicationCount(),
+          launchSupport: this.state.launchSupport !== false,
+          launchAvailableAt: this.state.launchAvailableAt || 0,
+        });
+      if (data.action === "import" && data.seed) {
+        try {
+          this.director.importContinuity(data.seed);
+        } catch {
+          return new Response("Import rejected", { status: 409 });
+        }
+      } else if (
+        data.action === "enable" &&
+        typeof data.enabled === "boolean"
+      ) {
+        for (const a of [...this.state.active]) {
+          const peer = this.peers().find((p) => p.peer.id === a.peerId);
+          if (peer) this.send(peer.ws, { type: "cancel", jobId: a.task.id });
+          this.cancelPeer(a.peerId);
+        }
+        this.state.queue = [];
+        this.state.project = null;
+        this.director.setEnabled(data.enabled);
+        for (const p of this.peers())
+          if (
+            p.peer.role === "visitor" &&
+            p.peer.piece &&
+            p.peer.protocol !== AGENT_PROTOCOL
+          ) {
+            this.releasePiece(p.peer);
+            p.ws.serializeAttachment(p.peer);
+            this.send(p.ws, {
+              type: "pipeline_error",
+              message: "Reload this page to join the agent workflow.",
+            });
+          }
+      } else return new Response("Unknown action", { status: 400 });
+      this.save();
+      await this.tick();
+      return Response.json({ ok: true, enabled: this.director.enabled });
+    }
     if (researchUrl.pathname === "/api/observatory") {
       if (request.method === "POST") {
+        if (this.director.enabled)
+          return new Response("Cloud director owns current activity", {
+            status: 409,
+          });
         if (Number(request.headers.get("Content-Length")) > 32768)
           return new Response("Too large", { status: 413 });
         const reader = request.body?.getReader();
@@ -1042,7 +1190,14 @@ export class LivingRoom extends DurableObject<Env> {
         .toArray()[0];
       return Response.json(
         {
-          status: statusRow ? JSON.parse(statusRow.value) : null,
+          status: this.director.enabled
+            ? this.director.status(
+                this.inferenceCapacity(),
+                this.state.active.filter((a) => a.task.agent).length,
+              )
+            : statusRow
+              ? JSON.parse(statusRow.value)
+              : null,
           runs,
           mural: tile ? JSON.parse(tile.value) : null,
           muralCount: this.ctx.storage.sql
@@ -1157,7 +1312,9 @@ export class LivingRoom extends DurableObject<Env> {
             title: task.title,
             status,
             source,
-            messages: task.messages,
+            messages: task.agent ? undefined : task.messages,
+            role: task.agent?.role,
+            instanceId: task.agent?.instanceId,
             maxOutputTokens: task.maxTokens,
             inputWords: task.messages
               .map((m) => m.content)
@@ -1309,6 +1466,9 @@ export class LivingRoom extends DurableObject<Env> {
         (peer.role === "bridge"
           ? this.mode() === "mac" || data.modelId === CURRENT_MODEL.id
           : Boolean(peer.piece));
+      if (peer.role === "bridge") peer.protocol = Number(data.protocol) || 1;
+      if (this.director.enabled && peer.protocol !== AGENT_PROTOCOL)
+        peer.ready = false;
       peer.visible = data.visible !== false;
       peer.duty = dutyLimit(data.duty);
       if (!peer.ready) {
@@ -1332,7 +1492,7 @@ export class LivingRoom extends DurableObject<Env> {
     } else if (data.type === "vote" && peer.role === "visitor") {
       this.send(ws, {
         type: "error",
-        message: "Voting is closed. This edition only makes ASCII art.",
+        message: "Voting is closed. The agents follow their saved objectives.",
       });
       return;
     } else if (data.type === "audit_done" && peer.role === "visitor") {
@@ -1391,12 +1551,95 @@ export class LivingRoom extends DurableObject<Env> {
       if (!job || now > job.deadline) return;
       if (data.type === "chunk") {
         if (typeof data.text !== "string" || data.text.length > 1000) return;
-        if (job.text.length + data.text.length > MAX_THOUGHT_CHARS) {
+        if (
+          job.text.length + data.text.length >
+          (job.task.agent ? AGENT_MAX_CHARS : MAX_THOUGHT_CHARS)
+        ) {
           this.fail(job, "Output limit reached");
           this.send(ws, { type: "cancel", jobId: job.task.id });
           peer.availableAt = now + 15000;
         } else job.text += data.text;
       } else if (data.type === "done") {
+        if (job.task.agent) {
+          const tokens =
+            typeof data.tokens === "number" && Number.isFinite(data.tokens)
+              ? Math.max(
+                  0,
+                  Math.min(job.task.maxTokens, Math.floor(data.tokens)),
+                )
+              : 0;
+          const inputTokens =
+            typeof data.inputTokens === "number" &&
+            Number.isFinite(data.inputTokens)
+              ? Math.max(0, Math.min(4096, Math.floor(data.inputTokens)))
+              : 0;
+          const duration = Math.max(1, now - job.startedAt);
+          try {
+            this.ctx.storage.transactionSync(() => {
+              const instance = this.director.accept(
+                job.task.agent!.instanceId,
+                job.text,
+                job.source,
+                tokens,
+                inputTokens,
+                duration,
+                now,
+              );
+              this.state.active = this.state.active.filter(
+                (a) => a.task.id !== job.task.id,
+              );
+              if (instance) {
+                this.state.totalTokens += tokens;
+                this.state.totalThoughts++;
+                this.state.totalComputeMs +=
+                  job.source === "browser" ? job.computeMs || 0 : duration;
+                this.event(
+                  "agent",
+                  `${nameRole(instance.role)} saved a completed step.`,
+                  job.source,
+                );
+              }
+              if (job.source === "mac")
+                this.state.launchAvailableAt = now + 9 * duration;
+              this.save();
+            });
+            if (peer.role === "visitor")
+              for (const holder of this.pipelines().find(
+                (g) => g.group === peer.piece?.group,
+              )?.members || []) {
+                this.ctx.storage.sql.exec(
+                  "UPDATE visitors SET jobs=jobs+1,last_seen=? WHERE id=?",
+                  now,
+                  holder.peer.identity,
+                );
+                this.send(holder.ws, {
+                  type: "profile",
+                  profile: this.profile(holder.peer.identity),
+                });
+              }
+          } catch (e) {
+            this.director.reject(
+              job.task.agent.instanceId,
+              job.text,
+              e instanceof Error ? e.message : "Invalid role output",
+              job.source,
+              tokens,
+              now,
+            );
+            this.state.active = this.state.active.filter(
+              (a) => a.task.id !== job.task.id,
+            );
+            if (job.source === "mac")
+              this.state.launchAvailableAt = now + 9 * duration;
+            this.event("agent", "A role is retrying its saved assignment.");
+            this.save();
+          }
+          peer.availableAt = now + 1000;
+          ws.serializeAttachment(peer);
+          this.syncDirectorQueue();
+          await this.tick();
+          return;
+        }
         const art = inspectArt(job.text);
         if (
           (job.task.kind === "art" && !art.ok) ||
@@ -1448,7 +1691,19 @@ export class LivingRoom extends DurableObject<Env> {
         }
         this.complete(job, tokens, duration);
       } else {
-        this.fail(job, "A helper couldn't finish; the work will be retried.");
+        if (job.task.agent && data.reason === "context_limit") {
+          this.director.reject(
+            job.task.agent.instanceId,
+            "",
+            "Prompt exceeds the bounded inference context",
+            job.source,
+          );
+          this.state.active = this.state.active.filter(
+            (a) => a.task.id !== job.task.id,
+          );
+          this.save();
+        } else
+          this.fail(job, "A helper couldn't finish; the work will be retried.");
         peer.availableAt = now + 15000;
       }
     } else {
@@ -1596,7 +1851,12 @@ export class LivingRoom extends DurableObject<Env> {
     this.state.active = this.state.active.filter(
       (a) => a.task.id !== job.task.id,
     );
-    if (job.task.attempts < 2)
+    if (job.task.agent) {
+      this.director.interrupted(job.task.agent.instanceId);
+      if (job.source === "mac")
+        this.state.launchAvailableAt =
+          Date.now() + 9 * Math.max(1000, Date.now() - job.startedAt);
+    } else if (job.task.attempts < 2)
       this.state.queue.unshift({
         ...job.task,
         attempts: job.task.attempts + 1,
@@ -1619,7 +1879,12 @@ export class LivingRoom extends DurableObject<Env> {
       this.state.active = this.state.active.filter(
         (j) => j.task.id !== a.task.id,
       );
-      this.state.queue.unshift({ ...a.task, id: crypto.randomUUID() });
+      if (a.task.agent) {
+        this.director.interrupted(a.task.agent.instanceId);
+        if (a.source === "mac")
+          this.state.launchAvailableAt =
+            Date.now() + 9 * Math.max(1000, Date.now() - a.startedAt);
+      } else this.state.queue.unshift({ ...a.task, id: crypto.randomUUID() });
       this.event(
         "pause",
         "A helper left. Its unfinished task is waiting for another browser.",
@@ -1644,6 +1909,14 @@ export class LivingRoom extends DurableObject<Env> {
     await this.webSocketClose(ws);
   }
   async alarm(): Promise<void> {
+    if (this.director.enabled) {
+      await this.director.prepare(this.inferenceCapacity());
+      this.syncDirectorQueue();
+      // Persist a wakeup before external publication; an exception/eviction cannot
+      // strand saved work or the publication outbox.
+      await this.ctx.storage.setAlarm(Date.now() + 5000);
+      await this.director.publishOne();
+    }
     await this.tick();
   }
   private async tick(): Promise<void> {
@@ -1671,7 +1944,10 @@ export class LivingRoom extends DurableObject<Env> {
         this.fail(a, "A helper timed out. Its task is waiting.");
       }
     for (const a of [...this.state.active])
-      if (!visitors.length || !peers.some((p) => p.peer.id === a.peerId))
+      if (
+        (!this.director.enabled && !visitors.length) ||
+        !peers.some((p) => p.peer.id === a.peerId)
+      )
         this.cancelPeer(a.peerId);
     const day = dayKey(now);
     if (this.state.cleanedDay !== day) {
@@ -1695,6 +1971,7 @@ export class LivingRoom extends DurableObject<Env> {
     }
 
     const busy = new Set(this.state.active.map((a) => a.peerId));
+    this.syncDirectorQueue();
     const leaders = new Set(
       this.pipelines()
         .filter((g) => g.ready)
@@ -1704,6 +1981,7 @@ export class LivingRoom extends DurableObject<Env> {
       .filter(
         (p) =>
           p.peer.ready &&
+          (!this.director.enabled || p.peer.protocol === AGENT_PROTOCOL) &&
           p.peer.availableAt <= now &&
           !busy.has(p.peer.id) &&
           (this.mode() === "mac"
@@ -1713,10 +1991,13 @@ export class LivingRoom extends DurableObject<Env> {
                 leaders.has(p.peer.id)) ||
               (p.peer.role === "bridge" &&
                 this.state.launchSupport !== false &&
-                leaders.size === 0)),
+                leaders.size === 0 &&
+                (!this.director.enabled ||
+                  (this.state.launchAvailableAt || 0) <= now))),
       )
       .sort((a, b) => a.peer.availableAt - b.peer.availableAt);
     if (
+      !this.director.enabled &&
       visitors.length &&
       workers.length &&
       !this.state.queue.length &&
@@ -1788,23 +2069,45 @@ export class LivingRoom extends DurableObject<Env> {
       }
     }
     if (
-      visitors.length &&
+      (visitors.length || this.director.enabled) &&
       now >= this.state.nextThoughtAt &&
       (this.mode() !== "browser" ||
-        ["research", "mural"].includes(stationAt(now)))
+        (this.director.enabled
+          ? stationAt(now) !== "rest"
+          : ["research", "mural"].includes(stationAt(now))))
     )
       for (const worker of workers) {
         if (this.state.active.length >= MAX_HELPERS) break;
-        const task = this.state.queue.shift();
+        const index = this.state.queue.findIndex(
+          (t) =>
+            !t.agent ||
+            (() => {
+              const p = this.director.find(t.agent!.instanceId);
+              return p && p.station === stationAt(now) && p.readyAt <= now;
+            })(),
+        );
+        const task =
+          index >= 0 ? this.state.queue.splice(index, 1)[0] : undefined;
         if (!task) break;
+        const deadline =
+          now +
+          (task.agent
+            ? worker.peer.role === "bridge"
+              ? 180000
+              : 1800000
+            : worker.peer.role === "bridge"
+              ? 90000
+              : 600000);
         this.state.active.push({
           task,
           peerId: worker.peer.id,
           text: "",
           startedAt: now,
-          deadline: now + (worker.peer.role === "bridge" ? 90000 : 600000),
+          deadline,
           source: worker.peer.role === "bridge" ? "mac" : "browser",
         });
+        if (task.agent && worker.peer.role === "bridge")
+          this.state.launchAvailableAt = deadline + 9 * (deadline - now);
         this.save();
         this.send(worker.ws, {
           type: "job",
@@ -1820,15 +2123,22 @@ export class LivingRoom extends DurableObject<Env> {
                     }))
                 : undefined,
             kind: task.kind,
+            agent: task.agent,
             messages: task.messages,
             maxTokens: task.maxTokens,
-            temperature: 0.8,
+            temperature: task.agent ? 0.3 : 0.8,
           },
         });
       }
     this.save();
     this.broadcast();
-    if (peers.length) await this.ctx.storage.setAlarm(now + 5000);
-    else await this.ctx.storage.deleteAlarm();
+    if (
+      peers.length ||
+      (this.director.enabled && this.directorStore.publicationCount())
+    ) {
+      const next = now + (peers.length ? 5000 : 60000),
+        alarm = await this.ctx.storage.getAlarm();
+      if (alarm === null || alarm > next) await this.ctx.storage.setAlarm(next);
+    } else await this.ctx.storage.deleteAlarm();
   }
 }

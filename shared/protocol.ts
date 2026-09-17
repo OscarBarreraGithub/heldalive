@@ -1,9 +1,17 @@
 import type { PipelineView } from "./pipeline";
+import type { AgentJob } from "./agents";
 export type Mode = "mac" | "browser";
 export type Phase = "sleeping" | "waiting" | "thinking" | "resting";
 export type ProjectKind = "art" | "memory" | "wander";
 export type TaskKind =
-  "method" | "plan" | "art" | "pack" | "recall" | "reflect" | "wander";
+  | "method"
+  | "plan"
+  | "art"
+  | "pack"
+  | "recall"
+  | "reflect"
+  | "wander"
+  | "agent";
 export type Strategy = "notes" | "ledger" | "story" | "custom";
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -16,6 +24,7 @@ export type Job = {
   pieces?: { start: number; end: number }[];
   kind?: TaskKind;
   temperature?: number;
+  agent?: AgentJob;
 };
 export type Thought = {
   id: string;
@@ -113,6 +122,14 @@ export type Snapshot = {
     macAvailable: boolean;
     browserChains: number;
     source: "mac" | "browser" | "mixed" | "waiting";
+  };
+  workflow?: {
+    enabled: boolean;
+    managers: number;
+    capacity: number;
+    waiting: number;
+    completed: number;
+    loops: { id: string; role: string; goal: string; status: string }[];
   };
   thoughts: Thought[];
   active: {

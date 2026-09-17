@@ -22,7 +22,10 @@ export function useObservatory() {
       } catch {
         if (!dead) setFailed(true);
       } finally {
-        if (!dead) { setLoading(false); timer = setTimeout(poll, 15000); }
+        if (!dead) {
+          setLoading(false);
+          timer = setTimeout(poll, 5000);
+        }
       }
     }
     void poll();

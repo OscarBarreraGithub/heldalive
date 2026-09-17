@@ -10,7 +10,7 @@ export const MODEL = makeModelSpec({
   ffn: config.ffn,
   vocab: config.vocab,
   pageSize: 16,
-  maxPages: 64,
+  maxPages: 256,
   maxSeq: config.maxSeq,
   ropeTheta: config.ropeTheta,
   rmsEps: config.rmsEps,

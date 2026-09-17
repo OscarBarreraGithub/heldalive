@@ -3,7 +3,7 @@ import model from "./model-config.json";
 export const MODEL_LAYERS = model.layers;
 export const HIDDEN_BYTES = model.hiddenSize * 2;
 export const MAX_BATCH = model.batchSize;
-export const MAX_CONTEXT = 1024;
+export const MAX_CONTEXT = 4096;
 export const MAX_PIPELINES = 8;
 export type Piece = { group: number; start: number; end: number; key: string };
 export type PipelineView = {

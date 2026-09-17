@@ -1,6 +1,7 @@
 import { CURRENT_MODEL, modelPrompt } from "../shared/model";
 import { OutputGrammar } from "./inference/grammar";
 import type { Job } from "../shared/protocol";
+import { AGENT_PROTOCOL, AGENT_MAX_CHARS } from "../shared/agents";
 import {
   MAX_BATCH,
   MAX_CONTEXT,
@@ -51,6 +52,7 @@ export class BrowserCompute {
     this.send({
       type: "pipeline_offer",
       modelId: CURRENT_MODEL.id,
+      protocol: AGENT_PROTOCOL,
       duty,
       visible: !document.hidden,
     });
@@ -66,6 +68,7 @@ export class BrowserCompute {
       this.send({
         type: "pipeline_offer",
         modelId: CURRENT_MODEL.id,
+        protocol: AGENT_PROTOCOL,
         duty: this.duty,
         visible: !document.hidden,
       });
@@ -203,6 +206,7 @@ export class BrowserCompute {
       const grammar = new OutputGrammar(
         this.tokenizer,
         job.kind === "art" ? undefined : job.kind,
+        job.agent?.sourceIds,
       );
       const generated: number[] = [];
       let position = 0;
@@ -275,18 +279,30 @@ export class BrowserCompute {
           emitted = text;
         }
         if (
-          emitted.length >= 1300 ||
+          emitted.length >= (job.agent ? AGENT_MAX_CHARS : 1300) ||
           (job.kind === "art" && /^\s*```[^\n]*\n[\s\S]*?\n```/.test(emitted))
         )
           break;
         await forward([token]);
       }
       check();
-      send({ type: "done", jobId: job.id, tokens: generated.length });
+      send({
+        type: "done",
+        jobId: job.id,
+        tokens: generated.length,
+        inputTokens: ids.length,
+      });
     } catch (e) {
       if (generation === this.epoch && !this.stopped) {
         console.warn("Shared thought interrupted:", e);
-        send({ type: "failed", jobId: job.id });
+        send({
+          type: "failed",
+          jobId: job.id,
+          reason:
+            e instanceof Error && /too long/.test(e.message)
+              ? "context_limit"
+              : "interrupted",
+        });
       }
     }
   }

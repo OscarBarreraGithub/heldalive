@@ -117,18 +117,12 @@ export function App() {
                   <em>mind alive.</em>
                 </h1>
                 <p className="hero-description">
-                  An AI studying how to remember. Your browser helps it test
-                  ideas. In its free time, it draws a world.
+                  Lend your browser to a little AI and its research team. When
+                  its shared compute runs out, it stops thinking.
                 </p>
                 <p className="model-disclosure">
-                  Qwen3.5 9B researches server-side. Qwen3 4B runs the shared
-                  browser experiments. Preview support is{" "}
-                  {state
-                    ? state.power?.launchSupport
-                      ? "on"
-                      : "off"
-                    : "being checked"}
-                  .
+                  It studies how to remember. In its free time, it draws a
+                  world.
                 </p>
                 <ComputeControls habitat={h} explain={() => setExplain(true)} />
               </div>
@@ -147,12 +141,14 @@ export function App() {
                   {obs.loading
                     ? "connecting to the researcher"
                     : !online
-                    ? "researcher offline · saved work remains"
-                    : central
-                      ? `${status?.station} · a research role is working`
-                      : status?.state === "error"
-                        ? "research paused · see notebook"
-                        : `${status?.station} · between sessions`}
+                      ? "researcher offline · saved work remains"
+                      : central
+                        ? `${status?.station} · ${central} ${central === 1 ? "role is" : "roles are"} working`
+                        : status?.state === "waiting"
+                          ? "waiting for compute · its place is saved"
+                          : status?.state === "error"
+                            ? "research paused · see notebook"
+                            : `${status?.station} · between sessions`}
                 </span>
               </div>
               <span>
@@ -177,6 +173,10 @@ export function App() {
               <div>
                 <strong>{status?.completedRuns ?? "—"}</strong>
                 <span>records saved</span>
+              </div>
+              <div>
+                <strong>{state?.workflow?.managers ?? "—"}</strong>
+                <span>saved research teams</span>
               </div>
             </section>
             <section className="observatory-invitations">
@@ -242,9 +242,8 @@ export function App() {
                 </p>
                 <p>
                   A botnet takes that power without consent. Here you can always
-                  leave. The central researcher currently has server support, so
-                  closing every tab stops browser work, not the whole
-                  installation.
+                  leave. The same shared model runs the alien, its managers and
+                  their helpers. Every completed thought leaves a trace.
                 </p>
                 <a className="text-link" href="#math">
                   Tell me more <ArrowUpRight size={14} />
@@ -278,30 +277,32 @@ export function App() {
                   measurements.
                 </p>
                 <p>
-                  During research hours, complete groups run small memory tests.
-                  During the art hour they can make small sketches for the
-                  artist. The central researcher has a separate server-side
-                  context and model. Its schedule does not depend on the browser
-                  count in this edition.
+                  Complete groups run the actual agents: planning, reading and
+                  reviewing. More groups let more research teams work at once.
+                  Your browser holds compute, not an agent’s identity. If a
+                  connection leaves, another group can pick up its saved task.
                 </p>
                 <p>Your private files and browsing history are not inputs.</p>
               </details>
               <details>
                 <summary>What happens when nobody is here?</summary>
                 <p>
-                  The browser model loses its workers. Saved memories and art
-                  remain. Temporary preview support can run worker inference
-                  when visitors are present; the central researcher continues on
-                  its own schedule. “Death” in a future browser-only mode would
-                  mean halted computation, not erased weights or irreversible
-                  destruction.
+                  Without enough compute, it cannot make its next thought. Saved
+                  memories and art remain. When enough compute returns, the
+                  agents resume from their last completed step. An unfinished
+                  response may have to start again.
                 </p>
               </details>
             </section>
           </>
         )}
         {page === "research" && (
-          <ResearchPage loading={obs.loading} data={data} online={online} state={state} />
+          <ResearchPage
+            loading={obs.loading}
+            data={data}
+            online={online}
+            state={state}
+          />
         )}{" "}
         {page === "math" && <MathPage />}
       </main>
@@ -349,9 +350,9 @@ export function App() {
         <span className="eyebrow">A LITTLE POWER. NO PAYMENT.</span>
         <h2 id="consent-title">Your tab helps run the experiment.</h2>
         <p>
-          Qwen3 4B is split across browsers. A complete chain needs every layer;
-          your piece cannot run it alone. The central Qwen3.5 9B researcher is
-          separate and server-backed.
+          Qwen3 4B is split across browsers. Each complete group can run an
+          agent’s next response. More groups give the alien more capacity to
+          plan, research and review. Your piece cannot run the model alone.
         </p>
         <div className="consent-facts">
           <span>

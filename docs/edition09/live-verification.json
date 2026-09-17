@@ -1,0 +1,29 @@
+{
+  "at": "2026-09-17T03:17:43.356Z",
+  "origin": "https://heldalive.com",
+  "version": "e968eaa9-beb4-4a61-ad85-9e0b396851c9",
+  "viewports": [
+    320,
+    390,
+    1440
+  ],
+  "errors": [],
+  "measuredCounts": [
+    {
+      "width": 320,
+      "simulated": 105,
+      "actualTabs": 1
+    },
+    {
+      "width": 390,
+      "simulated": 105,
+      "actualTabs": 1
+    },
+    {
+      "width": 1440,
+      "simulated": 105,
+      "actualTabs": 1
+    }
+  ],
+  "result": "PASS"
+}

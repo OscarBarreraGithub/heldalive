@@ -32,3 +32,7 @@ Check the shared scenario remains bounded, simulation labels remain visible at m
 - A 320-pixel default-participation check verified the header fits and its simulation label remains visible; model downloads were blocked for this layout check.
 - Desktop/mobile accessibility scans passed after adding an underline to the explanatory link.
 - The simulation has no write path to the backend, no extra network requests and no effect on inference scheduling. Hidden tabs skip its five-second updates. Actual counts remain separate.
+
+### Production
+
+Deployed application commit `ae42154`, Cloudflare version `e968eaa9-beb4-4a61-ad85-9e0b396851c9`, to heldalive.com and www.heldalive.com. Live headless checks at 320, 390 and 1440 pixels confirmed visible simulation labels, bounded values, readable methodology, no overflow or page errors, and actual displayed tab counts matching the coordinator API. See `live-verification.json`.

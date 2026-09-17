@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true });
-await mkdir(".local/qa/edition06", { recursive: true });
+await mkdir(".local/qa/edition07", { recursive: true });
 const errors = [];
 try {
   const context = await browser.newContext({
@@ -36,7 +36,7 @@ try {
     .waitFor();
   await page.getByRole("button", { name: "How your compute helps" }).click();
   await page.getByRole("dialog").waitFor({ state: "visible" });
-  assert.match(await page.getByRole("dialog").innerText(), /11–38/);
+  assert.match(await page.getByRole("dialog").innerText(), /113–345/);
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   assert.equal(
@@ -87,7 +87,7 @@ try {
     200,
   );
   await page.screenshot({
-    path: ".local/qa/edition06/desktop.png",
+    path: ".local/qa/edition07/desktop.png",
     fullPage: true,
   });
   for (const section of ["collection", "experiment", "math"]) {
@@ -134,7 +134,7 @@ try {
       }
     }
     await page.screenshot({
-      path: `.local/qa/edition06/${section}.png`,
+      path: `.local/qa/edition07/${section}.png`,
       fullPage: true,
     });
   }
@@ -152,7 +152,7 @@ try {
       );
       if (width === 390)
         await page.screenshot({
-          path: `.local/qa/edition06/mobile-${section}.png`,
+          path: `.local/qa/edition07/mobile-${section}.png`,
           fullPage: true,
         });
     }

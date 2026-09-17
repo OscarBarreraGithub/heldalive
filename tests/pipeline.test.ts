@@ -1,3 +1,5 @@
+import model from "../shared/model-config.json";
+import { MODEL_LAYERS, HIDDEN_BYTES, MAX_BATCH } from "../shared/pipeline";
 import { describe, it, expect } from "vitest";
 import {
   nextPiece,
@@ -10,14 +12,14 @@ import {
 } from "../shared/pipeline";
 import { OutputGrammar } from "../src/inference/grammar";
 describe("Physical model coverage", () => {
-  it("needs 16 gentle holders, and allocates a lost gap before a helper chain", () => {
+  it("needs one gentle holder for each pair of layers, and allocates a lost gap before a helper chain", () => {
     const pieces: { group: number; start: number; end: number; key: string }[] =
       [];
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < MODEL_LAYERS / 2; i++) {
       const p = nextPiece(pieces, 2)!;
       expect(p.group).toBe(0);
       pieces.push({ ...p, key: String(i) });
-      expect(completeCoverage(pieces)).toBe(i === 15);
+      expect(completeCoverage(pieces)).toBe(i === MODEL_LAYERS / 2 - 1);
     }
     expect(nextPiece(pieces, 2)?.group).toBe(1);
     pieces.splice(7, 1);
@@ -27,13 +29,13 @@ describe("Physical model coverage", () => {
   it("combines unequal budgets without overlap", () => {
     let pieces: { group: number; start: number; end: number; key: string }[] =
       [];
-    for (const duty of [0.2, 0.1, 0.05, 0.05, 0.2, 0.2])
+    for (const duty of [0.2, 0.1, 0.05, 0.05, 0.2, 0.2, 0.1])
       pieces.push({
         ...nextPiece(pieces, contributionLayers(duty))!,
         key: "x",
       });
     expect(completeCoverage(pieces)).toBe(true);
-    expect(pieces.map((p) => p.end - p.start)).toEqual([8, 4, 2, 2, 8, 8]);
+    expect(pieces.map((p) => p.end - p.start)).toEqual([8, 4, 2, 2, 8, 8, 4]);
   });
   it("rejects gaps and overlapping coverage", () => {
     expect(
@@ -57,15 +59,18 @@ describe("Bounded inference messages", () => {
       rid: "r",
       start: 2,
       position: 0,
-      count: 16,
-      data: toBase64(new Uint8Array(1920 * 16)),
+      count: MAX_BATCH,
+      data: toBase64(new Uint8Array(HIDDEN_BYTES * MAX_BATCH)),
     };
     expect(validStageCall(call)).toBe(true);
-    expect(validStageCall({ ...call, count: 17 })).toBe(false);
+    expect(validStageCall({ ...call, count: MAX_BATCH + 1 })).toBe(false);
     expect(validStageCall({ ...call, position: 1023 })).toBe(false);
     expect(validStageCall({ ...call, data: call.data.slice(1) })).toBe(false);
-    expect(validStageCall({ ...call, allowed: [49152] })).toBe(false);
-    expect(fromBase64(call.data).byteLength).toBe(1920 * 16);
+    expect(validStageCall({ ...call, allowed: [model.vocab] })).toBe(false);
+    expect(validStageCall({...call,repetitionIds:[model.vocab]})).toBe(false);
+    expect(validStageCall({...call,repetitionIds:Array(385).fill(1)})).toBe(false);
+    expect(validStageCall({...call,repetitionIds:[151645]})).toBe(true);
+    expect(fromBase64(call.data).byteLength).toBe(HIDDEN_BYTES * MAX_BATCH);
   });
   it("samples only the model candidates, with stable softmax and repetition penalty", () => {
     expect(

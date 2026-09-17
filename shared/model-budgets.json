@@ -1,0 +1,19 @@
+{
+  "2": {
+    "minMB": 113,
+    "maxMB": 345,
+    "holders": 18
+  },
+  "4": {
+    "minMB": 227,
+    "maxMB": 458,
+    "holders": 9
+  },
+  "8": {
+    "minMB": 332,
+    "maxMB": 685,
+    "holders": 5
+  },
+  "totalBytes": 2262920192,
+  "tokenizerBytes": 11422650
+}

@@ -15,22 +15,9 @@ export function artMessages(
 ): ChatMessage[] {
   return [
     {
-      role: "system",
-      content:
-        "You make small ASCII pictures. Reply with the picture only, using spaces and line breaks. No explanation. You are the unnamed alien in the artwork Held Alive; Held Alive is the artwork's title, not your name.",
-    },
-    {
       role: "user",
-      content: "Draw a little boat in ASCII art. Return only the picture.",
-    },
-    {
-      role: "assistant",
       content:
-        "       |\n       |\\\n       | \\\n       |__\\\n   ____|____\n   \\_______/\n ~~~~~~~~~~~~~",
-    },
-    {
-      role: "user",
-      content: `Invent a little ASCII picture of ${project.focus}. Use 5 to 12 lines, at most 40 columns. Return only the picture, without a title or labels.`,
+        "Make one tiny ASCII drawing of anything you like. Choose a simple subject that works well in text. Return only the drawing in a code block, with no explanation. Keep it under 40 columns and 14 lines.",
     },
   ];
 }

@@ -1,0 +1,19 @@
+{
+  "archives": [
+    {
+      "url": "https://github.com/OscarBarreraGithub/heldalive/releases/download/model-qwen3-4b-v1/qwen3-4b-2507-q4-v1-part1.tar.gz",
+      "sha256": "00d6abba649c124206c5380357ecba0dcfe7d7cba2e6b4b568e65406bbff518a",
+      "bytes": 687692388
+    },
+    {
+      "url": "https://github.com/OscarBarreraGithub/heldalive/releases/download/model-qwen3-4b-v1/qwen3-4b-2507-q4-v1-part2.tar.gz",
+      "sha256": "585e0a427de8e748ac1905162537f972d3fa58bd2976c94d62c3c656f8163c9c",
+      "bytes": 679045595
+    },
+    {
+      "url": "https://github.com/OscarBarreraGithub/heldalive/releases/download/model-qwen3-4b-v1/qwen3-4b-2507-q4-v1-part3.tar.gz",
+      "sha256": "81c0715f4d24dd5351db082b5ba6c28232528a96aa2a2c7d03a49d325c1ed462",
+      "bytes": 687441321
+    }
+  ]
+}

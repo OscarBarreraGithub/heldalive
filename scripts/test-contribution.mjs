@@ -69,9 +69,9 @@ try {
   await expect(
     page.getByRole("button", { name: "Most compute" }),
   ).toHaveAttribute("aria-pressed", "true");
-  await mkdir(".local/qa/edition06", { recursive: true });
+  await mkdir(".local/qa/edition07", { recursive: true });
   await page.screenshot({
-    path: ".local/qa/edition06/contribution.png",
+    path: ".local/qa/edition07/contribution.png",
     fullPage: true,
   });
   const now = Date.now();
@@ -99,7 +99,7 @@ try {
   );
   assert.deepEqual(errors, []);
   await writeFile(
-    ".local/qa/edition06/contribution-result.json",
+    ".local/qa/edition07/contribution-result.json",
     JSON.stringify(
       {
         transfers,

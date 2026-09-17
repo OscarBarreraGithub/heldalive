@@ -1,0 +1,138 @@
+[
+  {
+    "i": 0,
+    "text": " /\\\\  \n /  \\\\  \n|    |  \n|    |  \n \\\\_/  \n  |   \\\\\n  |    \\  \n  |     \\  \n  |      \\  \n  -------\\  \n     oOo",
+    "outcome": {
+      "type": "done",
+      "jobId": "trial-0",
+      "tokens": 47
+    },
+    "checked": {
+      "ok": true,
+      "text": " /\\\\  \n /  \\\\  \n|    |  \n|    |  \n \\\\_/  \n  |   \\\\\n  |    \\  \n  |     \\  \n  |      \\  \n  -------\\  \n     oOo",
+      "width": 12,
+      "height": 11,
+      "reason": ""
+    },
+    "ms": 3010
+  },
+  {
+    "i": 1,
+    "text": " .-\"\"-.\n /   \\ |\n|  o  | \n|     |  \n\\_____/  \n  ~~~~",
+    "outcome": {
+      "type": "done",
+      "jobId": "trial-1",
+      "tokens": 29
+    },
+    "checked": {
+      "ok": true,
+      "text": " .-\"\"-.\n /   \\ |\n|  o  | \n|     |  \n\\_____/  \n  ~~~~",
+      "width": 9,
+      "height": 6,
+      "reason": ""
+    },
+    "ms": 1228
+  },
+  {
+    "i": 2,
+    "text": " .-\"\"\"\"-.\n /       \\\n|  O     |\n|  |     |\n|  |     |\n \\       /\n  `-----'  \n   ,----'\n  /      \\\n /        \\ \n(          ) \n \\        / \n  `------'",
+    "outcome": {
+      "type": "done",
+      "jobId": "trial-2",
+      "tokens": 58
+    },
+    "checked": {
+      "ok": true,
+      "text": " .-\"\"\"\"-.\n /       \\\n|  O     |\n|  |     |\n|  |     |\n \\       /\n  `-----'  \n   ,----'\n  /      \\\n /        \\ \n(          ) \n \\        / \n  `------'",
+      "width": 13,
+      "height": 13,
+      "reason": ""
+    },
+    "ms": 2180
+  },
+  {
+    "i": 3,
+    "text": " .-\"\"-.\n /   \\\n|  o  |\n \\___/\n  `~`",
+    "outcome": {
+      "type": "done",
+      "jobId": "trial-3",
+      "tokens": 22
+    },
+    "checked": {
+      "ok": true,
+      "text": " .-\"\"-.\n /   \\\n|  o  |\n \\___/\n  `~`",
+      "width": 7,
+      "height": 5,
+      "reason": ""
+    },
+    "ms": 999
+  },
+  {
+    "i": 4,
+    "text": " _______  \n /       \\  \n|        |  \n|   o    |  \n|   |    |  \n|_______|  \n     \\|/  \n      |  \n      |",
+    "outcome": {
+      "type": "done",
+      "jobId": "trial-4",
+      "tokens": 39
+    },
+    "checked": {
+      "ok": true,
+      "text": " _______  \n /       \\  \n|        |  \n|   o    |  \n|   |    |  \n|_______|  \n     \\|/  \n      |  \n      |",
+      "width": 12,
+      "height": 9,
+      "reason": ""
+    },
+    "ms": 1584
+  },
+  {
+    "i": 5,
+    "text": "  /\\\\  \n  /  \\\\ \n /    \\\\  \n|      |  \n|      |  \n|      |  \n \\\\    /  \n  \\\\  /   \n   \\\\/",
+    "outcome": {
+      "type": "done",
+      "jobId": "trial-5",
+      "tokens": 38
+    },
+    "checked": {
+      "ok": true,
+      "text": "  /\\\\  \n  /  \\\\ \n /    \\\\  \n|      |  \n|      |  \n|      |  \n \\\\    /  \n  \\\\  /   \n   \\\\/",
+      "width": 10,
+      "height": 9,
+      "reason": ""
+    },
+    "ms": 1546
+  },
+  {
+    "i": 6,
+    "text": " /\\\\  \n /  \\\\  \n|    |  \n|    |  \n \\\\  /  \n  \\\\/",
+    "outcome": {
+      "type": "done",
+      "jobId": "trial-6",
+      "tokens": 24
+    },
+    "checked": {
+      "ok": true,
+      "text": " /\\\\  \n /  \\\\  \n|    |  \n|    |  \n \\\\  /  \n  \\\\/",
+      "width": 8,
+      "height": 6,
+      "reason": ""
+    },
+    "ms": 928
+  },
+  {
+    "i": 7,
+    "text": "  /\\\\\n  /  \\\\\n /    \\\\\n|      |\n \\\\   /\n  \\\\_/  \n   o  \n   |  \n___|___",
+    "outcome": {
+      "type": "done",
+      "jobId": "trial-7",
+      "tokens": 31
+    },
+    "checked": {
+      "ok": true,
+      "text": "  /\\\\\n  /  \\\\\n /    \\\\\n|      |\n \\\\   /\n  \\\\_/  \n   o  \n   |  \n___|___",
+      "width": 8,
+      "height": 9,
+      "reason": ""
+    },
+    "ms": 1074
+  }
+]

@@ -1,0 +1,114 @@
+[
+  {
+    "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+    "revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+    "subject": "a cat",
+    "text": "```plaintext\n      /\\\n     /    \\\n    /|     \\\n   / |      \\\n  /  |       \\\n /   |        \\\n/____|---------\\\n```",
+    "seconds": 1.4196620840230025
+  },
+  {
+    "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+    "revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+    "subject": "a fish",
+    "text": "```plaintext\n   /\\\n  /  \\\n /    \\\n \\____\\\n   \\  /\n    \\/\n```",
+    "seconds": 0.41317045799223706
+  },
+  {
+    "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+    "revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+    "subject": "a flower in a pot",
+    "text": "```plaintext\n   /\\\n  /  \\\n /    \\\n/______\\\n```",
+    "seconds": 0.3549469580175355
+  },
+  {
+    "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+    "revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+    "subject": "a rocket",
+    "text": "```\n     _  \n    /  \\\n   /    \\\n  /      \\\n /________\\\n|         |\n|  0  1  |\n|________|\n|     2   |\n|________|\n|      3   |\n|________|\n|       4   |\n|________|\n|      5   |\n|________|\n```",
+    "seconds": 0.8939972500083968
+  },
+  {
+    "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+    "revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+    "subject": "a little house",
+    "text": "```plaintext\n    /\\\n   /  \\\n  /____\\\n   \\  /\n    \\/\n```",
+    "seconds": 0.3957703330088407
+  },
+  {
+    "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+    "revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+    "subject": "a sailing boat",
+    "text": "```\n     \\_\n     / \\\n    /   \\\n    \\___/\n     \\_/\n     / \\\n    /   \\\n    \\___/\n```",
+    "seconds": 0.5022299159900285
+  },
+  {
+    "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+    "revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+    "subject": "a smiling robot",
+    "text": "```\n  o o o  \n  o   o  \n  o o o  \n  o   o  \n  o o o  \n```\n\n```\n  o o o  \n  o   o  \n  o o o  \n  o o o  \n  o o o  \n```\n\n```\n  o o o  \n  o o o  \n  o o o  \n  o o o  \n  o o o  \n```\n\n```\n  o o o  \n  o o o  \n  o o o  \n  o o o  \n  o o o  \n```\n\n```\n  o o o  \n  o o o  \n  o o o  \n  o o o  \n  o o o  \n```",
+    "seconds": 1.6114189579966478
+  },
+  {
+    "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+    "revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+    "subject": "a mountain under stars",
+    "text": "```\n   *\n  ***\n ***\n***\n***\n***\n***\n***\n***\n***\n```",
+    "seconds": 0.32401679101167247
+  },
+  {
+    "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "revision": "4f83f8f146fdf28b512a06562b671d7af4fab457",
+    "subject": "a cat",
+    "text": "/\\_\\\\\\  \n( o .:)  \n ( \\'')",
+    "seconds": 1.0411675000214018
+  },
+  {
+    "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "revision": "4f83f8f146fdf28b512a06562b671d7af4fab457",
+    "subject": "a fish",
+    "text": "/\\\\\n( )(_)\n \\_^/\n /    \\",
+    "seconds": 0.7673740419559181
+  },
+  {
+    "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "revision": "4f83f8f146fdf28b512a06562b671d7af4fab457",
+    "subject": "a flower in a pot",
+    "text": "\u251c\u2500\u2500leaf\u2500\u2500\n \u251c\u2500\u2500   o\u2500\u2500\n \u251c\u2500\u2500   o\u2500\u2500\n \u251c\u2500\u2500   o\u2500\u2500\n \u251c\u2500\u2500   o\u2500\u2500\n \u2502   o   o\n\u2502   o   o\no   o   o",
+    "seconds": 1.622967666015029
+  },
+  {
+    "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "revision": "4f83f8f146fdf28b512a06562b671d7af4fab457",
+    "subject": "a rocket",
+    "text": "  \\    /\n   === ===\n  ===   ===\n /======\\  /\\  ====\n\\  \\  \\  /  /  /===/\n  \\_____/  /======",
+    "seconds": 1.6694606249802746
+  },
+  {
+    "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "revision": "4f83f8f146fdf28b512a06562b671d7af4fab457",
+    "subject": "a little house",
+    "text": "   ##\n ## ##\n  ####\n ######\n ######\n ######\n    ##",
+    "seconds": 0.8237594579695724
+  },
+  {
+    "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "revision": "4f83f8f146fdf28b512a06562b671d7af4fab457",
+    "subject": "a sailing boat",
+    "text": "   /\\  \n   /  \\  \n  /____\\ \n /      \\ \n/_______\\ \n   |   | \n   \\___/",
+    "seconds": 1.345975125033874
+  },
+  {
+    "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "revision": "4f83f8f146fdf28b512a06562b671d7af4fab457",
+    "subject": "a smiling robot",
+    "text": "   /\\_/\\  \n /(o o)\\   ,\n(   v   ) /\n  \\___/",
+    "seconds": 1.01895549998153
+  },
+  {
+    "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "revision": "4f83f8f146fdf28b512a06562b671d7af4fab457",
+    "subject": "a mountain under stars",
+    "text": "/\\    \\  \n/  \\    \\  \n/    \\   \\\n/      \\  \n\\______/\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||\n  ||   ||",
+    "seconds": 4.7192308329977095
+  }
+]

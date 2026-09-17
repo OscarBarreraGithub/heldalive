@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+const model = JSON.parse(readFileSync("shared/model-config.json", "utf8"));
 import assert from "node:assert/strict";
 import { WebSocket } from "ws";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
@@ -100,6 +102,23 @@ try {
     0,
     "Missing assignment cannot claim readiness",
   );
+  viewer.send({
+    type: "pipeline_offer",
+    modelId: "smollm2-360m-q4-v1",
+    duty: 0.2,
+    visible: true,
+  });
+  await until(
+    () =>
+      viewer.events.some(
+        (e) => e.type === "pipeline_error" && /Reload/.test(e.message),
+      ),
+    "old model refused",
+  );
+  assert.ok(
+    !viewer.events.some((e) => e.type === "pipeline_assign"),
+    "Old checkpoint cannot join new chain",
+  );
   viewer.send({ type: "vote", choice: "art" });
   await until(
     () =>
@@ -119,16 +138,21 @@ try {
     "free-text rejection",
   );
   const workers = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < Math.ceil(model.layers / 8) * 2; i++) {
     const c = await connect();
     workers.push(c);
-    c.send({ type: "pipeline_offer", duty: 0.2, visible: true });
+    c.send({
+      type: "pipeline_offer",
+      modelId: model.id,
+      duty: 0.2,
+      visible: true,
+    });
     const assignment = await until(
       () => c.events.find((e) => e.type === "pipeline_assign"),
       "piece assignment",
     );
     c.piece = assignment.piece;
-    c.send({ type: "pipeline_ready", key: c.piece.key });
+    c.send({ type: "pipeline_ready", modelId: model.id, key: c.piece.key });
     if (i < 3) {
       await wait(80);
       assert.equal(
@@ -145,7 +169,7 @@ try {
   // Explicit LOCAL coordinator fixtures, never model-quality evidence.
   const art = "    /\\\n   /  \\\n  /____\\\n  | [] |\n  |____|";
   const first = await take("art");
-  assert.equal(first.job.maxTokens, 512);
+  assert.equal(first.job.maxTokens, 384);
   assert.ok(clients.flatMap((c) => c.jobs).every((j) => j.kind === "art"));
   viewer.send({ type: "done", jobId: first.job.id, tokens: 100 });
   await wait(100);
@@ -158,7 +182,7 @@ try {
   );
   const inspected = inputs.tasks.find((t) => t.id === first.job.id);
   assert.deepEqual(inspected.messages, first.job.messages);
-  assert.equal(inspected.maxOutputTokens, 512);
+  assert.equal(inspected.maxOutputTokens, 384);
   assert.equal(
     (await fetch(base + "/api/inputs?room=browser", { method: "POST" })).status,
     405,
@@ -197,13 +221,22 @@ try {
     "Lost piece cancels lease",
   );
   const replacement = await connect();
-  replacement.send({ type: "pipeline_offer", duty: 0.2, visible: true });
+  replacement.send({
+    type: "pipeline_offer",
+    modelId: model.id,
+    duty: 0.2,
+    visible: true,
+  });
   const part = await until(
     () => replacement.events.find((e) => e.type === "pipeline_assign"),
     "Replacement assignment",
   );
   assert.equal(part.piece.start, missing.piece.start);
-  replacement.send({ type: "pipeline_ready", key: part.piece.key });
+  replacement.send({
+    type: "pipeline_ready",
+    modelId: model.id,
+    key: part.piece.key,
+  });
   console.log(
     "PASS: authenticated sockets, votes rejected, no prompts, physical coverage, two chains, art-only jobs, exact inputs, invalid output rejected without credit, valid artwork preserved, disconnect and gap replacement. LOCAL fixtures only.",
   );

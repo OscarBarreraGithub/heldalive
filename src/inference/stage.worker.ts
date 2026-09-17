@@ -1,3 +1,4 @@
+import config from "../../shared/model-config.json";
 /// <reference lib="webworker" />
 import { loadStage, topLogits, type Stage } from "./runtime";
 import {
@@ -57,6 +58,15 @@ self.onmessage = (event) => {
       stage.assertHealthy();
       const computeMs = performance.now() - start;
       nextAt = performance.now() + computeMs * (1 / duty - 1);
+      if ("logits" in out && call.repetitionIds) {
+        for (const id of new Set(call.repetitionIds)) {
+          const value = out.logits[id];
+          out.logits[id] =
+            value < 0
+              ? value * config.artRepetitionPenalty
+              : value / config.artRepetitionPenalty;
+        }
+      }
       const top =
         "logits" in out ? topLogits(out.logits, 64, call.allowed) : undefined;
       const residuals =

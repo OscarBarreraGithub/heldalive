@@ -1,3 +1,4 @@
+import { CURRENT_MODEL, modelPrompt } from "../shared/model";
 import { OutputGrammar } from "./inference/grammar";
 import type { Job } from "../shared/protocol";
 import {
@@ -47,7 +48,12 @@ export class BrowserCompute {
       this.readyResolve = resolve;
       this.readyReject = reject;
     });
-    this.send({ type: "pipeline_offer", duty, visible: !document.hidden });
+    this.send({
+      type: "pipeline_offer",
+      modelId: CURRENT_MODEL.id,
+      duty,
+      visible: !document.hidden,
+    });
     return promise;
   }
   setBudget(duty: number) {
@@ -59,6 +65,7 @@ export class BrowserCompute {
     if (!this.stopped)
       this.send({
         type: "pipeline_offer",
+        modelId: CURRENT_MODEL.id,
         duty: this.duty,
         visible: !document.hidden,
       });
@@ -91,7 +98,11 @@ export class BrowserCompute {
             1,
             `Holding layers ${this.piece!.start + 1}–${this.piece!.end} · ${(d.bytes / 1e6).toFixed(1)} MB`,
           );
-          this.send({ type: "pipeline_ready", key: this.piece?.key });
+          this.send({
+            type: "pipeline_ready",
+            modelId: CURRENT_MODEL.id,
+            key: this.piece?.key,
+          });
           this.readyResolve?.(true);
           this.readyResolve = null;
         }
@@ -185,14 +196,15 @@ export class BrowserCompute {
         throw Error("Incomplete pipeline");
       this.tokenizer ??= await loadTokenizer();
       check();
-      const prompt =
-        job.messages
-          .map((m) => `<|im_start|>${m.role}\n${m.content}<|im_end|>\n`)
-          .join("") + "<|im_start|>assistant\n";
+      const prompt = modelPrompt(job.messages);
       const ids = this.tokenizer.encode(prompt);
       if (ids.length + job.maxTokens > MAX_CONTEXT)
         throw Error("This thought is too long for the shared model");
-      const grammar = new OutputGrammar(this.tokenizer, job.kind);
+      const grammar = new OutputGrammar(
+        this.tokenizer,
+        job.kind === "art" ? undefined : job.kind,
+      );
+      const generated: number[] = [];
       let position = 0;
       let top: [number, number][] = [];
       const forward = async (tokens: number[]) => {
@@ -205,7 +217,14 @@ export class BrowserCompute {
             start: piece.start,
             position,
             count: tokens.length,
-            allowed: piece.end === 32 ? grammar.allowed() : undefined,
+            repetitionIds:
+              piece.end === CURRENT_MODEL.layers && job.kind === "art"
+                ? generated.slice(-384)
+                : undefined,
+            allowed:
+              piece.end === CURRENT_MODEL.layers
+                ? grammar.allowed()
+                : undefined,
             ...payload,
           });
           check();
@@ -217,7 +236,6 @@ export class BrowserCompute {
       while (position < ids.length) {
         await forward(ids.slice(position, position + MAX_BATCH));
       }
-      const generated: number[] = [];
       let emitted = "";
       for (let i = 0; i < job.maxTokens; i++) {
         check();
@@ -231,7 +249,7 @@ export class BrowserCompute {
               jobId: job.id,
               top,
               temperature: job.temperature ?? 0.8,
-              history: generated.slice(-40),
+              history: job.kind === "art" ? [] : generated.slice(-40),
             },
             2700,
           );
@@ -245,9 +263,9 @@ export class BrowserCompute {
                 top,
                 job.temperature ?? 0.8,
                 Math.random(),
-                generated,
+                job.kind === "art" ? [] : generated,
               );
-        if (token === 0 || token === 2) break;
+        if (CURRENT_MODEL.stops.includes(token)) break;
         generated.push(token);
         grammar.consume(token);
         const text = this.tokenizer.decode(generated);
@@ -256,7 +274,11 @@ export class BrowserCompute {
           if (delta) send({ type: "chunk", jobId: job.id, text: delta });
           emitted = text;
         }
-        if (emitted.length >= 1300) break;
+        if (
+          emitted.length >= 1300 ||
+          (job.kind === "art" && /^\s*```[^\n]*\n[\s\S]*?\n```/.test(emitted))
+        )
+          break;
         await forward([token]);
       }
       check();

@@ -1,3 +1,5 @@
+import { CURRENT_MODEL as model } from "../shared/model";
+import budgets from "../shared/model-budgets.json";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
@@ -251,7 +253,7 @@ export function App() {
                       ? "PREVIEW · SUPPORT ON"
                       : "BROWSER COMPUTATION ONLY"}{" "}
                 <span className="status-separator">/</span>{" "}
-                {studio ? "QWEN 0.5B" : "SMOLLM2 · 360M"}
+                {studio ? "QWEN 0.5B" : model.label.toUpperCase()}
               </span>
             </div>
             {notice && (
@@ -378,10 +380,10 @@ export function App() {
               <span className="eyebrow">WHAT GOES INTO A DRAWING?</span>
               <h2>A small prompt. A real calculation.</h2>
               <p>
-                The model receives drawing instructions, a broad subject and
-                examples of ASCII formatting. It chooses the marks. It is not
-                reading your files, ingesting the internet or training itself.
-                Animation is decoration; the drawings come from model inference.
+                The model receives one short drawing prompt. It chooses its own
+                subject and marks. It is not reading your files, ingesting the
+                internet or training itself. Animation is decoration; the
+                drawings come from model inference.
               </p>
               <InputsPanel room={room} state={state} />
               <details className="activity-details">
@@ -460,20 +462,23 @@ export function App() {
         <span className="eyebrow">COMPUTE, NOT MONEY</span>
         <h2 id="consent-title">Your tab is part of the computer.</h2>
         <p>
-          A compatible visit automatically holds up to two of the model’s 32
+          A compatible visit automatically holds up to two of the model’s{" "}
+          {model.layers}
           layers. Other tabs hold the rest. Together, a complete group generates
           an ASCII drawing. More groups can draw in parallel.
         </p>
         <div className="consent-facts">
           <span>
             <strong>Gentle:</strong> up to 2 layers · 5% work/rest target ·
-            11–38 MB
+            {budgets["2"].minMB}–{budgets["2"].maxMB} MB
           </span>
           <span>
-            <strong>More:</strong> up to 4 layers · 10% target · up to 49 MB
+            <strong>More:</strong> up to 4 layers · 10% target · up to{" "}
+            {budgets["4"].maxMB} MB
           </span>
           <span>
-            <strong>Most:</strong> up to 8 layers · 20% target · up to 71 MB
+            <strong>Most:</strong> up to 8 layers · 20% target · up to{" "}
+            {budgets["8"].maxMB} MB
           </span>
         </div>
         <p className="consent-detail">

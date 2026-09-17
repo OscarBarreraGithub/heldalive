@@ -53,8 +53,8 @@ export function InputsPanel({
     >
       <summary>Read exactly what the model is given</summary>
       <p>
-        Drawing instructions, a subject and examples of ASCII formatting. These
-        are the complete inputs for the tasks below. Nothing from your personal
+        One short drawing prompt; the model chooses its own subject. These are
+        the complete inputs for the tasks below. Nothing from your personal
         files or other tabs is included.
       </p>
       <button className="text-button" onClick={() => setRefresh((n) => n + 1)}>

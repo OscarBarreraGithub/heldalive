@@ -1,7 +1,8 @@
+import model from "./model-config.json";
 /** The model's physical topology, independent of UI and inference kernels. */
-export const MODEL_LAYERS = 32;
-export const HIDDEN_BYTES = 960 * 2;
-export const MAX_BATCH = 16;
+export const MODEL_LAYERS = model.layers;
+export const HIDDEN_BYTES = model.hiddenSize * 2;
+export const MAX_BATCH = model.batchSize;
 export const MAX_CONTEXT = 1024;
 export const MAX_PIPELINES = 8;
 export type Piece = { group: number; start: number; end: number; key: string };
@@ -20,6 +21,7 @@ export type StageCall = {
   tokens?: number[];
   data?: string;
   allowed?: number[];
+  repetitionIds?: number[];
 };
 export type StageResult = {
   jobId: string;
@@ -44,10 +46,11 @@ export function nextPiece(
           Array.from({ length: p.end - p.start }, (_, i) => i + p.start),
         ),
     );
-    for (let start = 0; start < 32; start += 2) {
+    for (let start = 0; start < MODEL_LAYERS; start += 2) {
       if (used.has(start)) continue;
       let end = start;
-      while (end < Math.min(32, start + capacity) && !used.has(end)) end++;
+      while (end < Math.min(MODEL_LAYERS, start + capacity) && !used.has(end))
+        end++;
       if (end > start) return { group, start, end };
     }
   }
@@ -62,15 +65,24 @@ export function completeCoverage(
     if (p.start !== end || p.end <= p.start) return false;
     end = p.end;
   }
-  return end === 32;
+  return end === MODEL_LAYERS;
 }
 export function validStageCall(v: StageCall): boolean {
+  if (
+    v.repetitionIds !== undefined &&
+    (!Array.isArray(v.repetitionIds) ||
+      v.repetitionIds.length > 384 ||
+      !v.repetitionIds.every(
+        (n) => Number.isInteger(n) && n >= 0 && n < model.vocab,
+      ))
+  )
+    return false;
   if (
     v.allowed !== undefined &&
     (!Array.isArray(v.allowed) ||
       v.allowed.length < 1 ||
       v.allowed.length > 2048 ||
-      !v.allowed.every((n) => Number.isInteger(n) && n >= 0 && n < 49152))
+      !v.allowed.every((n) => Number.isInteger(n) && n >= 0 && n < model.vocab))
   )
     return false;
   if (
@@ -79,7 +91,7 @@ export function validStageCall(v: StageCall): boolean {
     typeof v.jobId !== "string" ||
     !Number.isInteger(v.start) ||
     v.start < 0 ||
-    v.start >= 32 ||
+    v.start >= MODEL_LAYERS ||
     !Number.isInteger(v.position) ||
     !Number.isInteger(v.count) ||
     v.position < 0 ||
@@ -91,7 +103,7 @@ export function validStageCall(v: StageCall): boolean {
   return v.start === 0
     ? Array.isArray(v.tokens) &&
         v.tokens.length === v.count &&
-        v.tokens.every((n) => Number.isInteger(n) && n >= 0 && n < 49152)
+        v.tokens.every((n) => Number.isInteger(n) && n >= 0 && n < model.vocab)
     : typeof v.data === "string" &&
         v.data.length === Math.ceil((v.count * HIDDEN_BYTES) / 3) * 4 &&
         /^[A-Za-z0-9+/]*={0,2}$/.test(v.data);
@@ -107,7 +119,7 @@ export function validTop(value: unknown): value is [number, number][] {
         p.length === 2 &&
         Number.isInteger(p[0]) &&
         p[0] >= 0 &&
-        p[0] < 49152 &&
+        p[0] < model.vocab &&
         typeof p[1] === "number" &&
         Number.isFinite(p[1]) &&
         Math.abs(p[1]) < 10000,

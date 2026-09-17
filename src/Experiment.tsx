@@ -1,3 +1,5 @@
+import { CURRENT_MODEL as model } from "../shared/model";
+import budgets from "../shared/model-budgets.json";
 import { ArrowUpRight, Brain } from "lucide-react";
 import type { Snapshot } from "../shared/protocol";
 export function Experiment({ state }: { state: Snapshot | null }) {
@@ -28,11 +30,11 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           <span className="section-number">01 / A SKETCHBOOK, FOR NOW</span>
           <h2>Only ASCII art.</h2>
           <p>
-            The model makes drawings from text characters. A simple subject and
-            formatting examples give it a starting point; it chooses the marks.
-            A drawing alphabet limits it to punctuation, spaces and a few letter
-            shapes. A 40-column × 20-row canvas preserves spaces and line
-            breaks. Formatting checks do not prove a drawing is good.
+            The model makes drawings from text characters. One short prompt asks
+            it to choose a simple subject. It chooses every mark using its full
+            vocabulary; a format check rejects non-ASCII or oversized attempts.
+            A 40-column × 20-row canvas preserves spaces and line breaks.
+            Formatting checks do not prove a drawing is good.
           </p>
           <p>
             More complete groups can make more drawings in parallel. The small
@@ -56,9 +58,11 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           </p>
           <p>
             Gentle holds up to 2 layers, More up to 4 and Most up to 8. With
-            identical contributions, that means 16, 8 or 4 tabs for a complete
-            32-layer model. Mixed contributions also work. A complete group
-            makes one drawing at a time; there are at most eight groups.
+            identical contributions, that means {budgets["2"].holders},{" "}
+            {budgets["4"].holders} or {budgets["8"].holders} tabs for a complete
+            {model.layers}-layer model. Mixed contributions also work. A
+            complete group makes one drawing at a time; there are at most eight
+            groups.
           </p>
           <p>
             These are chosen contribution budgets. The model can fit on one
@@ -83,10 +87,10 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           <span className="section-number">03 / AN ACTUAL DEPENDENCY</span>
           <h2>No complete group. No new picture.</h2>
           <p>
-            Each output token passes through all 32 model layers. If a necessary
-            browser leaves, its group's unfinished drawing stops. Other complete
-            groups may continue. Enough returning browsers can restart
-            interrupted work.
+            Each output token passes through all {model.layers} model layers. If
+            a necessary browser leaves, its group's unfinished drawing stops.
+            Other complete groups may continue. Enough returning browsers can
+            restart interrupted work.
           </p>
           <p>
             During the preview, a server runs the same checkpoint when no
@@ -105,18 +109,20 @@ export function Experiment({ state }: { state: Snapshot | null }) {
           </p>
           <p>
             Some drawings will be lovely, some will be odd. This is a small
-            model, and often makes abstract scribbles or repeats an example.
-            There are no paid boosts or messages to purchase.
+            model, and often makes abstract or uneven sketches. There are no
+            paid boosts or messages to purchase.
           </p>
         </article>
       </div>
       <details className="paper-panel">
         <summary>What the page uses and stores</summary>
         <p>
-          Model files load automatically on compatible visible tabs: about 11–38
-          MB at Gentle, up to 49 MB at More, and up to 71 MB at Most. Cached
-          files can remain after leaving. Browsers also exchange intermediate
-          model values; these sizes are not total traffic.
+          Model files load automatically on compatible visible tabs: about{" "}
+          {budgets["2"].minMB}–{budgets["2"].maxMB}
+          MB at Gentle, up to {budgets["4"].maxMB} MB at More, and up to{" "}
+          {budgets["8"].maxMB} MB at Most. Cached files can remain after
+          leaving. Browsers also exchange intermediate model values; these sizes
+          are not total traffic.
         </p>
         <p>
           Work/rest targets are 5%, 10% and 20%; they are not exact GPU

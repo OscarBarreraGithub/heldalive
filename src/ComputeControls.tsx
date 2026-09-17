@@ -1,3 +1,5 @@
+import { CURRENT_MODEL as model } from "../shared/model";
+import budgets from "../shared/model-budgets.json";
 import { CircleHelp, Pause, Zap } from "lucide-react";
 import type { useHabitat } from "./useHabitat";
 export function ComputeControls({
@@ -64,7 +66,7 @@ export function ComputeControls({
                 : h.status === "loading"
                   ? `Loading your piece · ${Math.round(h.progress * 100)}%`
                   : h.status === "ready"
-                    ? `Holding ${h.usage.layers} of 32 layers · ${h.usage.passes ? "has done real work" : "ready for work"}`
+                    ? `Holding ${h.usage.layers} of ${model.layers} layers · ${h.usage.passes ? "has done real work" : "ready for work"}`
                     : "Getting your piece ready"}
         </span>
       </div>
@@ -83,7 +85,7 @@ export function ComputeControls({
       </p>
       <p className="care-disclosure">
         {h.enabled
-          ? `Up to ${h.duty === 0.2 ? "71" : h.duty === 0.1 ? "49" : "38"} MB of model data. `
+          ? `Up to ${budgets[h.duty === 0.2 ? "8" : h.duty === 0.1 ? "4" : "2"].maxMB} MB of model data. `
           : "Watching is welcome. "}
         No app to install.{" "}
         <button className="text-button" onClick={explain}>

@@ -1,0 +1,62 @@
+[
+  {
+    "model": "Qwen3-1.7B",
+    "subject": "a friendly robot",
+    "text": "  o o  \n  /\\/\\  \n / / |  \n|_| _|_|"
+  },
+  {
+    "model": "Qwen3-1.7B",
+    "subject": "a rocket",
+    "text": " /\\\n /  \\\n| \u00b1 |  \n| |_|  \n|_|_|"
+  },
+  {
+    "model": "Qwen3-1.7B",
+    "subject": "a sailboat",
+    "text": "/\\  \n/  \\  \n/___\\  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n | |  \n"
+  },
+  {
+    "model": "Qwen3-1.7B",
+    "subject": "a flower",
+    "text": "  /\\\n  /  \\\n /____\\\n| /  |\n|/   |\n|____|"
+  },
+  {
+    "model": "Qwen3-1.7B",
+    "subject": "an alien in a flying saucer",
+    "text": "  /===\n  /  \\  \n /___\\  \n | | |  \n | | |  \n | | |"
+  },
+  {
+    "model": "Qwen3-1.7B",
+    "subject": "a mountain under stars",
+    "text": "  /\\\n  /  \\\n /____\\\n|     |\n| v v |\n| v v |\n| v v |\n-----"
+  },
+  {
+    "model": "Qwen3-4B",
+    "subject": "a friendly robot",
+    "text": "  /\\_/\\  \n  ( o.o )  \n   \\   /  \n    '-'\\  \n      \\|  \n      /|  \n     / |  \n    /  |  \n   (----)  \n   |  /|  \n   | / |  \n  /'___\\  \n (_____)"
+  },
+  {
+    "model": "Qwen3-4B",
+    "subject": "a rocket",
+    "text": "  /\\_/\\  \n  ( o.o )  \n   \\___/  \n    \\ /  \n     |  \n     |  \n     |  \n  ----|----  \n   \\  /  \n    \\_/"
+  },
+  {
+    "model": "Qwen3-4B",
+    "subject": "a sailboat",
+    "text": "  ___\n  /   \\\n /     \\\n|       |\n|  __   |\n| |  |  |\n| |  |  |\n \\____/  \n   \\  \n    \\  \n     \\  \n      \\  \n       \\  \n        \\  \n         \\  \n          \\  \n           \\  \n            \\  \n             \\  \n              \\  \n               \\  \n                \\  \n                 \\  \n                  \\  \n                   \\  \n                    \\  \n                     \\  \n                      \\  \n                       \\  \n                        \\  \n                         \\  \n                          \\  \n                           \\  \n                            \\  \n                             \\  \n                              \\  \n                               \\  \n                                \\  \n                                 \\  \n                                  \\  \n                                   \\  \n                                    \\  \n                                     \\  \n                                      \\  \n                                       \\  \n                                        \\  \n                                         \\  \n                                          \\  \n                                           \\  \n                                            \\  \n                                             \\  \n                                              \\  \n                                               \\  \n                                                \\  \n                                                 \\  \n                                                  \\  \n                                                   \\  \n                                                    \\  \n                                                     \\  \n                                                      \\  \n                                                       \\  \n                                                        \\  \n                                                         \\  \n                                                          \\  \n                                                           \\  \n                                                            \\  \n                                                             \\  \n                                                              \\  \n                                                               \\  \n                                                                \\  \n                                                                 \\  \n                                                                  \\  \n                                                                   \\  \n                                                                    \\  \n                                                                     \\  \n                                                                      \\  \n                                                                       \\  \n                                                                        \\  \n                                                                         \\  \n                                                                          \\  \n                                                                           \\  \n                                                                            \\  \n"
+  },
+  {
+    "model": "Qwen3-4B",
+    "subject": "a flower",
+    "text": "    /\\    \n    /  \\  \n   /    \\ \n  |      |\n  |      |\n  \\      / \n   \\    /  \n    \\  /   \n     \\/"
+  },
+  {
+    "model": "Qwen3-4B",
+    "subject": "an alien in a flying saucer",
+    "text": "      /\\\\\n      (  )\\\n       \\_/ \\\n        |   \\____\n        |    \\  /\n        |     | |\n        |_____| |\n         \\    / \\\n          \\  /   \\\n           \\_/    \\  \n      _______  _______\n     /       \\|      \\\n    |         | \\      \\\n    |          |  \\     \\\n    |           |   \\    \\\n    |            |    \\   \\\n     \\___________|____\\__\\  \n      \\           /      \\\n       \\         /        \\\n        \\_______/__________\\  \n         \\     /            \\  \n          \\   /              \\  \n           \\_/                \\  \n          /                    \\  \n         /                     \\  \n        /                      \\  \n       /                       \\  \n      /                        \\  \n     /                         \\  \n    /                          \\  \n   /                           \\  \n  /                            \\  \n /                             \\  \n/                              \\  \n \\                             /  \n  \\                           /  \n   \\                         /  \n    \\                       /  \n     \\                     /  \n      \\                   /  \n       \\                 /  \n        \\               /  \n         \\             /  \n          \\           /  \n           \\_________/  \n           ("
+  },
+  {
+    "model": "Qwen3-4B",
+    "subject": "a mountain under stars",
+    "text": "     * * * * *\n     *       *\n    *         *\n   *           *\n  *             *\n *               *\n*                 *\n  \\               /\n   \\             /\n    \\           /\n     \\         /\n      \\       /\n       \\_____/\n\n   * * * * * * * * *  \n  *                 *  \n *                 *  \n*                 *  \n  \\               /  \n   \\             /  \n    \\           /  \n     \\         /  \n      \\_______/"
+  }
+]

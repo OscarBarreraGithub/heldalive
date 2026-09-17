@@ -1,3 +1,5 @@
+import { CURRENT_MODEL as model } from "../shared/model";
+import budgets from "../shared/model-budgets.json";
 import type { Snapshot } from "../shared/protocol";
 export function Survival({
   state,
@@ -26,17 +28,20 @@ export function Survival({
     >
       <div className="survival-heading">
         <strong>{title}</strong>
-        <span>{covered} / 32</span>
+        <span>
+          {covered} / {model.layers}
+        </span>
       </div>
       <div
         className="mind-pieces"
+        style={{ gridTemplateColumns: `repeat(${model.layers},1fr)` }}
         role="meter"
         aria-label="Model layers present in the fullest browser group"
         aria-valuemin={0}
-        aria-valuemax={32}
+        aria-valuemax={model.layers}
         aria-valuenow={covered}
       >
-        {Array.from({ length: 32 }, (_, i) => (
+        {Array.from({ length: model.layers }, (_, i) => (
           <i
             key={i}
             className={
@@ -50,7 +55,7 @@ export function Survival({
       <p>
         {chains
           ? `${chains} complete ${chains === 1 ? "group" : "groups"} of browsers. Lose the last complete group and browser thinking stops.`
-          : `${32 - covered} model layers missing. One complete group needs 16 Gentle tabs, 8 at More, or 4 at Most.`}
+          : `${model.layers - covered} model layers missing. One complete group needs ${budgets["2"].holders} Gentle tabs, ${budgets["4"].holders} at More, or ${budgets["8"].holders} at Most.`}
       </p>
       {preview && (
         <p className="preview-truth">

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+const model = JSON.parse(readFileSync("shared/model-config.json", "utf8"));
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
@@ -73,7 +75,7 @@ async function oneHolder() {
     const d = JSON.parse(String(raw));
     if (d.type === "pipeline_assign") {
       c.piece = d.piece;
-      c.send({ type: "pipeline_ready", key: d.piece.key });
+      c.send({ type: "pipeline_ready", modelId: model.id, key: d.piece.key });
     }
     if (d.type === "job") c.jobs.push(d.job);
     if (d.type === "state") c.state = d;
@@ -85,13 +87,19 @@ async function oneHolder() {
       if (ws.readyState === 1) c.send({ type: "ping", visible: true });
     }, 10000),
   );
-  c.send({ type: "pipeline_offer", duty: 0.2, visible: true });
+  c.send({
+    type: "pipeline_offer",
+    modelId: model.id,
+    duty: 0.2,
+    visible: true,
+  });
   await until(() => c.piece, "assigned piece");
   return c;
 }
 async function connect() {
   const holders = [];
-  for (let i = 0; i < 4; i++) holders.push(await oneHolder());
+  for (let i = 0; i < Math.ceil(model.layers / 8); i++)
+    holders.push(await oneHolder());
   return holders[0];
 }
 function complete(c, job, text) {

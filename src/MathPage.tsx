@@ -1,19 +1,22 @@
+import { CURRENT_MODEL as model } from "../shared/model";
+import { MAX_BATCH, HIDDEN_BYTES } from "../shared/pipeline";
+import budgets from "../shared/model-budgets.json";
 import { useState } from "react";
 import { ArrowUpRight, Download, FlaskConical } from "lucide-react";
 export function MathPage() {
-  const [browsers, setBrowsers] = useState(16);
+  const [browsers, setBrowsers] = useState(budgets["2"].holders);
   const [layers, setLayers] = useState(2);
   const [latency, setLatency] = useState(80);
-  const stages = Math.ceil(32 / layers);
+  const stages = Math.ceil(model.layers / layers);
   const groups = Math.min(8, Math.floor(browsers / stages));
   const stageMs = layers * 0.5; // Illustrative device assumption, not a measured browser rate.
   const duty = layers === 8 ? 0.2 : layers === 4 ? 0.1 : 0.05;
   const tokenMs = Math.max(stages * (stageMs + latency), stageMs / duty);
   const batchMs = Math.max(
-    stages * (16 * stageMs + latency),
-    (16 * stageMs) / duty,
+    stages * (MAX_BATCH * stageMs + latency),
+    (MAX_BATCH * stageMs) / duty,
   );
-  const prefillMs = Math.ceil(256 / 16) * batchMs;
+  const prefillMs = Math.ceil(256 / MAX_BATCH) * batchMs;
   const jobSeconds = (prefillMs + 64 * tokenMs) / 1000;
   return (
     <div className="inner-page math-page">
@@ -38,7 +41,8 @@ export function MathPage() {
           </h2>
           <p>
             These are adjustable assumptions, not a speed promise. A complete
-            chain needs all 32 layers. Additional chains run helper copies.
+            chain needs all {model.layers} layers. Additional chains run helper
+            copies.
           </p>
           <label>
             Contributing browsers <strong>{browsers}</strong>
@@ -73,7 +77,9 @@ export function MathPage() {
           </label>
         </div>
         <div className="calculation-result">
-          <div className="formula">browsers per mind = ceil(32 / layers)</div>
+          <div className="formula">
+            browsers per mind = ceil({model.layers} / layers)
+          </div>
           <strong>
             {stages}
             <small>contributors per complete mind</small>
@@ -101,16 +107,19 @@ export function MathPage() {
           <span className="section-number">01 / ACTUAL INFERENCE</span>
           <h2>A thought passes through all of us.</h2>
           <p>
-            SmolLM2-360M has 32 transformer layers. Each browser applies its
-            assigned layers and passes a 1,920-byte hidden vector onward. The
-            final piece scores possible next tokens; a tiny CPU contribution
-            samples the next one. This repeats for every generated token.
+            {model.label} has {model.layers} transformer layers. Each browser
+            applies its assigned layers and passes a{" "}
+            {HIDDEN_BYTES.toLocaleString()}-byte hidden vector onward. The final
+            piece scores possible next tokens; a tiny CPU contribution samples
+            the next one. This repeats for every generated token.
           </p>
           <p>
-            The model’s unique prepared weight buffers total 203.6 MB. Two
-            layers use about 11.1 MB; either endpoint also holds 26.5 MB of
-            vocabulary weights. That table is duplicated across endpoints.
-            Browser overhead and temporary buffers are additional.
+            Prepared model buffers total {(budgets.totalBytes / 1e9).toFixed(2)}{" "}
+            GB. A Gentle piece loads about {budgets["2"].minMB}–
+            {budgets["2"].maxMB} MB; endpoints are larger because they hold
+            vocabulary weights. These download estimates include room for the
+            tokenizer and manifest. GPU working memory and temporary buffers are
+            additional.
           </p>
           <code className="equation">
             T_token ≳ max[ Σᵢ(cᵢ + τᵢ), maxᵢ(cᵢ/dᵢ) ]
@@ -124,11 +133,11 @@ export function MathPage() {
             eight chains.
           </p>
           <p>
-            Input tokens travel in batches of 16. Each stage submits an ordered
-            batch before reading its result back. Approximate input time is
-            ceil(P/16) × max[ Σᵢ(16cᵢ + τᵢ), maxᵢ(16cᵢ/dᵢ) ]. This ignores
-            startup and final partial-batch effects. Long prompts therefore
-            matter even for short answers.
+            Input tokens travel in batches of {MAX_BATCH}. Each stage submits an
+            ordered batch before reading its result back. Approximate input time
+            is ceil(P/B) × max[ Σᵢ(Bcᵢ + τᵢ), maxᵢ(Bcᵢ/dᵢ) ], with B ={" "}
+            {MAX_BATCH}. This ignores startup and final partial-batch effects.
+            Long prompts therefore matter even for short answers.
           </p>
         </article>
         <article>
@@ -145,23 +154,21 @@ export function MathPage() {
           <code className="equation">P(whole chain available) = pˢ</code>
           <p>
             If each of s holders is independently available with probability p,
-            all s must be present. At p = 0.95, a sixteen-holder chain is
-            available about 44% of the time. Four holders give about 81%.
+            all s must be present. At p = 0.95, an eighteen-holder chain is
+            available about 40% of the time. Five holders give about 77%.
             Independence is a simplifying assumption; shared outages and sleep
             schedules correlate departures.
           </p>
           <p>
             The minimum is a resource choice, not a law that a tiny model
-            inherently needs sixteen machines. A compatible computer can run
+            inherently needs eighteen machines. A compatible computer can run
             this model alone. This artwork deliberately divides the work into
             small contributions so its public activity depends on a collective.
           </p>
           <p className="caption">
-            Sixteen separate browser contexts have run one reference prompt on
-            this Mac, matching the intact model’s generated token IDs. That
-            verifies the split; it does not establish performance across sixteen
-            internet connections. The source includes numerical and interruption
-            tests.
+            The source includes native-versus-browser numerical checks and
+            interruption tests. Separate tabs on one computer verify the split;
+            they do not establish performance across internet connections.
           </p>
         </article>
       </div>

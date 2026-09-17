@@ -3,8 +3,8 @@ import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "https://heldalive.com";
-const count = Number(process.env.HELD_TEST_PEERS || 8);
-assert.ok([4, 8, 16].includes(count), "4 Most, 8 More, or 16 Gentle visits");
+const count = Number(process.env.HELD_TEST_PEERS || 9);
+assert.ok([5, 9, 18].includes(count), "5 Most, 9 More, or 18 Gentle visits");
 const state = () =>
   fetch(base + "/api/state?room=browser").then((r) => r.json());
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
@@ -30,10 +30,10 @@ try {
       }),
     );
     await page.goto(base);
-    if (count !== 16)
+    if (count !== 18)
       await page
         .getByRole("button", {
-          name: count === 4 ? "Most compute" : "More compute",
+          name: count === 5 ? "Most compute" : "More compute",
         })
         .click();
     await page
@@ -62,22 +62,22 @@ try {
     after.activity.some((e) => e.source === "browser" && e.at >= loadedAt),
   );
   assert.deepEqual(errors, []);
-  await mkdir(".local/qa/edition06", { recursive: true });
+  await mkdir(".local/qa/edition07", { recursive: true });
   await pages[0].screenshot({
-    path: ".local/qa/edition06/live-working.png",
+    path: ".local/qa/edition07/live-working.png",
     fullPage: true,
   });
   await pages[0].getByRole("button", { name: "Inspect live drawing" }).click();
   await pages[0]
     .locator(".open-world")
-    .screenshot({ path: ".local/qa/edition06/live-inspector.png" });
+    .screenshot({ path: ".local/qa/edition07/live-inspector.png" });
   await writeFile(
-    ".local/qa/edition06/live-result.json",
+    ".local/qa/edition07/live-result.json",
     JSON.stringify(
       {
         base,
         count,
-        automatic: count === 16,
+        automatic: count === 18,
         elapsedMs: Date.now() - since,
         afterLoadMs: Date.now() - loadedAt,
         completed,

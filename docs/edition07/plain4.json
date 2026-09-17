@@ -1,0 +1,34 @@
+[
+  {
+    "subject": "cat",
+    "text": "```ascii\n   \\   / \n  ( o o ) \n   \\_/  \n    |  \n    |  \n    |  \n   / \\  \n  /   \\ \n /_____\\\n|       |\n|_______|  \n```\n\nThis is a simple ASCII art representation of a small cat with a round face, big eyes, a tail, and a body. \ud83d\udc31"
+  },
+  {
+    "subject": "fish",
+    "text": "```ascii\n   /\\\\\n  //\\\\\n (  )\\\\\n  \\\\  \\\\  \n   \\\\__\\\\\n    `--'\n```\n\nThis small fish has a curved body, a tail, and a subtle \"bubbling\" effect to suggest movement. The eyes are represented as small dots, and the tail wiggles slightly to give a playful fish vibe! \ud83d\udc1f"
+  },
+  {
+    "subject": "flower in a pot",
+    "text": "```ascii\n      .-\"\"\"\"-.\n   .'        `.\n  /            \\\n /              \\\n|                |\n \\              / \n  \\            /  \n   '.        .'   \n    `\"\"\"\"\"\"\"\"`    \n     (o o)       \n      | |        \n     / \\         \\\n    /   \\         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n   |     |         |\n"
+  },
+  {
+    "subject": "rocket",
+    "text": "```ascii\n     /\\\\\n    /  \\\\\n   /    \\\\\n  |      |\n  |      |\n  |      |\n  |      |\n  \\      /\n   \\    /\n    \\  /\n     \\/\n      |\n     /|\\\n    / | \\\n   /  |  \\\n  |   |   |\n  |   |   |\n  |   |   |\n  |   |   |\n  |   |   |\n  \\   |   /\n   \\  |  /\n    \\ | /\n     \\|/\n      |\n     / \\\n    /   \\\n   /_____\\\n  |       |\n  |       |\n  |_______|\n```\n\nThis is a small, cute ASCII rocket with a pointed nose, a body, and a tail. It has a simple design to keep it small and readable! \ud83d\ude80"
+  },
+  {
+    "subject": "house",
+    "text": "```ascii\n      /\\\\\n     /  \\\\\n    /    \\\\\n   /      \\\\\n  |        |\n  |        |\n  |        |\n  |        |\n  |        |\n  |        |\n  \\\\      //\n   \\\\    //\n    \\\\  //\n     \\\\//\n      ||\n     /|\\\\\n    / | \\\\\n   /  |  \\\\\n  /   |   \\\\\n /    |    \\\\\n|     |     |\n|_____|_____| \n```\n\nThis is a simple ASCII art representation of a small house with a roof, a door, and a window. The structure is basic and fits neatly in a code block. \ud83c\udfe1"
+  },
+  {
+    "subject": "sailboat",
+    "text": "```\n   __\n  /  \\\n /    \\\n|      |\n \\    /\n  \\__/\n   |\n  / \\\n /   \\\n|     |\n \\___/\n  |  |\n  |  |\n  |  |\n  |__|\n```\n\n*Note: This is a simple ASCII representation of a small sailboat. The sail is represented by the top triangle and the mast, while the hull is the lower part. The boat is sailing toward the right, implied by the directional flow of the lines.* \ud83d\udea4"
+  },
+  {
+    "subject": "robot",
+    "text": "```ascii\n   \\   /  \n  /   |  \\  \n /    |   \\  \n|     |    |  \n|     |    |  \n \\____|____/  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n     |  |  \n    "
+  },
+  {
+    "subject": "mountain",
+    "text": "```\n   /\\\n  /  \\\n /    \\\n/______\\\n```"
+  }
+]

@@ -2,7 +2,7 @@ import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 const base = process.env.HELD_TEST_URL || "http://127.0.0.1:8787";
-const count = Number(process.env.HELD_TEST_PEERS || 16);
+const count = Number(process.env.HELD_TEST_PEERS || 18);
 const requestedJobs = Number(process.env.HELD_TEST_JOBS || 1);
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const contexts = [];
@@ -35,7 +35,7 @@ async function support(enabled) {
   });
   assert.equal(r.status, 200);
 }
-await mkdir(".local/qa/edition06", { recursive: true });
+await mkdir(".local/qa/edition07", { recursive: true });
 const state = async () =>
   fetch(base + "/api/state?room=browser").then((r) => r.json());
 try {
@@ -88,13 +88,13 @@ try {
       }),
     );
     await page.goto(base);
-    if (count !== 16)
+    if (count !== 18)
       await page
         .getByRole("button", {
-          name: count === 4 ? "Most compute" : "More compute",
+          name: count === 5 ? "Most compute" : "More compute",
         })
         .click();
-    assert.ok([4, 8, 16].includes(count), "Use 16 Gentle, 8 More or 4 Most");
+    assert.ok([5, 9, 18].includes(count), "Use 18 Gentle, 9 More or 5 Most");
     await page
       .locator('.your-contribution[data-compute-status="ready"]')
       .waitFor({ timeout: 120000 });
@@ -113,7 +113,7 @@ try {
         );
       else
         assert.ok(
-          piece.start === 0 || piece.end === 32,
+          piece.start === 0 || piece.end === 36,
           "Interior holder does not fetch vocabulary weights",
         );
     }
@@ -184,7 +184,7 @@ try {
     .at(-1)
     .getByRole("button", {
       name:
-        count === 4
+        count === 5
           ? "Most compute"
           : count === 8
             ? "More compute"
@@ -222,16 +222,16 @@ try {
     "Hidden holder withdraws its physical piece",
   );
   await pages[0].screenshot({
-    path: ".local/qa/edition06/shared-working.png",
+    path: ".local/qa/edition07/shared-working.png",
     fullPage: true,
   });
   await writeFile(
-    ".local/qa/edition06/shared-result.json",
+    ".local/qa/edition07/shared-result.json",
     JSON.stringify(
       {
         contexts: count,
         browserDone,
-        automatic: count === 16,
+        automatic: count === 18,
         usage,
         assignments,
         downloads,

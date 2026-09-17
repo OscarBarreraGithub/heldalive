@@ -1,0 +1,58 @@
+[
+  {
+    "model": "mlx-community/Qwen3-1.7B-4bit",
+    "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+    "subject": "a cat",
+    "text": " \n  @@\n  @@@@\n  @@@@\n  @@@@\n  @@@@\n  @@\n@@@\n@@@",
+    "seconds": 2.0766824589809403
+  },
+  {
+    "model": "mlx-community/Qwen3-1.7B-4bit",
+    "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+    "subject": "a fish",
+    "text": " \n  o  \n o o  \n o o o  \n o o o o  \n o o o o o  \n o o o o o o  \n o o o o o o o  \n o o o o o o o o  \n o o o o o o o o o  \n o o o o o o o o o o  \n o o o o o o o o o o o  \n o o o o o o o o o o o o  \n o o o o o o o o o o o o o  \n o o o o o o o o o o o o o o",
+    "seconds": 2.9799518340150826
+  },
+  {
+    "model": "mlx-community/Qwen3-1.7B-4bit",
+    "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+    "subject": "a flower in a pot",
+    "text": "   -----\n   /     \\\n  /       \\\n /         \\\n/           \\\n\\           /\n \\         /\n  \\     /\n   \\   /\n    \\ /\n     v\n    / \\\n   /   \\\n  /     \\\n /       \\\n/         \\\n-----",
+    "seconds": 1.5972563750110567
+  },
+  {
+    "model": "mlx-community/Qwen3-1.7B-4bit",
+    "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+    "subject": "a rocket",
+    "text": " \n  ##\n  ## \n  ## \n  ## \n  ## \n  ## \n  ## \n  ## \n  ## \n  ## \n  ## \n  ## \n  ##",
+    "seconds": 1.1425448339432478
+  },
+  {
+    "model": "mlx-community/Qwen3-1.7B-4bit",
+    "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+    "subject": "a little house",
+    "text": " \n  @@\n  @@@@\n  @@@@\n  @@@@\n  @@@@\n  @@\n  @@@@\n  @@@@\n  @@@@\n  @@@@\n  @@@@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n ",
+    "seconds": 9.681828750006389
+  },
+  {
+    "model": "mlx-community/Qwen3-1.7B-4bit",
+    "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+    "subject": "a sailing boat",
+    "text": "***\n  o  \n o o  \n o o o  \n o o o o  \n o o o o o  \n o o o o o o  \n o o o o o o o  \n o o o o o o o o  \n o o o o o o o o o  \n o o o o o o o o o o  \n o o o o o o o o o o o  \n o o o o o o o o o o o o  \n o o o o o o o o o o o o o  \n o o o o o o o o o o o o o o  \n***",
+    "seconds": 1.499173291027546
+  },
+  {
+    "model": "mlx-community/Qwen3-1.7B-4bit",
+    "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+    "subject": "a smiling robot",
+    "text": " \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  @@\n  \n ",
+    "seconds": 5.888711165986024
+  },
+  {
+    "model": "mlx-community/Qwen3-1.7B-4bit",
+    "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+    "subject": "a mountain under stars",
+    "text": "  ///\n  ///  ///\n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n  ///  ///  \n ",
+    "seconds": 5.931887416983955
+  }
+]

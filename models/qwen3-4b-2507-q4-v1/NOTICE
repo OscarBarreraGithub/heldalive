@@ -1,0 +1,5 @@
+Held Alive prepared Qwen3-4B-Instruct-2507 weights.
+Original model: Qwen/Qwen3-4B-Instruct-2507, revision cdbee75f17c01a7cc42f958dc650907174af0554. Apache-2.0.
+Quantized source: mlx-community/Qwen3-4B-Instruct-2507-4bit, revision 50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b.
+Changes: retain four-bit affine weights with group size 64; cast floating-point norms, scales and quantization biases to float16; deterministically repack into WebGPU buffers and split files into at most 16 MiB parts. No fine tuning. Model and tokenizer integrity hashes are in manifest.json.
+Native and browser use the same prepared checkpoint. Input context is capped at 1,024 tokens in this application.

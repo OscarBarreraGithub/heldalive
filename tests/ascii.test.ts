@@ -30,38 +30,14 @@ describe("one drawing contract", () => {
     ])
       expect(inspectArt(s).ok).toBe(false);
   });
-  it("keeps multi-character BPE strokes and enforces the canvas before sampling", () => {
-    const tokens = new Map([
-      [10, "\n"],
-      [11, " "],
-      [12, "--"],
-      [13, "/\\"],
-      [14, "\n    "],
-      [15, "Hello"],
-      [16, "猫"],
-      [17, "|"],
-      [18, "__"],
-      [19, " ".repeat(41)],
-    ]);
-    const tok = {
-      encode: (s: string) =>
-        [...tokens].filter(([, v]) => v === s).map(([i]) => i),
-      decode: (ids: number[]) => ids.map((i) => tokens.get(i) || "").join(""),
-    };
+  it("does not force drawings through a restricted token alphabet", () => {
+    const tok = { encode: () => [], decode: () => "" };
     const g = new OutputGrammar(tok, "art");
-    expect(g.allowed()).toContain(14);
-    expect(g.allowed()).not.toContain(15);
-    expect(g.allowed()).not.toContain(16);
-    expect(g.allowed()).not.toContain(19);
-    for (let i = 0; i < 20; i++) g.consume(12);
-    expect(g.allowed()).not.toContain(11);
-    g.consume(10);
-    for (let row = 1; row < 20; row++) {
-      g.consume(12);
-      if (row < 19) g.consume(10);
-    }
-    expect(g.allowed()).not.toContain(10);
-    expect(g.allowed()).toContain(2);
+    expect(g.enabled).toBe(false);
+    expect(g.allowed()).toBeUndefined();
+  });
+  it("rejects degenerate repeated rows", () => {
+    expect(inspectArt(Array(18).fill(" | |").join("\n")).ok).toBe(false);
   });
 });
 it("accepts only a bounded future boost deadline", () => {

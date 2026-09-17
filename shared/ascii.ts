@@ -5,7 +5,9 @@ export const ART_ROWS = spec.rows;
 export const ART_MAX_TOKENS = spec.maxTokens;
 export function unwrapArt(raw: string): string {
   const text = raw.replace(/\r\n?/g, "\n").replace(/^\n+|\s+$/g, "");
-  const fence = text.match(/^\s*```(?:ascii|text)?\s*\n([\s\S]*?)\n?```\s*$/i);
+  const fence = text.match(
+    /^\s*```(?:ascii|text|plaintext)?\s*\n([\s\S]*?)\n?```\s*$/i,
+  );
   return (fence ? fence[1] : text).replace(/^\n+|\s+$/g, "");
 }
 export function inspectArt(raw: string) {
@@ -19,10 +21,16 @@ export function inspectArt(raw: string) {
   else if (width > ART_COLUMNS || height > ART_ROWS)
     reason = `The drawing must fit ${ART_COLUMNS} columns by ${ART_ROWS} rows.`;
   else if (
-    lines.filter((l) => l.trim()).length < 4 ||
+    lines.filter((l) => l.trim()).length < 3 ||
     text.replace(/\s/g, "").length < 12
   )
-    reason = "The drawing needs at least four visible rows.";
+    reason = "The drawing needs at least three visible rows.";
+  else if (
+    lines.length > 7 &&
+    new Set(lines.filter((l) => l.trim()).map((l) => l.trim())).size <
+      lines.filter((l) => l.trim()).length / 2
+  )
+    reason = "The drawing repeats too many identical rows.";
   else if (
     (text.match(/[A-Za-z]{4,}/g) || []).some(
       (word) => new Set(word.toLowerCase()).size > 2,

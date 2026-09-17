@@ -11,6 +11,8 @@ from pathlib import Path
 _spec = Path(__file__).with_name("ascii-spec.json")
 if not _spec.exists(): _spec = Path(__file__).resolve().parent.parent / "shared/ascii-spec.json"
 ART_SPEC = json.loads(_spec.read_text())
+_model_spec = _spec.with_name("model-config.json")
+MODEL_SPEC = json.loads(_model_spec.read_text())
 
 import mlx.core as mx
 from mlx_lm import load, stream_generate
@@ -25,6 +27,7 @@ class Grammar:
     def __init__(self, tokenizer, kind):
         self.tok = tokenizer
         self.kind = kind
+        kind = None if kind == "art" else kind
         self.parts = []
         self.index = 0
         self.history = []
@@ -45,7 +48,7 @@ class Grammar:
             self.parts = [fixed('{"answers":["'), choice(words), fixed('","'), choice(words), fixed('","'), choice(words), fixed('"]}')]
 
     def allowed(self):
-        if self.kind == "art":
+        if self.kind == "legacy-art":
             if len(self.history) >= ART_SPEC["maxTokens"] - 1: return [2]
             values = []
             for token, text in self.brushes:
@@ -64,7 +67,7 @@ class Grammar:
 
     def consume(self, token):
         self.history.append(token)
-        if self.kind == "art":
+        if self.kind == "legacy-art":
             self.art += self.tok.decode([token])
             return
         if self.index >= len(self.parts): return
@@ -83,7 +86,7 @@ class Grammar:
 
     def sample(self, scores, temperature, cancel):
         if cancel.is_set(): raise InterruptedError()
-        if self.parts and self.index >= len(self.parts): return mx.array([2])
+        if self.parts and self.index >= len(self.parts): return mx.array([MODEL_SPEC["stops"][-1]])
         allowed = self.allowed()
         ids = allowed if allowed is not None else mx.argsort(scores[0])[-64:][::-1].tolist()
         values = scores[0, mx.array(ids)].tolist()
@@ -98,7 +101,7 @@ class Grammar:
                 if not pairs:
                     self.index += 1
                     pairs = [(self.allowed()[0], 0.0)]
-        recent = set(self.history[-40:])
+        recent = set() if self.kind == "art" else set(self.history[-40:])
         pairs = sorted([(i, v - (0.65 if i in recent else 0)) for i, v in pairs], key=lambda p: p[1], reverse=True)
         if temperature <= 0:
             token = pairs[0][0]
@@ -109,11 +112,22 @@ class Grammar:
         return mx.array([token])
 
 
+def penalize_repetition(logits, history):
+    if not history: return logits
+    indices=mx.array(list(set(history[-384:])))
+    selected=logits[:,indices]
+    adjusted=mx.where(selected<0,selected*MODEL_SPEC["artRepetitionPenalty"],selected/MODEL_SPEC["artRepetitionPenalty"])
+    return logits.at[:,indices].add(adjusted-selected)
+
+
 def main():
     path = Path(sys.argv[1]).resolve()
     config = json.loads((path / "config.json").read_text())
-    if config.get("num_hidden_layers") != 32 or config.get("hidden_size") != 960 or config.get("quantization", {}).get("bits") != 4:
-        raise ValueError("Launch support requires the prepared SmolLM2-360M four-bit checkpoint")
+    expected = {"num_hidden_layers": MODEL_SPEC["layers"], "hidden_size": MODEL_SPEC["hiddenSize"], "vocab_size": MODEL_SPEC["vocab"], "num_attention_heads": MODEL_SPEC["heads"], "num_key_value_heads": MODEL_SPEC["kvHeads"]}
+    if any(config.get(k) != v for k,v in expected.items()) or config.get("quantization", {}).get("bits") != 4 or config.get("quantization", {}).get("group_size") != 64:
+        raise ValueError("Launch support requires the matching prepared four-bit checkpoint")
+    identity = json.loads((path / "held-model.json").read_text())
+    if identity.get("id") != MODEL_SPEC["id"] or identity.get("revision") != MODEL_SPEC["weightsRevision"]: raise ValueError("Prepared model identity mismatch")
     with contextlib.redirect_stdout(sys.stderr): model, tokenizer = load(str(path))
     jobs = queue.Queue(maxsize=1)
     cancellations = {}
@@ -147,17 +161,21 @@ def main():
         try:
             messages = job["messages"]
             if not isinstance(messages, list) or len(messages) > 12: raise ValueError("Invalid messages")
-            prompt = "".join(f'<|im_start|>{m["role"]}\n{m["content"]}<|im_end|>\n' for m in messages) + "<|im_start|>assistant\n"
+            prompt = "".join(f'<|im_start|>{m["role"]}\n{m["content"]}<|im_end|>\n' for m in messages) + "<|im_start|>assistant\n" + MODEL_SPEC["chatSuffix"]
             ids = tokenizer.encode(prompt, add_special_tokens=False)
             limit = max(1, min(512, int(job.get("maxTokens", 110))))
             if len(ids) + limit > 1024: raise ValueError("Thought exceeds model context")
             grammar = Grammar(tokenizer, job.get("kind"))
             sampler = lambda scores: grammar.sample(scores, float(job.get("temperature", 0.8)), cancel)
+            processors = [lambda _, logits: penalize_repetition(logits, grammar.history)] if job.get("kind") == "art" else []
             tokens = 0
-            for response in stream_generate(model, tokenizer, ids, max_tokens=limit, sampler=sampler, prefill_step_size=128):
+            text = ""
+            for response in stream_generate(model, tokenizer, ids, max_tokens=limit, sampler=sampler, logits_processors=processors, prefill_step_size=128):
                 if cancel.is_set(): raise InterruptedError()
                 if response.text: emit(type="chunk", jobId=job_id, text=response.text)
                 tokens = response.generation_tokens
+                text += response.text
+                if job.get("kind") == "art" and re.search(r"^\s*```[^\n]*\n[\s\S]*?\n```", text): break
             emit(type="done", jobId=job_id, tokens=tokens)
         except InterruptedError:
             emit(type="cancelled", jobId=job_id)

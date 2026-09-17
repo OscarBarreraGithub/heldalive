@@ -1,4 +1,3 @@
-import spec from "../../shared/ascii-spec.json";
 /** Protocol punctuation is fixed. Semantic enum choices and the subject remain model predictions. */
 type Tokenizer = {
   encode(text: string): number[];
@@ -11,31 +10,10 @@ type Segment =
 export class OutputGrammar {
   private segments: Segment[] = [];
   private index = 0;
-  private ascii = false;
-  private art = "";
-  private artTokens = 0;
-  private brushes: { id: number; text: string }[] = [];
   constructor(
     private tokenizer: Tokenizer,
     kind?: string,
   ) {
-    this.ascii = kind === "art";
-    if (this.ascii) {
-      const glyphs = new Set(spec.glyphs);
-      // Keep whole BPE tokens (e.g. a newline plus spaces). Restricting to
-      // single characters destroys the model's learned drawing patterns.
-      for (let id = 0; id < spec.vocabularySize; id++) {
-        const text = tokenizer.decode([id]);
-        if (text && [...text].every((c) => glyphs.has(c)))
-          this.brushes.push({ id, text });
-      }
-      if (
-        this.brushes.length + 1 > spec.maxCandidates ||
-        !this.brushes.some((b) => b.text === "\n")
-      )
-        throw Error("Unsupported drawing vocabulary");
-    }
-
     const fixed = (text: string) =>
       ({ kind: "fixed", ids: tokenizer.encode(text) }) as Segment;
     const choice = (values: string[]) =>
@@ -81,30 +59,12 @@ export class OutputGrammar {
     }
   }
   get enabled() {
-    return this.ascii || this.segments.length > 0;
+    return this.segments.length > 0;
   }
   get finished() {
-    return !this.ascii && this.enabled && this.index >= this.segments.length;
+    return this.enabled && this.index >= this.segments.length;
   }
   allowed(): number[] | undefined {
-    if (this.ascii) {
-      if (this.artTokens >= spec.maxTokens - 1) return [2];
-      const allowed = this.brushes
-        .filter((b) => {
-          const lines = (this.art + b.text).split("\n");
-          return (
-            lines.length <= spec.rows &&
-            lines.every((l) => l.length <= spec.columns)
-          );
-        })
-        .map((b) => b.id);
-      if (
-        this.art.split("\n").filter((l) => l.trim()).length >= 4 &&
-        this.art.replace(/\s/g, "").length >= 12
-      )
-        allowed.push(2);
-      return allowed.length ? allowed : [2];
-    }
     const s = this.segments[this.index];
     if (!s) return;
     if (s.kind === "fixed") return [s.ids[0]];
@@ -135,11 +95,6 @@ export class OutputGrammar {
     return valid;
   }
   consume(id: number) {
-    if (this.ascii) {
-      this.art += this.tokenizer.decode([id]);
-      this.artTokens++;
-      return;
-    }
     const s = this.segments[this.index];
     if (!s) return;
     if (s.kind === "fixed") {

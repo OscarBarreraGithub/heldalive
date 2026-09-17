@@ -51,7 +51,7 @@ for p in Path(sys.argv[1]).rglob('*.sqlite'):
  if not c.execute("SELECT 1 FROM sqlite_master WHERE name='creature'").fetchone(): c.close();continue
  row=c.execute('SELECT value FROM creature WHERE id=1').fetchone()
  if not row:c.close();continue
- s=json.loads(row[0]);s['room']='browser';s.pop('artEdition',None);s['launchSupport']=False;s['totalThoughts']=17;s['totalTokens']=123
+ s=json.loads(row[0]);s['room']='browser';s['modelVersion']=3;s.pop('artEdition',None);s['launchSupport']=False;s['totalThoughts']=17;s['totalTokens']=123
  task={'id':'legacy-job','kind':'plan','messages':[{'role':'user','content':'legacy fixture'}],'maxTokens':110,'title':'legacy planner','projectId':'old','attempts':0}
  s['active']=[{'task':task,'peerId':'orphan','text':'','startedAt':0,'deadline':9999999999999,'source':'browser'}];s['queue']=[task]
  s['project']={'id':'old','kind':'memory','title':'old experiment','focus':'old','helpers':1,'at':1,'completed':0,'total':1,'status':'working'}
@@ -101,6 +101,7 @@ for p in Path(sys.argv[1]).rglob('*.sqlite'):
     ),
   );
   assert.equal(saved.artEdition, 6);
+  assert.equal(saved.modelVersion, 4);
   assert.deepEqual(saved.queue, []);
   assert.equal(saved.journal, "preserved historical journal");
   assert.ok(

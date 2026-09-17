@@ -1,13 +1,14 @@
-"""Optional rebuild on Apple Silicon. Browser visitors never run this script.
-Create a private virtual environment, install scripts/model-requirements.txt,
-then run this script and `npx tsx scripts/pack-model.ts .local/model-q4`.
-"""
+"""Optional rebuild on Apple Silicon; visitors never run this script."""
+import json
 from pathlib import Path
 from huggingface_hub import snapshot_download
 from mlx_lm import convert
-REVISION = 'a10cc1512eabd3dde888204e902eca88bddb4951'
-source = snapshot_download('HuggingFaceTB/SmolLM2-360M-Instruct', revision=REVISION,
-    allow_patterns=['*.json', '*.safetensors', '*.txt', 'README.md', 'LICENSE*'])
-convert(hf_path=source, mlx_path='.local/model-q4', quantize=True,
-    q_group_size=64, q_bits=4, dtype='float16')
-print('Converted. Run: npx tsx scripts/pack-model.ts .local/model-q4')
+config=json.loads(Path("shared/model-config.json").read_text())
+source=snapshot_download(config["hfRepo"], revision=config["sourceRevision"],
+    allow_patterns=["*.json","*.safetensors","*.txt","*.jinja","README.md","LICENSE*"])
+target=Path(".local/edition07/model-q4")
+# This source is already affine four-bit. Retain the integer weights;
+# cast floating-point scales, biases and norms for the browser's f16 kernels.
+convert(hf_path=source,mlx_path=str(target),quantize=False,dtype="float16")
+(target/"held-model.json").write_text(json.dumps({"id":config["id"],"revision":config["weightsRevision"]}))
+print(f"Prepared. Run: npx tsx scripts/pack-model.ts {target}")

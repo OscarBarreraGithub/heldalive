@@ -1,0 +1,34 @@
+[
+  {
+    "subject": "a smiling robot face with a square head, two O eyes, a short mouth and one antenna",
+    "text": "```\n  o-----o\n /     \\\n|       |\n|  O    |\n|  O    |\n \\_____/\n  |   |\n  |   |\n  `---'\n   \\\n    \\\n     \\\n      \\\n       \\\n        \\\n         \\\n          \\\n           \\\n            \\\n             \\\n              \\ \n               o\n```"
+  },
+  {
+    "subject": "a flower in a pot, with round petals, one straight stem, two leaves and a trapezoid pot",
+    "text": "```\n      o\n   o o o\no o     o\n  o     o\n    o o\n      |\n   /| \\\n  / |  \\\n o/  |  \\o\n /   |   \\\n/____|____\\\n     | \n    o o\n   o   o\n```"
+  },
+  {
+    "subject": "two triangular mountain peaks under a few scattered stars",
+    "text": "```ascii\n      *     *\n    *       *\n  *         *\n*           *\n  \\         /\n   \\       /\n    \\     /\n     \\   /\n      \\ /\n       *\n      * *\n    *   *\n  *     *\n*       *\n  \\     /\n   \\   /\n    \\ /\n     *\n      *\n    * *\n  *   *\n*     *\n```"
+  },
+  {
+    "subject": "a small house with a triangular roof, a square window and a door",
+    "text": "```\n   /\\\n  /  \\\n /____\\\n|      |\n|  o  |\n|_____|\n   | \n```"
+  },
+  {
+    "subject": "a flying saucer with an oval hull, a dome and two eyes inside",
+    "text": "```\n   o-----------------o\n  /                 \\\n (                   )\n  \\       o         o\n   \\     / \\       /\n    o---o   o-----o\n      |   |\n  o----|---o\n     / \\\n    (   )\n```"
+  },
+  {
+    "subject": "a small rocket with a pointed top, a rectangular body, a round window and flames below",
+    "text": "```\n    /\\\n   /  \\\n  /    \\\n /      \\\n|        |\n|        |\n \\      /\n  \\    /\n   \\  /\n    \\/\n     \\\n      \\\n       \\_____\n        /|\\\n       / | \\\n      /  |  \\\n     /   |   \\\n    /    |    \\\n   /     |     \\\n  /      |      \\\n /       |       \\\n|        |        |\n \\_______|________/\n     (flames)\n```"
+  },
+  {
+    "subject": "a cat face with two triangular ears, two o eyes and whiskers",
+    "text": "```ascii\n  /\\\\   /\\\\\n ( )   ( )\n/  \\\\_/  \\\\\n|    |    |\n \\  / \\  /\n  `--' \n```\n\nNote: This ASCII cat has two triangular ears (top), two round eyes, and simple whiskers extending from the nose. Total width: 12 characters, height: 7 lines \u2014 fits within constraints."
+  },
+  {
+    "subject": "a sailboat with one triangular sail, a vertical mast and a curved hull",
+    "text": "```\n    /\\\n   /  \\\n  /    \\\n /      \\\n|        |\n \\      /\n  \\    /\n   \\  /\n    \\/\n     |\n  ------\n```"
+  }
+]

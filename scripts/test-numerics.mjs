@@ -6,11 +6,12 @@ assert.ok(
   ["localhost", "127.0.0.1"].includes(new URL(base).hostname),
   "Numerical source harness is development-only",
 );
+const config = JSON.parse(await readFile("shared/model-config.json", "utf8"));
 const fixtures = JSON.parse(
-  await readFile("models/smollm2-360m-q4-v1/reference.json", "utf8"),
+  await readFile(`models/${config.id}/reference.json`, "utf8"),
 ).cases;
-const count = Number(process.env.HELD_TEST_STAGES || 16);
-assert.ok([1, 4, 16].includes(count));
+const count = Number(process.env.HELD_TEST_STAGES || 18);
+assert.ok([1, 4, 18].includes(count));
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const pages = [];
 const results = [];
@@ -18,6 +19,9 @@ try {
   for (let i = 0; i < count; i++) {
     const page = await browser.newPage();
     pages.push(page);
+    await page.addInitScript(() =>
+      localStorage.setItem("held-participation", "watch"),
+    );
     await page.goto(base);
     await page.evaluate(
       async (range) => {
@@ -26,7 +30,10 @@ try {
         window.heldStage = await r.loadStage(range);
         window.heldTokenizer = await r.loadTokenizer();
       },
-      { start: (i * 32) / count, end: ((i + 1) * 32) / count },
+      {
+        start: Math.floor((i * config.layers) / count),
+        end: Math.floor(((i + 1) * config.layers) / count),
+      },
     );
   }
   for (const fixture of fixtures) {
@@ -37,8 +44,8 @@ try {
     assert.deepEqual(ids, fixture.ids, "Exact reference tokenizer IDs");
     let top;
     const start = Date.now();
-    for (let pos = 0; pos < ids.length; pos += 16) {
-      let step = { tokens: ids.slice(pos, pos + 16) };
+    for (let pos = 0; pos < ids.length; pos += config.batchSize) {
+      let step = { tokens: ids.slice(pos, pos + config.batchSize) };
       const length = step.tokens.length;
       for (const page of pages) {
         step = await page.evaluate(
@@ -85,9 +92,9 @@ try {
     });
     console.log(results.at(-1));
   }
-  await mkdir(".local/qa/edition03", { recursive: true });
+  await mkdir(".local/qa/edition07", { recursive: true });
   await writeFile(
-    `.local/qa/edition03/numerics-${count}.json`,
+    `.local/qa/edition07/numerics-${count}.json`,
     JSON.stringify(results, null, 2),
   );
   console.log(

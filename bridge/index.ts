@@ -1,3 +1,4 @@
+import modelConfig from "../shared/model-config.json";
 import { WebSocket } from "ws";
 import { NativeModel } from "./native-model";
 import { fileURLToPath } from "node:url";
@@ -141,7 +142,7 @@ function connect() {
             JSON.stringify({
               type: "ready",
               ready: true,
-              modelId: "smollm2-360m-q4-v1",
+              modelId: modelConfig.id,
             }),
           );
       } else {

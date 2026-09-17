@@ -2,7 +2,8 @@
 import { readFile, mkdir, writeFile, copyFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-const name = "smollm2-360m-q4-v1";
+const config = JSON.parse(await readFile("shared/model-config.json", "utf8"));
+const name = config.id;
 const root = `public/weights/${name}`;
 const metadata = JSON.parse(
   await readFile(`models/${name}/artifact.json`, "utf8"),
@@ -14,27 +15,30 @@ try {
 } catch {}
 if (!present && process.argv.includes("--download")) {
   console.log(
-    "Fetching pinned development model assets (about 190 MB; no app installation for visitors).",
+    "Fetching pinned development model assets (see artifact size; no app installation for visitors).",
   );
-  const response = await fetch(metadata.url);
-  if (!response.ok) throw Error(`Model download failed: ${response.status}`);
-  const data = Buffer.from(await response.arrayBuffer());
-  if (sha(data) !== metadata.sha256)
-    throw Error("Model archive checksum mismatch");
-  await mkdir(".local", { recursive: true });
-  const archive = `.local/${name}.tar.gz`;
-  await writeFile(archive, data);
-  const entries = execFileSync("tar", ["-tzf", archive], { encoding: "utf8" })
-    .trim()
-    .split("\n");
-  if (
-    entries.some(
-      (p) => !p.startsWith(name + "/") || p.includes("..") || p.startsWith("/"),
+  for (const [index, part] of (metadata.archives || [metadata]).entries()) {
+    const response = await fetch(part.url);
+    if (!response.ok) throw Error(`Model download failed: ${response.status}`);
+    const data = Buffer.from(await response.arrayBuffer());
+    if (sha(data) !== part.sha256 || data.length !== part.bytes)
+      throw Error("Model archive checksum mismatch");
+    await mkdir(".local", { recursive: true });
+    const archive = `.local/${name}-${index}.tar.gz`;
+    await writeFile(archive, data);
+    const entries = execFileSync("tar", ["-tzf", archive], { encoding: "utf8" })
+      .trim()
+      .split("\n");
+    if (
+      entries.some(
+        (p) =>
+          !p.startsWith(name + "/") || p.includes("..") || p.startsWith("/"),
+      )
     )
-  )
-    throw Error("Unexpected model archive path");
-  await mkdir("public/weights", { recursive: true });
-  execFileSync("tar", ["-xzf", archive, "-C", "public/weights"]);
+      throw Error("Unexpected model archive path");
+    await mkdir("public/weights", { recursive: true });
+    execFileSync("tar", ["-xzf", archive, "-C", "public/weights"]);
+  }
   present = true;
 }
 if (!present)
@@ -49,13 +53,34 @@ if (JSON.stringify(manifest) !== JSON.stringify(pinned))
   throw Error("Model manifest differs from the pinned source artifact");
 let bytes = 0;
 for (const [key, record] of Object.entries(manifest.buffers)) {
-  const data = await readFile(`${root}/${key}.bin`);
+  const pieces = [];
+  for (const part of record.parts) {
+    const data = await readFile(`${root}/${part.file}`);
+    if (
+      data.length !== part.bytes ||
+      sha(data) !== part.sha256 ||
+      data.length > 16 * 1024 * 1024
+    )
+      throw Error(`Invalid model part ${part.file}`);
+    pieces.push(data);
+  }
+  const data = Buffer.concat(pieces);
   if (data.length !== record.bytes || sha(data) !== record.sha256)
     throw Error(`Invalid buffer ${key}`);
   bytes += data.length;
 }
+const tokenizer = await readFile(`${root}/tokenizer.json`);
+if (
+  tokenizer.byteLength !== manifest.tokenizer.bytes ||
+  sha(tokenizer) !== manifest.tokenizer.sha256
+)
+  throw Error("Tokenizer checksum mismatch");
 for (const file of ["LICENSE", "NOTICE", "SOURCE-MODEL-CARD.md"])
   await copyFile(`models/${name}/${file}`, `${root}/${file}`);
 console.log(
   `Verified ${Object.keys(manifest.buffers).length} model buffers (${bytes} bytes) and attribution.`,
 );
+
+execFileSync("npx", ["tsx", "scripts/model-budgets.ts", "--check"], {
+  stdio: "inherit",
+});

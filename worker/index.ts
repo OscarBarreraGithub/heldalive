@@ -1,4 +1,6 @@
+import { CURRENT_MODEL } from "../shared/model";
 import {
+  HIDDEN_BYTES,
   completeCoverage,
   contributionLayers,
   nextPiece,
@@ -360,24 +362,45 @@ export class LivingRoom extends DurableObject<Env> {
           activity: [],
           scores: emptyScores(),
           cleanedDay: "",
-          modelVersion: 3,
+          modelVersion: CURRENT_MODEL.modelVersion,
         };
     this.state.scores.custom ??= { correct: 0, total: 0, trials: 0 };
-    if (this.state.room === "browser" && this.state.modelVersion !== 3) {
+    if (
+      this.state.room === "browser" &&
+      this.state.modelVersion !== CURRENT_MODEL.modelVersion
+    ) {
       if (this.state.project)
         this.state.projects.push({
           ...this.state.project,
           status: "interrupted",
         });
+      for (const p of this.peers()) {
+        for (const job of this.state.active)
+          this.send(p.ws, { type: "cancel", jobId: job.task.id });
+        p.peer.ready = false;
+        delete p.peer.piece;
+        delete p.peer.pending;
+        delete p.peer.stageJob;
+        delete p.peer.stagePosition;
+        p.ws.serializeAttachment(p.peer);
+        this.send(p.ws, {
+          type: "pipeline_error",
+          message: "The model was upgraded. Reload this page to lend compute.",
+        });
+        this.send(p.ws, {
+          type: "error",
+          message: "The model was upgraded. Reload this page to lend compute.",
+        });
+      }
       this.state.project = null;
       this.state.queue = [];
       this.state.active = [];
       this.state.scores = emptyScores();
-      this.state.modelVersion = 3;
+      this.state.modelVersion = CURRENT_MODEL.modelVersion;
       this.state.nextThoughtAt = 0;
       this.event(
         "edition",
-        "The shared-layer edition begins. Earlier drawings and records remain in the archive.",
+        "A more capable drawing model arrives. Earlier drawings remain in the archive.",
       );
       this.save();
     }
@@ -478,6 +501,22 @@ export class LivingRoom extends DurableObject<Env> {
     if (!String(data.type).startsWith("pipeline_")) return false;
     if (this.mode() !== "browser" || peer.role !== "visitor") return true;
     const now = Date.now();
+    if (
+      (data.type === "pipeline_offer" || data.type === "pipeline_ready") &&
+      data.modelId !== CURRENT_MODEL.id
+    ) {
+      this.releasePiece(peer);
+      ws.serializeAttachment(peer);
+      this.send(ws, {
+        type: "pipeline_error",
+        message: "The model was upgraded. Reload this page to lend compute.",
+      });
+      this.send(ws, {
+        type: "error",
+        message: "The model was upgraded. Reload this page to lend compute.",
+      });
+      return true;
+    }
     if (data.type === "pipeline_offer") {
       this.releasePiece(peer);
       peer.visible = data.visible !== false;
@@ -546,6 +585,8 @@ export class LivingRoom extends DurableObject<Env> {
           position: call.position,
           count: call.count,
           allowed: call.allowed,
+          repetitionIds:
+            job.task.kind === "art" ? call.repetitionIds : undefined,
           ...(call.tokens ? { tokens: call.tokens } : { data: call.data }),
         },
       });
@@ -565,9 +606,9 @@ export class LivingRoom extends DurableObject<Env> {
         return true;
       const leader = this.peers().find((p) => p.peer.id === pending.leader);
       if (!leader) return true;
-      const bytes = pending.count * 1920;
+      const bytes = pending.count * HIDDEN_BYTES;
       const valid =
-        peer.piece?.end === 32
+        peer.piece?.end === CURRENT_MODEL.layers
           ? validTop(data.top)
           : typeof data.data === "string" &&
             data.data.length === Math.ceil(bytes / 3) * 4 &&
@@ -585,7 +626,9 @@ export class LivingRoom extends DurableObject<Env> {
           type: "pipeline_reply",
           rid: data.rid,
           jobId: data.jobId,
-          ...(peer.piece?.end === 32 ? { top: data.top } : { data: data.data }),
+          ...(peer.piece?.end === CURRENT_MODEL.layers
+            ? { top: data.top }
+            : { data: data.data }),
         });
       }
       delete peer.pending;
@@ -778,7 +821,7 @@ export class LivingRoom extends DurableObject<Env> {
       ).length,
       model:
         this.mode() === "browser"
-          ? "SmolLM2 · 360M · shared"
+          ? `${CURRENT_MODEL.label} · shared`
           : "Qwen 2.5 · 0.5B",
       modelAvailable,
       power: { launchSupport, macAvailable, browserChains, source },
@@ -1040,7 +1083,7 @@ export class LivingRoom extends DurableObject<Env> {
     ws: WebSocket,
     raw: string | ArrayBuffer,
   ): Promise<void> {
-    if (typeof raw !== "string" || raw.length > 50000) {
+    if (typeof raw !== "string" || raw.length > 96 * 1024) {
       ws.close(1009, "Message too large");
       return;
     }
@@ -1091,7 +1134,7 @@ export class LivingRoom extends DurableObject<Env> {
       peer.ready =
         data.ready === true &&
         (peer.role === "bridge"
-          ? this.mode() === "mac" || data.modelId === "smollm2-360m-q4-v1"
+          ? this.mode() === "mac" || data.modelId === CURRENT_MODEL.id
           : Boolean(peer.piece));
       peer.visible = data.visible !== false;
       peer.duty = dutyLimit(data.duty);
@@ -1287,7 +1330,9 @@ export class LivingRoom extends DurableObject<Env> {
       source: job.source,
       projectId: t.projectId,
       model:
-        this.mode() === "browser" ? "SmolLM2 · 360M · q4" : "Qwen 2.5 · 0.5B",
+        this.mode() === "browser"
+          ? `${CURRENT_MODEL.label} · q4`
+          : "Qwen 2.5 · 0.5B",
     };
     this.ctx.storage.sql.exec(
       "INSERT INTO artworks (id,value,at) VALUES (?,?,?)",
@@ -1442,18 +1487,7 @@ export class LivingRoom extends DurableObject<Env> {
       (!this.state.project || this.state.project.status === "finished") &&
       now >= this.state.nextThoughtAt
     ) {
-      const themes = [
-        "a little alien",
-        "a small flower",
-        "a geometric pattern",
-        "a little cat",
-        "a small house",
-        "a mountain",
-        "a sailing boat",
-        "a star",
-      ];
-      const focus =
-        themes[crypto.getRandomValues(new Uint32Array(1))[0] % themes.length];
+      const focus = "a free drawing";
       const number = this.ctx.storage.sql
         .exec<{ n: number }>("SELECT COUNT(*) AS n FROM artworks")
         .one().n;
@@ -1508,7 +1542,7 @@ export class LivingRoom extends DurableObject<Env> {
             kind: task.kind,
             messages: task.messages,
             maxTokens: task.maxTokens,
-            temperature: 0.55,
+            temperature: 0.8,
           },
         });
       }

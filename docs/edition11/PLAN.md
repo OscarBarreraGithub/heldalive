@@ -16,16 +16,16 @@
 
 ## Checklist
 
-- [ ] Durable cloud director and compact role contracts; two-review limits and repetition protection.
-- [ ] Real browser/native role inference, larger bounded context, matching generation protocol.
-- [ ] Browser-first dispatch, capacity scaling, loss recovery, stale-result rejection, stop/resume.
-- [ ] Planner-directed sources, reviewer evidence, shared wiki and isolated branch publication.
-- [ ] Station isolation and artwork/funding/reflection continuity.
-- [ ] Site live roles, workflow explanation and removed toy-work claims.
-- [ ] Meaningful state-machine, transport, restart, publication and device-budget tests.
-- [ ] Actual WebGPU role generation and browser-only workflow validation; no visible Chrome windows.
-- [ ] Deploy, migrate saved continuity, retire local research supervisor, verify GitHub/live site.
-- [ ] Record measured limits and release evidence. Maximum two review rounds.
+- [x] Durable cloud director and compact role contracts; two-review limits and repetition protection.
+- [x] Real browser/native role inference, larger bounded context, matching generation protocol.
+- [x] Browser-first dispatch, capacity scaling, loss recovery, stale-result rejection, stop/resume.
+- [x] Planner-directed sources, reviewer evidence, shared wiki and isolated branch publication.
+- [x] Station isolation and artwork/funding/reflection continuity.
+- [x] Site live roles, workflow explanation and removed toy-work claims.
+- [x] Meaningful state-machine, transport, restart, publication and device-budget tests.
+- [x] Actual WebGPU role generation and browser-only workflow validation; no visible Chrome windows.
+- [x] Deploy, migrate saved continuity, retire local research supervisor, verify GitHub/live site.
+- [x] Record measured limits and release evidence. Maximum two review rounds.
 
 ## Constraints / evidence to preserve
 

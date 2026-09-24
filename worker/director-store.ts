@@ -26,7 +26,7 @@ export class SqlDirectorStore implements DirectorStore {
   }
   save(state: DirectorState) {
     this.sql.exec(
-      "INSERT INTO agent_director(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value",
+      "INSERT INTO agent_director(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE agent_director.value<>excluded.value",
       JSON.stringify(state),
     );
   }

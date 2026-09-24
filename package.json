@@ -19,6 +19,7 @@
     "setup": "node scripts/setup-local.mjs",
     "install:bridge": "node scripts/install-bridge.mjs",
     "test:persistence": "node scripts/test-persistence.mjs",
+    "test:storage": "node scripts/test-storage-budget.mjs",
     "model:download": "node scripts/model-assets.mjs --download",
     "test:numerics": "node scripts/test-numerics.mjs",
     "test:contribution": "node scripts/test-contribution.mjs",

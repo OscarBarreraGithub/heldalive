@@ -150,6 +150,7 @@ type Stored = {
   memoryCandidate?: WorkspaceFile;
   launchSupport?: boolean;
   launchAvailableAt?: number;
+  pendingCheckCredits?: Record<string, number>;
 };
 type VisitorRow = {
   id: string;
@@ -371,6 +372,8 @@ export class LivingRoom extends DurableObject<Env> {
   private director: Director;
   private directorStore: SqlDirectorStore;
   private lastBroadcast = 0;
+  private activeTimer?: ReturnType<typeof setInterval>;
+  private creditTimer?: ReturnType<typeof setTimeout>;
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     this.ctx.storage.sql.exec(
@@ -490,6 +493,13 @@ export class LivingRoom extends DurableObject<Env> {
       env.GITHUB_TOKEN || "",
       false,
     );
+    // Draft tokens and layer timings are deliberately transient. A live timer
+    // prevents hibernation during generation; after an actual process restart,
+    // retry the saved assignment rather than accept an incomplete draft.
+    for (const id of new Set(this.state.active.map((a) => a.peerId)))
+      this.cancelPeer(id);
+    if (Object.keys(this.state.pendingCheckCredits || {}).length)
+      this.scheduleCreditFlush();
   }
   private enterArtEdition() {
     if (this.state.artEdition === 6) return;
@@ -527,10 +537,50 @@ export class LivingRoom extends DurableObject<Env> {
     );
   }
   private save() {
+    const value = JSON.stringify({
+      ...this.state,
+      active: this.state.active.map((a) => ({ ...a, text: "", computeMs: 0 })),
+    });
     this.ctx.storage.sql.exec(
-      "INSERT INTO creature (id,value) VALUES (1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value",
-      JSON.stringify(this.state),
+      "INSERT INTO creature (id,value) VALUES (1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE creature.value<>excluded.value",
+      value,
     );
+  }
+  private scheduleCreditFlush() {
+    if (this.creditTimer) return;
+    this.creditTimer = setTimeout(() => {
+      this.creditTimer = undefined;
+      this.flushCheckCredits();
+    }, 60000);
+  }
+  private flushCheckCredits() {
+    const credits = this.state.pendingCheckCredits;
+    if (!credits || !Object.keys(credits).length) return;
+    try {
+      this.ctx.storage.transactionSync(() => {
+        for (const [id, count] of Object.entries(credits))
+          this.ctx.storage.sql.exec(
+            "UPDATE visitors SET checks=checks+? WHERE id=?",
+            count,
+            id,
+          );
+        this.state.pendingCheckCredits = {};
+        this.save();
+      });
+    } catch (error) {
+      this.state.pendingCheckCredits = credits;
+      throw error;
+    }
+  }
+  private syncActiveTimer() {
+    if (this.state.active.length && !this.activeTimer)
+      this.activeTimer = setInterval(() => {
+        this.ctx.waitUntil(this.tick());
+      }, 5000);
+    else if (!this.state.active.length && this.activeTimer) {
+      clearInterval(this.activeTimer);
+      this.activeTimer = undefined;
+    }
   }
   private mode(): Mode {
     return this.state.room === "browser" ? "browser" : "mac";
@@ -573,7 +623,6 @@ export class LivingRoom extends DurableObject<Env> {
             agent: agentMeta(p),
           }),
         );
-    this.save();
   }
   private peers() {
     return this.ctx
@@ -766,7 +815,6 @@ export class LivingRoom extends DurableObject<Env> {
       }
       delete peer.pending;
       ws.serializeAttachment(peer);
-      this.save();
       return true;
     } else if (data.type === "pipeline_sample") {
       const job = this.state.active.find(
@@ -833,17 +881,18 @@ export class LivingRoom extends DurableObject<Env> {
             token: data.token,
           });
         this.state.totalChecks++;
-        this.ctx.storage.sql.exec(
-          "UPDATE visitors SET checks=checks+1,last_seen=? WHERE id=?",
-          now,
-          peer.identity,
-        );
+        const credits = (this.state.pendingCheckCredits ||= {});
+        credits[peer.identity] = (credits[peer.identity] || 0) + 1;
+        this.scheduleCreditFlush();
         this.send(ws, {
           type: "profile",
           profile: this.profile(peer.identity),
         });
       }
       delete peer.samplePending;
+      ws.serializeAttachment(peer);
+      this.broadcast(false);
+      return true;
     }
     peer.seen = now;
     ws.serializeAttachment(peer);
@@ -882,7 +931,7 @@ export class LivingRoom extends DurableObject<Env> {
       today: p?.last_day === today,
       choice: null,
       completedJobs: p?.jobs || 0,
-      checks: p?.checks || 0,
+      checks: (p?.checks || 0) + (this.state.pendingCheckCredits?.[id] || 0),
     };
   }
   private recent<T>(
@@ -1038,10 +1087,11 @@ export class LivingRoom extends DurableObject<Env> {
   }
   private broadcast(force = true) {
     if (!force && Date.now() - this.lastBroadcast < 1000) return;
+    const visitors = this.peers().filter((p) => p.peer.role === "visitor");
+    if (!visitors.length) return;
     this.lastBroadcast = Date.now();
     const state = this.snapshot();
-    for (const { ws, peer } of this.peers())
-      if (peer.role === "visitor") this.send(ws, state);
+    for (const { ws } of visitors) this.send(ws, state);
   }
   async fetch(request: Request): Promise<Response> {
     const researchUrl = new URL(request.url);
@@ -1061,14 +1111,12 @@ export class LivingRoom extends DurableObject<Env> {
         return Response.json({
           enabled: this.director.enabled,
           capacity: this.inferenceCapacity(),
-          pending: this.director
-            .pending()
-            .map((p) => ({
-              id: p.id,
-              role: p.role,
-              failures: p.failures,
-              interruptions: p.interruptions,
-            })),
+          pending: this.director.pending().map((p) => ({
+            id: p.id,
+            role: p.role,
+            failures: p.failures,
+            interruptions: p.interruptions,
+          })),
           state: this.director.state,
           outbox: this.directorStore.publicationCount(),
           launchSupport: this.state.launchSupport !== false,
@@ -1446,12 +1494,17 @@ export class LivingRoom extends DurableObject<Env> {
       ws.close(1008, "Too many messages");
       return;
     }
+    const wasStale = now - peer.seen >= 45000;
     peer.seen = now;
     ws.serializeAttachment(peer);
     if (await this.pipelineMessage(ws, peer, data)) return;
     if (data.type === "ping") {
+      const wasVisible = peer.visible;
       if (peer.role === "visitor") peer.visible = data.visible !== false;
       this.send(ws, { type: "pong" });
+      ws.serializeAttachment(peer);
+      // Liveness belongs to the WebSocket attachment, not the database.
+      if (!wasStale && wasVisible === peer.visible) return;
     } else if (data.type === "ready") {
       if (peer.role === "visitor" && this.mode() !== "browser") {
         this.send(ws, {
@@ -1482,11 +1535,11 @@ export class LivingRoom extends DurableObject<Env> {
     } else if (data.type === "checkin" && peer.role === "visitor") {
       const day = dayKey(now);
       this.ctx.storage.sql.exec(
-        "UPDATE visitors SET days=days+CASE WHEN last_day<>? THEN 1 ELSE 0 END,last_day=?,last_seen=? WHERE id=?",
-        day,
+        "UPDATE visitors SET days=days+1,last_day=?,last_seen=? WHERE id=? AND last_day<>?",
         day,
         now,
         peer.identity,
+        day,
       );
       this.send(ws, { type: "profile", profile: this.profile(peer.identity) });
     } else if (data.type === "vote" && peer.role === "visitor") {
@@ -1720,9 +1773,13 @@ export class LivingRoom extends DurableObject<Env> {
       else this.cancelPeer(peer.id);
       ws.serializeAttachment(peer);
     }
-    this.save();
-    if (data.type === "chunk") this.broadcast(false);
-    else await this.tick();
+    if (data.type === "chunk") {
+      this.syncActiveTimer();
+      this.broadcast(false);
+    } else {
+      this.save();
+      await this.tick();
+    }
   }
   private task(
     kind: TaskKind,
@@ -1848,14 +1905,14 @@ export class LivingRoom extends DurableObject<Env> {
     this.state.nextThoughtAt = Date.now() + 20000;
   }
   private fail(job: Active, reason: string) {
+    this.clearJobTransport(job.task.id);
     this.state.active = this.state.active.filter(
       (a) => a.task.id !== job.task.id,
     );
     if (job.task.agent) {
       this.director.interrupted(job.task.agent.instanceId);
       if (job.source === "mac")
-        this.state.launchAvailableAt =
-          Date.now() + 9 * Math.max(1000, Date.now() - job.startedAt);
+        this.state.launchAvailableAt = this.interruptedCooldown(job);
     } else if (job.task.attempts < 2)
       this.state.queue.unshift({
         ...job.task,
@@ -1872,8 +1929,30 @@ export class LivingRoom extends DurableObject<Env> {
     this.state.nextThoughtAt = Date.now() + 3000;
     this.save();
   }
+  private interruptedCooldown(job: Active) {
+    // Downtime after a lease expired is not inference time. In particular,
+    // resuming a paused deployment must not create days of extra cooldown.
+    const endedAt = Math.min(Date.now(), job.deadline);
+    return endedAt + 9 * Math.max(1000, endedAt - job.startedAt);
+  }
+  private clearJobTransport(jobId: string) {
+    for (const { ws, peer } of this.peers()) {
+      const reset = peer.pending?.jobId === jobId || peer.stageJob === jobId;
+      const sample = peer.samplePending?.jobId === jobId;
+      if (!reset && !sample) continue;
+      if (reset) {
+        delete peer.pending;
+        delete peer.stageJob;
+        delete peer.stagePosition;
+      }
+      if (sample) delete peer.samplePending;
+      ws.serializeAttachment(peer);
+      if (reset) this.send(ws, { type: "pipeline_reset" });
+    }
+  }
   private cancelPeer(id: string) {
     for (const a of this.state.active.filter((a) => a.peerId === id)) {
+      this.clearJobTransport(a.task.id);
       const owner = this.peers().find((p) => p.peer.id === id);
       if (owner) this.send(owner.ws, { type: "cancel", jobId: a.task.id });
       this.state.active = this.state.active.filter(
@@ -1882,8 +1961,7 @@ export class LivingRoom extends DurableObject<Env> {
       if (a.task.agent) {
         this.director.interrupted(a.task.agent.instanceId);
         if (a.source === "mac")
-          this.state.launchAvailableAt =
-            Date.now() + 9 * Math.max(1000, Date.now() - a.startedAt);
+          this.state.launchAvailableAt = this.interruptedCooldown(a);
       } else this.state.queue.unshift({ ...a.task, id: crypto.randomUUID() });
       this.event(
         "pause",
@@ -1914,7 +1992,8 @@ export class LivingRoom extends DurableObject<Env> {
       this.syncDirectorQueue();
       // Persist a wakeup before external publication; an exception/eviction cannot
       // strand saved work or the publication outbox.
-      await this.ctx.storage.setAlarm(Date.now() + 5000);
+      if (this.inferenceCapacity() || this.directorStore.publicationCount())
+        await this.ctx.storage.setAlarm(Date.now() + 30000);
       await this.director.publishOne();
     }
     await this.tick();
@@ -2132,13 +2211,22 @@ export class LivingRoom extends DurableObject<Env> {
       }
     this.save();
     this.broadcast();
+    this.syncActiveTimer();
     if (
       peers.length ||
       (this.director.enabled && this.directorStore.publicationCount())
     ) {
-      const next = now + (peers.length ? 5000 : 60000),
+      const preparation = this.director.nextPreparationAt(
+        this.inferenceCapacity(),
+        now,
+      );
+      const next = Math.min(
+          now + 30000,
+          preparation === null ? Infinity : Math.max(now + 1000, preparation),
+        ),
         alarm = await this.ctx.storage.getAlarm();
       if (alarm === null || alarm > next) await this.ctx.storage.setAlarm(next);
-    } else await this.ctx.storage.deleteAlarm();
+    } else if ((await this.ctx.storage.getAlarm()) !== null)
+      await this.ctx.storage.deleteAlarm();
   }
 }

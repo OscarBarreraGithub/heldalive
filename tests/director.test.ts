@@ -74,6 +74,23 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("durable agent workflow", () => {
+  it("wakes for new work and expired preparation leases, not idle polling", async () => {
+    const d = new Director(new MemoryStore(), "", true);
+    expect(d.nextPreparationAt(0, at)).toBeNull();
+    expect(d.nextPreparationAt(1, at)).toBe(at);
+    await d.prepare(1, at);
+    expect(d.nextPreparationAt(1, at)).toBeNull();
+    d.accept(d.pending()[0].id, JSON.stringify(answer), "browser", 1, 1, 1, at);
+    expect(d.nextPreparationAt(1, at)).toBe(at);
+    d.state.loops[0].preparingUntil = at + 90000;
+    expect(d.nextPreparationAt(1, at)).toBe(at + 90001);
+    expect(d.nextPreparationAt(2, at)).toBe(at + 10000);
+    expect(
+      d.nextPreparationAt(1, Date.parse("2026-09-17T23:00:00Z")),
+    ).toBeNull();
+    d.setEnabled(false);
+    expect(d.nextPreparationAt(1, at)).toBeNull();
+  });
   it("stays dormant at zero capacity and restores the same agent after a restart", async () => {
     const store = new MemoryStore();
     let d = new Director(store, "", true);

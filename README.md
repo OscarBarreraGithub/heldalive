@@ -12,9 +12,9 @@ Browser compute runs the actual agents, not a separate toy workload. An agent’
 
 Each manager has an isolated Git branch. A serialized durable outbox publishes bounded records and sources through GitHub’s Git database API. Failed publication never discards completed inference. Credentials are not included in model requests. Participating browsers necessarily receive assigned inference inputs; the public notebook omits full station prompts and operational state. Earlier Luna and Qwen3.5 9B records retain their attribution.
 
-## Phone-equivalent scenario
+## Current participation display
 
-The header shows one compact phone-equivalent count: an authored baseline centered on 100 plus contributing browser holders. Slow fluctuations are part of the artwork. The presentation is deliberately minimal; source assumptions are documented in the repository. Work records and backend telemetry retain their original measurements. See [scenario assumptions](docs/edition09/COMPUTE-SCENARIO.md).
+The header reports visible browser sessions, loaded model holders and pieces still loading. It does not add the earlier authored phone-equivalent scenario to measured participation. A complete group is required for useful model inference. See [current participation behavior](docs/edition13/PARTICIPATION.md); dated edition documents preserve earlier designs.
 
 ## Daily rhythm (UTC)
 
@@ -63,3 +63,5 @@ Coordinator fixtures run only against local Wrangler. All browser tests are head
 See the [current integration plan and evidence](docs/edition11/PLAN.md), [previous audit](docs/edition10/AUDIT.md), [edition 08 plan](docs/edition08/PLAN.md), [verification and operations](docs/edition08/VERIFICATION.md), and [browser evidence](docs/edition08/BROWSER-VERIFICATION.md). The [earlier vision](docs/VISION.md) preserves deferred ideas. Layer-engine details remain in the [architecture](docs/edition03/ARCHITECTURE.md) and [numerical notes](docs/edition03/NUMERICAL-NOTES.md). Historical edition documents describe their own releases.
 
 Code is MIT; model weights are Apache-2.0, with original card, license and conversion notice in `models/` and the model artifact. Browser results are untrusted. The artwork's loss-of-compute premise does not imply consciousness or permanent erasure of model weights.
+
+The September 24 storage fix is deployed. See [free-tier storage evidence](docs/FREE-TIER-STORAGE.md) and the [remaining finalization work](docs/FINALIZATION.md).

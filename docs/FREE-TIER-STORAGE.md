@@ -6,7 +6,8 @@ The running installation exhausted Cloudflare Durable Objects' free allowance
 of 100,000 rows written per UTC day. This was confirmed by the production error
 `Exceeded allowed rows written in Durable Objects free tier.` on September 18.
 The September 21 deployment deliberately paused the site and stopped background
-work. This fix does not change billing or restart that paused deployment.
+work. The initial fix was prepared without changing that pause. On September 24,
+the owner requested deployment and restart; see the release record below.
 
 The old Worker repeatedly saved the same JSON state: on every five-second alarm,
 inside queue synchronization, at the end of each scheduler pass, and on each
@@ -87,14 +88,35 @@ credential and did not run or publish fabricated model research.
 
 ## Operating limits and restart
 
-No upgrade, DNS change, or schema migration is required. The fix is prepared in
-the app and adjacent runtime repositories. The intentionally paused production
-deployment and stopped Mac service remain unchanged.
+No upgrade, DNS change, or schema migration is required. On September 24 the
+owner authorized resuming the installation. The fixed app and native inference
+service are now running; billing and DNS were not changed.
 
-On restart, deploy the fixed app together with the adjacent runtime containing
-`Director.nextPreparationAt`, then start the existing inference service if native
-support is still wanted. Monitor actual Cloudflare write usage during the first
-active day. Do not roll back to the pre-fix active deployment to resume service.
+Deployments require the adjacent runtime containing `Director.nextPreparationAt`.
+Monitor actual Cloudflare write usage during the first active day. Do not roll
+back to the pre-fix active deployment to resume service.
+
+### Deployment and restart receipt
+
+- App source: `26dd8f5`; private runtime source: `2894c19`.
+- Cloudflare version: `f6340fa3-369f-41f0-b28d-bf607100c420`.
+- Verified all 580 model buffers and attribution before deployment.
+- Restored the existing `com.heldalive.launch` LaunchAgent; did not reinstall the
+  retired local research supervisor or change the Qwen3 4B checkpoint.
+- Both HTTPS domains, health, room state and research endpoints returned 200.
+- Saved completed-role count progressed from 418 to 420 after restart. The new
+  researcher result was [published to the public notebook](https://github.com/heldalive/memory-research/commit/7b105e9c75198cde2dd1f9cd1ddc7e83ce01a318).
+  Publication backlog reached zero with no publication error.
+- Production UI checks passed at 320, 390, 768 and 1440 pixels, including all
+  three destinations, mural navigation, keyboard focus and spectator behavior.
+  Inspected mobile and desktop screenshots. No visible Chrome windows were used.
+- Cloudflare analytics queried at 19:35:30 UTC reported 57 writes and 2,982 reads
+  in the requested post-restart interval (19:28 onward), with no Worker request,
+  CPU-limit or memory-limit errors. Analytics lag; this is a short observed window.
+  The 97% figure remains a local idle replay measurement, not a measured
+  production-day reduction.
+- The audit found a separate HTTP request risk: five-second per-tab observatory
+  polling. That is tracked in [finalization](FINALIZATION.md).
 
 Useful completed work, new visitors, publication retries and indexed records
 still consume writes. Browser inference also consumes WebSocket request quota.
